@@ -1,0 +1,56 @@
+/* main */
+:root {
+    --body-color: #1a1a2e;
+    --sidebar-color: #16213e;
+    --primary-color: #6c5ce7;
+    --card-bg: #0f3460;
+    --text-color: #f5f6fa;
+    --text-muted: #a0a3b1;
+    --transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body {
+    background-color: var(--body-color);
+    color: var(--text-color);
+    margin: 0;
+    display: flex; /* Supports the sidebar + main content layout */
+}
+
+/* navbar */
+/* --- SIDEBAR BASE STATE --- */
+.sidebar-nav {
+    position: fixed;
+    width: 60px; /* Base width */
+    height: 100vh;
+    background-color: var(--sidebar-color);
+    transition: var(--transition-smooth);
+    z-index: 100; /* Keeps it above the 3D flip cards */
+}
+
+/* --- HOVER EXPANSION --- */
+.sidebar-nav:hover {
+    width: 240px; /* Expanded width */
+}
+
+/* --- NAVIGATION LINKS --- */
+.navbar ul {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+}
+
+.navbar li a {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    text-decoration: none;
+    color: var(--text-muted);
+    transition: var(--transition-fast);
+    white-space: nowrap;        /* Prevents text from wrapping during expansion */
+    transition: var(--transition-fast);   /* Uses your 0.3s ease */
+}
+
+.navbar li a:hover {
+    background-color: var(--card-bg);
+    color: var(--primary-color);
+}
