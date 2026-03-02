@@ -3,52 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dormitoration</title>
-    <link rel="stylesheet" href="/design/index.css">
+    <title>Dormitoration | Home</title>
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="/design/index.css">
 </head>
-<body>
+<body class="dark-mode"> <header class="top-nav">
+        <div class="nav-container">
+            <div class="brand">
+                <i class='bx bxs-building-house'></i>
+                <span>Dormitoration</span>
+            </div>
 
-    <header>
-    <aside class="sidebar-nav">
-        <nav class="navbar">
-            <ul class="nav-list">
-            <li><a href="index.html">
-                <i class='bx bx-home-alt icon'></i>
-                <span class="text">Home</span>
-            </a></li>
-
-            <li><a href="dashboard.html" class="active">
-                <i class='bx bxs-dashboard icon'></i>
-                <span class="text">Dashboard</span>
-            </a></li>
-
-            <li><a href="reports.html">
-                <i class='bx bxs-report icon'></i>
-                <span class="text">Report</span>
-            </a></li>
-
-            <li><a href="about.html">
-                <i class='bx bx-info-circle icon'></i>
-                <span class="text">About Us</span>
-            </a></li>
-
-            <li><a href="settings.html">
-                <i class='bx bx-cog icon'></i>
-                <span class="text">Settings</span>
-            </a></li>
-            </ul>
-        </nav>
-    </aside>
-    </header>
-    <main class="main-box">
-        <h1>System Overview</h1>
-        <div class="content-card">
-            <p>This box is now managed alongside the sidebar.</p>
+            <nav class="nav-links">
+                <a href="#about">About Us</a>
+                <a href="#" class="btn-outline">Sign In</a>
+                <a href="#" class="btn-primary">Sign Up</a>
+                <button id="theme-toggle" class="theme-btn">
+                    <i class='bx bx-moon' id="theme-icon"></i>
+                </button>
+            </nav>
         </div>
+    </header>
+
+    <main class="scroll-container">
+        <section class="home-section" id="hero">
+            <div class="hero-content">
+                <h1>Monitor Your Dorm <br><span>Operations</span> Anywhere.</h1>
+                <p>Real-time tracking for student safety and facility management.</p>
+                <a href="#about" class="explore-btn">Explore Features <i class='bx bx-chevron-down'></i></a>
+            </div>
+        </section>
+
+        <section class="home-section" id="about">
+            <div class="about-grid">
+                <div class="about-text">
+                    <h2>About Us</h2>
+                    <p>Dormitoration is a cutting-edge monitor operation system designed specifically for high-density student housing.</p>
+                </div>
+                <div class="stat-card">
+                    <i class='bx bx-shield-quarter'></i>
+                    <h3>Secure Monitoring</h3>
+                    <p>24/7 logging of entry and exit points.</p>
+                </div>
+            </div>
+        </section>
     </main>
-    <footer>
-        
+
+    <footer class="main-footer">
+        <p>&copy; 2026 Dormitoration System. All Rights Reserved.</p>
     </footer>
+
+    <script>
+        /*Theme Switcher*/
+        const btn = document.getElementById('theme-toggle');
+        const icon = document.getElementById('theme-icon');
+        btn.onclick = () => {
+            document.body.classList.toggle('light-mode');
+            icon.classList.toggle('bx-moon');
+            icon.classList.toggle('bx-sun');
+        }
+        /*/Theme Switcher*/
+    </script>
 </body>
 </html>
