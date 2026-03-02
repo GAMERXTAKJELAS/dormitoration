@@ -1,0 +1,240 @@
+/* main */
+:root {
+    --body-color: #121212;
+    --sidebar-color: #1b251e;
+    --primary-color: #47f59b;
+    --card-bg: #282828;
+    --text-color: #bcfcd2;
+    --text-muted: #8b8b8b;
+    --transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body {
+    background-color: var(--body-color);
+    color: var(--text-color);
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+}
+/* /main */
+
+/* --- SIDEBAR BASE STATE --- */
+.sidebar-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 80px; /* Width when closed */
+    height: 100vh;
+    background-color: var(--sidebar-color);
+    transition: var(--transition-smooth);
+    z-index: 1000;
+    overflow: hidden;
+    border-right: 1px solid var(--card-bg);
+}
+
+/* --- HOVER EXPANSION --- */
+.sidebar-nav:hover {
+    width: 260px; /* Width when opened */
+}
+
+/* --- LOGO SECTION --- */
+.logo-section {
+    height: 70px;
+    display: flex;
+    align-items: center;
+    padding: 0 25px;
+}
+
+.logo-section i {
+    font-size: 30px;
+    color: var(--primary-color);
+    min-width: 30px;
+}
+
+/* --- NAVIGATION LINKS --- */
+.navbar ul {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+}
+
+.navbar li a {
+    display: flex;
+    align-items: center;
+    height: 50px;
+    padding: 0 25px;
+    text-decoration: none;
+    color: var(--text-muted);
+    white-space: nowrap;
+    transition: var(--transition-smooth);
+}
+
+.navbar li a i {
+    font-size: 22px;
+    min-width: 30px;
+    margin-right: 20px;
+}
+
+.navbar li a:hover, .navbar li a.active {
+    background-color: var(--card-bg);
+    color: var(--primary-color);
+}
+
+.nav-list {
+    display: flex;
+    flex-direction: column; /* This ensures vertical auto-arrangement */
+    gap: 5px;               /* This creates automatic equal spacing between links */
+    list-style: none;
+    padding: 10px 0;
+    margin: 0;
+}
+
+.nav-list li {
+    width: 100%;           /* Ensures every link fills the sidebar width */
+}
+
+.nav-list li a {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    text-decoration: none;
+    color: var(--text-muted);
+    transition: var(--transition-smooth);
+    overflow: hidden;      /* Keeps the sidebar clean when collapsed */
+}
+
+/* Hover & Active Auto-styling */
+.nav-list li a:hover, 
+.nav-list li a.active {
+    background-color: var(--card-bg);
+    color: var(--primary-color);
+    border-left: 4px solid var(--primary-color); /* Adds a "indicator" line automatically */
+}
+
+/* Hide text when sidebar is closed */
+.sidebar-nav .text {
+    opacity: 0;
+    transition: var(--transition-smooth);
+}
+
+.sidebar-nav:hover .text {
+    opacity: 1;
+}
+
+/* --- MAIN BOX MANAGEMENT --- */
+.main-box {
+    margin-left: 80px; /* Matches the closed sidebar width */
+    padding: 40px;
+    transition: var(--transition-smooth);
+    width: calc(100% - 80px);
+}
+
+/* Optional: If you want the main box to push away when sidebar opens */
+/* .sidebar-nav:hover ~ .main-box {
+    margin-left: 260px;
+} */
+
+/* --- SETTINGS LAYOUT (AUTO-ARRANGE) --- */
+
+.page-header {
+    margin-bottom: 30px;
+}
+
+/* The magic "Auto-Arrange" container */
+.settings-grid {
+    display: grid;
+    /* This creates a grid where items are at least 350px wide. 
+       If there is space, it puts them side-by-side; otherwise, it stacks them. */
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 25px;
+}
+
+.settings-card {
+    background-color: var(--card-bg);
+    padding: 25px;
+    border-radius: 12px;
+    border: 1px solid var(--sidebar-color);
+    transition: var(--transition-smooth);
+}
+
+/* Header style inside cards */
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.card-header i {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+}
+
+.card-header h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    flex: 1;
+}
+
+/* --- LOG TABLE STYLING --- */
+.table-wrapper {
+    overflow-x: auto; /* Allows scrolling on phone if table is too wide */
+    margin-top: 10px;
+}
+
+.log-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    color: var(--text-color);
+}
+
+.log-table th {
+    text-align: left;
+    padding: 12px;
+    border-bottom: 2px solid var(--body-color);
+    color: var(--text-muted);
+}
+
+.log-table td {
+    padding: 12px;
+    border-bottom: 1px solid var(--body-color);
+}
+
+/* Status Tags */
+.status-tag {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+.status-tag.success { background: rgba(71, 245, 155, 0.2); color: var(--primary-color); }
+.status-tag.danger { background: rgba(217, 74, 74, 0.2); color: #ff6b6b; }
+.status-tag.info { background: rgba(64, 119, 209, 0.2); color: #92b2e5; }
+
+/* Buttons */
+.btn-small {
+    background: transparent;
+    border: 1px solid var(--text-muted);
+    color: var(--text-muted);
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: var(--body-color);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* Allow the Log card to span 2 columns if the screen is wide enough */
+@media (min-width: 1200px) {
+    .log-card {
+        grid-column: span 2;
+    }
+}

@@ -1,0 +1,181 @@
+/* main */
+:root {
+    --body-color: #121212;
+    --sidebar-color: #1b251e;
+    --primary-color: #47f59b;
+    --card-bg: #282828;
+    --text-color: #bcfcd2;
+    --text-muted: #8b8b8b;
+    --transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* --- THEME OVERRIDES --- */
+.light-mode {
+    --body-color: #f5f6fa;
+    --text-color: #1a1a2e;
+    --card-bg: #ffffff;
+    --sidebar-color: #ffffff;
+    --text-muted: #636e72;
+}
+
+body {
+    background-color: var(--body-color);
+    color: var(--text-color);
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+}
+/* /main */
+
+/* --- NAVIGATION BAR --- */
+.top-nav {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    height: 70px;
+    background-color: var(--sidebar-color);
+    border-bottom: 1px solid var(--card-bg);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+}
+
+.nav-container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between; /* Brand Left, Links Right */
+    align-items: center;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: var(--text-color);
+    font-weight: 500;
+    transition: var(--transition-smooth);
+}
+
+.nav-links a:hover { color: var(--primary-color); }
+
+/* Buttons */
+.btn-primary {
+    background-color: var(--primary-color);
+    color: var(--body-color) !important;
+    padding: 8px 18px;
+    border-radius: 6px;
+}
+
+.theme-btn {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 1.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+/* --- SCROLL SECTIONS --- */
+.scroll-container {
+    height: 100vh;
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory; /* Makes sections "snap" into place */
+}
+
+.home-section {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    scroll-snap-align: start; /* Alignment for snapping */
+    padding: 0 10%;
+}
+
+/* Hero Content */
+.hero-content { text-align: center; }
+.hero-content h1 { font-size: 3.5rem; margin-bottom: 10px; }
+.hero-content span { color: var(--primary-color); }
+
+/* About Grid (Auto-arranging) */
+.about-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Auto arrange boxes */
+    gap: 40px;
+    align-items: center;
+    width: 100%;
+}
+
+.stat-card {
+    background: var(--card-bg);
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    border: 1px solid var(--primary-color);
+}
+
+.stat-card i { font-size: 3rem; color: var(--primary-color); }
+
+/* --- FOOTER --- */
+.main-footer {
+    height: 60px;
+    background: var(--sidebar-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+/* --- ADMIN VISIBILITY LOGIC --- */
+
+/* 1. Hide Admin controls by default */
+.admin-controls {
+    display: none; 
+    gap: 20px;
+    align-items: center;
+    border-left: 1px solid var(--text-muted);
+    padding-left: 20px;
+    margin-right: 10px;
+}
+
+/* 2. Only show them if the body has the 'admin-user' class */
+.admin-user .admin-controls {
+    display: flex;
+}
+
+/* Styling for the admin icons */
+.admin-controls a {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.95rem;
+    color: var(--primary-color) !important; /* Make admin links stand out */
+}
+
+/* --- ABOUT US LINK --- */
+/* Simple fix to ensure it looks like a standard link */
+.nav-links a[href="about.html"] {
+    cursor: pointer;
+}
+
+/* --- RE-AUTO ARRANGE NAV --- */
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 20px; /* Space will auto-adjust when admin-controls appear */
+}

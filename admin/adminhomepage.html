@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dormitoration | Home</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="/design/adminhomepage.css">
+</head>
+<body class="dark-mode admin-user">
+
+    <header class="top-nav">
+        <div class="nav-container">
+            <div class="brand">
+                <i class='bx bxs-building-house'></i>
+                <span>Dormitoration</span>
+            </div>
+
+            <nav class="nav-links">
+                <a href="about.html">About Us</a>
+
+                <div class="admin-controls">
+                    <a href="/admin/dashboard.html" class="nav-item"><i class='bx bxs-dashboard'></i> Dashboard</a>
+                    <a href="/admin/report.html" class="nav-item"><i class='bx bxs-report'></i> Report</a>
+                </div>
+
+<!--                 <a href="#" class="btn-outline">Sign In</a>
+                <a href="#" class="btn-primary">Sign Up</a> -->
+                
+                <button id="theme-toggle" class="theme-btn">
+                    <i class='bx bx-moon' id="theme-icon"></i>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="scroll-container">
+        <section class="home-section">
+            <div class="hero-content">
+                <h1>Dormitory Monitor <br><span>Operation System</span></h1>
+                <p>Advanced oversight for modern student living.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer class="main-footer">
+        <p>&copy; 2026 Dormitoration System</p>
+    </footer>
+
+    <script>
+        // Theme Toggle Script
+        const btn = document.getElementById('theme-toggle');
+        const icon = document.getElementById('theme-icon');
+        btn.onclick = () => {
+            document.body.classList.toggle('light-mode');
+            icon.classList.toggle('bx-moon');
+            icon.classList.toggle('bx-sun');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dormitoration</title>
+    <link rel="stylesheet" href="/design/settings.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+</head>
+<body>
+
+    <header>
+    <aside class="sidebar-nav">
+        <nav class="navbar">
+            <ul class="nav-list">
+            <li><a href="/admin/adminhomepage.html">
+                <i class='bx bx-home-alt icon'></i>
+                <span class="text">Home</span>
+            </a></li>
+
+            <li><a href="dashboard.html">
+                <i class='bx bxs-dashboard icon'></i>
+                <span class="text">Dashboard</span>
+            </a></li>
+
+            <li><a href="/admin/report.html">
+                <i class='bx bxs-report icon'></i>
+                <span class="text">Report</span>
+            </a></li>
+
+            <li><a href="about.html">
+                <i class='bx bx-info-circle icon'></i>
+                <span class="text">About Us</span>
+            </a></li>
+
+            <li><a href="settings.html" class="active">
+                <i class='bx bx-cog icon'></i>
+                <span class="text">Settings</span>
+            </a></li>
+            </ul>
+        </nav>
+    </aside>
+    </header>
+    <main class="main-box">
+        <div class="page-header">
+            <h1>System Settings</h1>
+            <p>Manage your dormitory IoT nodes and database logs.</p>
+        </div>
+
+        <div class="settings-grid">
+        
+            <div class="settings-card log-card">
+                <div class="card-header">
+                    <i class='bx bx-list-ul'></i>
+                    <h2>System Activity Logs</h2>
+                    <button class="btn-small">Clear Logs</button>
+                </div>
+            
+                <div class="table-wrapper">
+                    <table class="log-table">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Event</th>
+                                <th>User/Node</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>2026-03-02 14:20</td>
+                                <td>Smart Lock Triggered</td>
+                                <td>Node_Gate_01</td>
+                                <td><span class="status-tag success">Success</span></td>
+                            </tr>
+                            <tr>
+                                <td>2026-03-02 14:22</td>
+                                <td>Invalid Access Attempt</td>
+                                <td>Student_ID_992</td>
+                                <td><span class="status-tag danger">Denied</span></td>
+                            </tr>
+                            <tr>
+                                <td>2026-03-02 14:25</td>
+                                <td>Database Sync</td>
+                                <td>System_Admin</td>
+                                <td><span class="status-tag info">Info</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="settings-card">
+                <div class="card-header">
+                    <i class='bx bx-download'></i>
+                    <h2>Data Export</h2>
+                </div>
+                <p>Download your system logs as CSV or JSON for offline reporting.</p>
+                <div class="button-group">
+                    <button class="btn-primary">Export CSV</button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+    <footer>
+        
+    </footer>
+</body>
+</html>
