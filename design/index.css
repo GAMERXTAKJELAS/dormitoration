@@ -79,24 +79,6 @@ body {
     color: var(--primary-color);
 }
 
-/* Hide text when sidebar is closed */
-.sidebar-nav .text {
-    opacity: 0;
-    transition: var(--transition-smooth);
-}
-
-.sidebar-nav:hover .text {
-    opacity: 1;
-}
-
-/* --- MAIN BOX MANAGEMENT --- */
-.main-box {
-    margin-left: 80px; /* Matches the closed sidebar width */
-    padding: 40px;
-    transition: var(--transition-smooth);
-    width: calc(100% - 80px);
-}
-
 .nav-list {
     display: flex;
     flex-direction: column; /* This ensures vertical auto-arrangement */
@@ -126,6 +108,24 @@ body {
     background-color: var(--card-bg);
     color: var(--primary-color);
     border-left: 4px solid var(--primary-color); /* Adds a "indicator" line automatically */
+}
+
+/* Hide text when sidebar is closed */
+.sidebar-nav .text {
+    opacity: 0;
+    transition: var(--transition-smooth);
+}
+
+.sidebar-nav:hover .text {
+    opacity: 1;
+}
+
+/* --- MAIN BOX MANAGEMENT --- */
+.main-box {
+    margin-left: 80px; /* Matches the closed sidebar width */
+    padding: 40px;
+    transition: var(--transition-smooth);
+    width: calc(100% - 80px);
 }
 
 /* Optional: If you want the main box to push away when sidebar opens */
