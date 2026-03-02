@@ -1,0 +1,181 @@
+:root {
+    --clr-surface-a0: #121212;
+    --clr-surface-a10: #282828;
+    --clr-surface-a30: #575757;
+    --clr-surface-tonal-a0: #1b2419;
+    --clr-primary-a0: #56e64c;
+    --clr-primary-a50: #bff6b2;
+    --accent: var(--clr-primary-a0);
+    --bg-body: var(--clr-surface-a0);
+    --bg-sidebar: var(--clr-surface-a10);
+    --text-main: var(--clr-primary-a50);
+}
+
+body {
+    background-color: var(--bg-body);
+    color: var(--text-main);
+    font-family: 'Segoe UI', Roboto, Helvetica, sans-serif;
+    margin: 0;
+}
+
+/* --- Navigation --- */
+.navbar {
+    background-color: var(--clr-surface-a10);
+    border-bottom: 1px solid var(--clr-surface-a30);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+}
+
+.logo a {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #fff;
+    text-decoration: none;
+    letter-spacing: 1px;
+}
+
+.logo span { color: var(--accent); }
+
+.menu {
+    display: flex;
+    list-style: none;
+    gap: 2rem;
+}
+
+.menu a {
+    text-decoration: none;
+    color: var(--text-main);
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.menu a:hover { color: var(--accent); }
+
+/* --- Sidebar Logic --- */
+.nav-toggle { display: none; }
+.nav-toggle-label { display: none; cursor: pointer; }
+
+/* Sidebar Menu Styling */
+.side-menu {
+    list-style: none;
+    padding: 20px 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.side-menu li {
+    width: 100%;
+}
+
+.side-menu li a {
+    display: flex;
+    align-items: center;
+    padding: 12px 25px;
+    text-decoration: none;
+    color: var(--text-main);
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+}
+
+/* Icon Spacing */
+.side-menu li a i {
+    font-size: 24px;
+    margin-right: 15px;
+    min-width: 30px;
+    color: var(--accent); /* Icons pop with your neon green */
+}
+
+/* Hover Effect */
+.side-menu li a:hover {
+    background-color: var(--bg-input); /* Using your tonal dark color */
+    color: #ffffff;
+    border-left: 4px solid var(--accent);
+}
+
+/* Active State (if you want to highlight current page) */
+.side-menu li.active a {
+    background-color: var(--bg-input);
+    border-left: 4px solid var(--accent);
+    color: #fff;
+}
+
+/* --- Content --- */
+.content { padding: 2rem; max-width: 1200px; margin: 0 auto; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 2rem; }
+.card { background: var(--clr-surface-a10); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--clr-surface-a30); }
+.value { font-size: 2rem; font-weight: bold; color: var(--accent); }
+
+/* --- Tablet & Phone Sidebar Design --- */
+@media (max-width: 1024px) {
+    .nav-toggle-label {
+        display: block;
+        width: 30px;
+        height: 30px;
+        position: relative;
+        z-index: 1001;
+    }
+
+    /* Hamburger Lines */
+    .nav-toggle-label span, 
+    .nav-toggle-label span::before, 
+    .nav-toggle-label span::after {
+        display: block;
+        background: var(--accent);
+        height: 2px;
+        width: 100%;
+        border-radius: 2px;
+        position: relative;
+    }
+
+    .nav-toggle-label span::before { content: ''; position: absolute; top: -10px; }
+    .nav-toggle-label span::after { content: ''; position: absolute; top: 10px; }
+
+    /* The Sidebar Panel */
+    .sidebar {
+        position: fixed;
+        left: -260px; /* Hidden */
+        top: 0;
+        width: 260px;
+        height: 100vh;
+        background: var(--bg-card);
+        z-index: 1000;
+        transition: 0.4s;
+        padding-top: 80px;
+        box-shadow: 5px 0 15px rgba(0,0,0,0.5);
+    }
+
+    .nav-toggle:checked ~ .navbar .sidebar {
+        left: 0;
+    }
+
+    .nav-toggle-label i {
+        font-size: 2rem;
+        color: var(--accent);
+    }
+
+    .menu {
+        flex-direction: column;
+        align-items: center;
+        gap: 2.5rem;
+    }
+
+    .menu a { font-size: 1.2rem; }
+
+    /* Show Sidebar when Checkbox is checked */
+    .nav-toggle:checked ~ .navbar .sidebar {
+        left: 0;
+    }
+}

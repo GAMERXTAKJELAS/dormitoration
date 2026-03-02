@@ -1,0 +1,26 @@
+:root {
+    /* Map your uploaded palette to functional names */
+    --bg-body: var(--clr-surface-a0);      /* #121212 - Deep Dark */
+    --bg-card: var(--clr-surface-a10);     /* #282828 - Lighter Dark */
+    --bg-input: var(--clr-surface-tonal-a0); /* #1b2419 - Tonal Dark */
+    
+    --text-main: var(--clr-primary-a50);    /* #bff6b2 - Soft Green Text */
+    --text-muted: var(--clr-surface-a50);   /* #8b8b8b - Gray for footer/labels */
+    
+    --accent: var(--clr-primary-a0);        /* #56e64c - Neon Green for buttons/links */
+    --border: var(--clr-surface-a30);      /* #575757 - Subtle dividers */
+    
+    /* Status Colors from your list */
+    --success: var(--clr-success-a10);
+    --warning: var(--clr-warning-a10);
+    --danger: var(--clr-danger-a10);
+}
+
+/* Base Body Setup */
+body {
+    background-color: var(--bg-body);
+    color: var(--text-main);
+    font-family: 'Helvetica', sans-serif; /* Per Lab 6 PDF requirement */
+    margin: 0;
+    padding: 0;
+}
