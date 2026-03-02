@@ -1,0 +1,181 @@
+:root {
+    --body-color: #121212;
+    --sidebar-color: #1b251e;
+    --primary-color: #47f59b;
+    --card-bg: #282828;
+    --text-color: #bcfcd2;
+    --text-muted: #8b8b8b;
+    --transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* --- LIGHT MODE (Active when switch is ON) --- */
+/* We apply these to the body so everything inside changes */
+body.light-mode {
+    --body-color: #f5f6fa;       /* Light Grey Background */
+    --sidebar-color: #ffffff;    /* Pure White Nav */
+    --primary-color: #2ecc71;    /* Slightly darker green for readability on white */
+    --card-bg: #ffffff;          /* White Cards */
+    --text-color: #1a1a2e;       /* Dark Navy Text */
+    --text-muted: #636e72;       /* Grey Muted Text */
+}
+
+body {
+    background-color: var(--body-color);
+    color: var(--text-color);
+    margin: 0;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    font-family: 'Segoe UI', sans-serif;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* --- NAVIGATION --- */
+.top-nav {
+    position: fixed;
+    top: 0; width: 100%; height: 70px;
+    background-color: var(--sidebar-color);
+    border-bottom: 1px solid var(--card-bg);
+    z-index: 2000;
+    display: flex; align-items: center;
+}
+
+.nav-container {
+    width: 90%; max-width: 1200px;
+    margin: 0 auto; display: flex;
+    justify-content: space-between; align-items: center;
+}
+
+.brand { display: flex; align-items: center; gap: 8px; font-weight: bold; color: var(--primary-color); }
+.nav-links { display: flex; align-items: center; gap: 15px; }
+.nav-links a { text-decoration: none; color: var(--text-color); transition: 0.3s; }
+.admin-controls { display: none; gap: 15px; border-left: 1px solid var(--card-bg); padding-left: 15px; }
+.admin-user .admin-controls { display: flex; }
+
+/* --- MAIN CONTENT AREA --- */
+.main-content {
+    flex: 1;
+    padding: 100px 5% 40px; /* 100px top padding avoids the fixed header */
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* --- STATUS LOGIC --- */
+.status-header { display: flex; gap: 10px; margin-bottom: 30px; justify-content: center; }
+.status-indicator { padding: 6px 15px; border-radius: 20px; font-size: 0.8rem; opacity: 0.2; border: 1px solid var(--text-muted); }
+
+.status-pending .pending { opacity: 1; color: orange; border-color: orange; }
+.status-success .success { opacity: 1; color: var(--primary-color); border-color: var(--primary-color); }
+.status-fail .fail { opacity: 1; color: #ff6b6b; border-color: #ff6b6b; }
+
+.view-register, .view-success, .view-fail, .view-pending { display: none; }
+.status-none .view-register, .status-pending .view-pending, 
+.status-success .view-success, .status-fail .view-fail { display: block; }
+
+/* --- CARDS & GRID --- */
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.info-card, .error-card, .pending-card {
+    background: var(--card-bg);
+    padding: 30px; border-radius: 15px;
+    border: 1px solid var(--sidebar-color);
+    text-align: center;
+}
+
+.passcode { background: var(--body-color); padding: 15px; border-radius: 10px; margin: 20px 0; border: 1px dashed var(--primary-color); }
+.passcode p { font-size: 2.5rem; letter-spacing: 8px; margin: 0; color: var(--primary-color); }
+.qr-box i { font-size: 6rem; }
+
+/* --- FOOTER --- */
+.main-footer { padding: 20px; background: var(--sidebar-color); text-align: center; font-size: 0.8rem; color: var(--text-muted); }
+
+/* --- RESPONSIVE DESIGN (THE FIX) --- */
+
+/* Tablet View */
+@media (max-width: 992px) {
+    .brand span { font-size: 1.1rem; }
+    .hero-content h1 { font-size: 2.5rem; }
+}
+
+/* Mobile View (Phone) */
+@media (max-width: 600px) {
+    .hide-mobile { display: none; } /* Hides text labels to save space */
+    
+    .nav-container { width: 95%; }
+    
+    .status-header { flex-wrap: wrap; } /* Stack status labels if screen is too thin */
+    
+    .main-content { padding-top: 90px; }
+    
+    .passcode p { font-size: 1.8rem; letter-spacing: 4px; }
+    
+    .info-card { padding: 20px; }
+    
+    .top-nav { height: 60px; }
+}
+
+/* --- THEME SLIDER STYLING --- */
+.theme-switch-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.theme-switch {
+    display: inline-block;
+    height: 24px;
+    position: relative;
+    width: 50px;
+}
+
+.theme-switch input {
+    display: none; /* Hide the actual checkbox */
+}
+
+.slider {
+    background-color: #333; /* Dark background for the switch */
+    bottom: 0;
+    cursor: pointer;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    transition: .4s;
+    border: 1px solid var(--primary-color);
+}
+
+.slider:before {
+    background-color: var(--primary-color);
+    bottom: 4px;
+    content: "";
+    height: 14px;
+    left: 4px;
+    position: absolute;
+    transition: .4s;
+    width: 14px;
+}
+
+/* When checked (Light Mode), move the slider and change colors */
+input:checked + .slider {
+    background-color: #ccc;
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+    background-color: #fff;
+}
+
+/* Rounded effect */
+.slider.round {
+    border-radius: 34px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}

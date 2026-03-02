@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dormitoration | Student Portal</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="/design/studenthomepage.css">
+</head>
+<body class="dark-mode admin-user"> <header class="top-nav">
+        <div class="nav-container">
+            <div class="brand">
+                <i class='bx bxs-building-house'></i>
+                <span>Dormitoration</span>
+            </div>
+
+            <nav class="nav-links">
+                <a href="about.html" class="hide-mobile">About Us</a>
+                <div class="admin-controls">
+                    <a href="/index.html" class="nav-item"><i class='bx bx-log-out'></i> <span class="hide-mobile">Log Out</span></a>
+                    <a href="settings.html" class="nav-item"><i class='bx bx-cog'></i> <span class="hide-mobile">Settings</span></a>
+                </div>
+<div class="theme-switch-wrapper">
+    <i class='bx bx-moon'></i> <label class="theme-switch" for="checkbox">
+        <input type="checkbox" id="checkbox" />
+        <div class="slider round"></div>
+    </label>
+    <i class='bx bx-sun'></i> </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content status-pending">
+        
+        <div class="status-header">
+            <div class="status-indicator pending"><i class='bx bx-time-five'></i> Pending</div>
+            <div class="status-indicator success"><i class='bx bx-check-circle'></i> Success</div>
+            <div class="status-indicator fail"><i class='bx bx-x-circle'></i> Fail</div>
+        </div>
+
+        <div class="content-wrapper">
+            <div class="view-register">
+                <h1>Welcome, Student</h1>
+                <p>Start your dormitory journey here.</p>
+                <a href="register-room.html" class="btn-primary">Register Room Now</a>
+            </div>
+
+            <div class="view-success">
+                <div class="info-grid">
+                    <div class="info-card">
+                        <h3>Room Details</h3>
+                        <div class="badge">Block A</div>
+                        <p class="room-no">Room 302</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>Smart Access</h3>
+                        <div class="passcode">
+                            <small>PASSCODE</small>
+                            <p>#5521</p>
+                        </div>
+                        <div class="qr-box">
+                            <i class='bx bx-qr-scan'></i>
+                            <p>Scan to Unlock</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="view-fail">
+                <div class="error-card">
+                    <i class='bx bxs-error-circle'></i>
+                    <h2>Registration Failed</h2>
+                    <p>Information incomplete or blurry document. Please try again.</p>
+                    <a href="register-room.html" class="btn-outline">Fix Registration</a>
+                </div>
+            </div>
+
+            <div class="view-pending">
+                <div class="pending-card">
+                    <div class="loader"></div>
+                    <h2>Verifying Details...</h2>
+                    <p>The Admin is currently reviewing your application.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="main-footer">
+        <p>&copy; 2026 Dormitoration System</p>
+    </footer>
+
+</body>
+<script>
+    const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
+
+function switchTheme(e) {
+    if (e.target.checked) {
+        document.body.classList.add('light-mode');
+        document.body.classList.remove('dark-mode');
+    } else {
+        document.body.classList.add('dark-mode');
+        document.body.classList.remove('light-mode');
+    }    
+}
+
+toggleSwitch.addEventListener('change', switchTheme, false);
+</script>
+</html>
