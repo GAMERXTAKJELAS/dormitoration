@@ -1,11 +1,11 @@
 /* main */
 :root {
-    --body-color: #1a1a2e;
-    --sidebar-color: #16213e;
-    --primary-color: #6c5ce7;
-    --card-bg: #0f3460;
-    --text-color: #f5f6fa;
-    --text-muted: #a0a3b1;
+    --body-color: #121212;
+    --sidebar-color: #1b251e;
+    --primary-color: #47f59b;
+    --card-bg: #282828;
+    --text-color: #bcfcd2;
+    --text-muted: #8b8b8b;
     --transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -13,23 +13,41 @@ body {
     background-color: var(--body-color);
     color: var(--text-color);
     margin: 0;
-    display: flex; /* Supports the sidebar + main content layout */
+    font-family: 'Segoe UI', sans-serif;
 }
+/* /main */
 
-/* navbar */
 /* --- SIDEBAR BASE STATE --- */
 .sidebar-nav {
     position: fixed;
-    width: 60px; /* Base width */
+    top: 0;
+    left: 0;
+    width: 80px; /* Width when closed */
     height: 100vh;
     background-color: var(--sidebar-color);
     transition: var(--transition-smooth);
-    z-index: 100; /* Keeps it above the 3D flip cards */
+    z-index: 1000;
+    overflow: hidden;
+    border-right: 1px solid var(--card-bg);
 }
 
 /* --- HOVER EXPANSION --- */
 .sidebar-nav:hover {
-    width: 240px; /* Expanded width */
+    width: 260px; /* Width when opened */
+}
+
+/* --- LOGO SECTION --- */
+.logo-section {
+    height: 70px;
+    display: flex;
+    align-items: center;
+    padding: 0 25px;
+}
+
+.logo-section i {
+    font-size: 30px;
+    color: var(--primary-color);
+    min-width: 30px;
 }
 
 /* --- NAVIGATION LINKS --- */
@@ -42,15 +60,75 @@ body {
 .navbar li a {
     display: flex;
     align-items: center;
-    padding: 15px 20px;
+    height: 50px;
+    padding: 0 25px;
     text-decoration: none;
     color: var(--text-muted);
-    transition: var(--transition-fast);
-    white-space: nowrap;        /* Prevents text from wrapping during expansion */
-    transition: var(--transition-fast);   /* Uses your 0.3s ease */
+    white-space: nowrap;
+    transition: var(--transition-smooth);
 }
 
-.navbar li a:hover {
+.navbar li a i {
+    font-size: 22px;
+    min-width: 30px;
+    margin-right: 20px;
+}
+
+.navbar li a:hover, .navbar li a.active {
     background-color: var(--card-bg);
     color: var(--primary-color);
 }
+
+/* Hide text when sidebar is closed */
+.sidebar-nav .text {
+    opacity: 0;
+    transition: var(--transition-smooth);
+}
+
+.sidebar-nav:hover .text {
+    opacity: 1;
+}
+
+/* --- MAIN BOX MANAGEMENT --- */
+.main-box {
+    margin-left: 80px; /* Matches the closed sidebar width */
+    padding: 40px;
+    transition: var(--transition-smooth);
+    width: calc(100% - 80px);
+}
+
+.nav-list {
+    display: flex;
+    flex-direction: column; /* This ensures vertical auto-arrangement */
+    gap: 5px;               /* This creates automatic equal spacing between links */
+    list-style: none;
+    padding: 10px 0;
+    margin: 0;
+}
+
+.nav-list li {
+    width: 100%;           /* Ensures every link fills the sidebar width */
+}
+
+.nav-list li a {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    text-decoration: none;
+    color: var(--text-muted);
+    transition: var(--transition-smooth);
+    overflow: hidden;      /* Keeps the sidebar clean when collapsed */
+}
+
+/* Hover & Active Auto-styling */
+.nav-list li a:hover, 
+.nav-list li a.active {
+    background-color: var(--card-bg);
+    color: var(--primary-color);
+    border-left: 4px solid var(--primary-color); /* Adds a "indicator" line automatically */
+}
+
+/* Optional: If you want the main box to push away when sidebar opens */
+/* .sidebar-nav:hover ~ .main-box {
+    margin-left: 260px;
+} */
