@@ -8,22 +8,20 @@
     --transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* --- LIGHT MODE (Active when switch is ON) --- */
-/* We apply these to the body so everything inside changes */
 body.light-mode {
-    --body-color: #f5f6fa;       /* Light Grey Background */
-    --sidebar-color: #ffffff;    /* Pure White Nav */
-    --primary-color: #2ecc71;    /* Slightly darker green for readability on white */
-    --card-bg: #ffffff;          /* White Cards */
-    --text-color: #1a1a2e;       /* Dark Navy Text */
-    --text-muted: #636e72;       /* Grey Muted Text */
+    --body-color: #f5f6fa;
+    --sidebar-color: #ffffff;
+    --primary-color: #2ecc71;
+    --card-bg: #ffffff;
+    --text-color: #1a1a2e;
+    --text-muted: #636e72;
 }
 
 body {
     background-color: var(--body-color);
     color: var(--text-color);
     margin: 0;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    transition: background-color 0.3s, color 0.3s;
     font-family: 'Segoe UI', sans-serif;
     display: flex;
     flex-direction: column;
@@ -48,134 +46,128 @@ body {
 
 .brand { display: flex; align-items: center; gap: 8px; font-weight: bold; color: var(--primary-color); }
 .nav-links { display: flex; align-items: center; gap: 15px; }
-.nav-links a { text-decoration: none; color: var(--text-color); transition: 0.3s; }
-.admin-controls { display: none; gap: 15px; border-left: 1px solid var(--card-bg); padding-left: 15px; }
+.nav-links a { text-decoration: none; color: var(--text-color); }
+
+.theme-btn { background: none; border: none; color: var(--text-color); font-size: 1.4rem; cursor: pointer; }
+
+.admin-controls { display: none; gap: 15px; border-left: 1px solid var(--text-muted); padding-left: 15px; }
 .admin-user .admin-controls { display: flex; }
 
-/* --- MAIN CONTENT AREA --- */
+/* --- MAIN CONTENT --- */
 .main-content {
     flex: 1;
-    padding: 100px 5% 40px; /* 100px top padding avoids the fixed header */
+    padding: 100px 5% 40px;
     max-width: 1200px;
     margin: 0 auto;
     width: 100%;
     box-sizing: border-box;
 }
 
-/* --- STATUS LOGIC --- */
-.status-header { display: flex; gap: 10px; margin-bottom: 30px; justify-content: center; }
+/* --- STATUS INDICATORS --- */
+.status-header { display: flex; gap: 10px; margin-bottom: 30px; }
 .status-indicator { padding: 6px 15px; border-radius: 20px; font-size: 0.8rem; opacity: 0.2; border: 1px solid var(--text-muted); }
 
-.status-pending .pending { opacity: 1; color: orange; border-color: orange; }
+.status-pending .pending { opacity: 1; color: #ffa500; border-color: #ffa500; }
 .status-success .success { opacity: 1; color: var(--primary-color); border-color: var(--primary-color); }
 .status-fail .fail { opacity: 1; color: #ff6b6b; border-color: #ff6b6b; }
 
-.view-register, .view-success, .view-fail, .view-pending { display: none; }
-.status-none .view-register, .status-pending .view-pending, 
-.status-success .view-success, .status-fail .view-fail { display: block; }
+/* --- LOGIC SHOW/HIDE --- */
+.view-register, .view-success, .view-fail, .view-pending { display: none; text-align: center; }
+.status-none .view-register { display: block; }
+.status-pending .view-pending { display: block; }
+.status-success .view-success { display: block; }
+.status-fail .view-fail { display: block; }
 
-/* --- CARDS & GRID --- */
-.info-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
-}
-
+/* --- CARDS --- */
+.info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
 .info-card, .error-card, .pending-card {
     background: var(--card-bg);
     padding: 30px; border-radius: 15px;
     border: 1px solid var(--sidebar-color);
-    text-align: center;
 }
 
-.passcode { background: var(--body-color); padding: 15px; border-radius: 10px; margin: 20px 0; border: 1px dashed var(--primary-color); }
-.passcode p { font-size: 2.5rem; letter-spacing: 8px; margin: 0; color: var(--primary-color); }
-.qr-box i { font-size: 6rem; }
+.badge { background: var(--primary-color); color: var(--body-color); display: inline-block; padding: 4px 12px; border-radius: 4px; font-weight: bold; }
+.room-no { font-size: 2.5rem; font-weight: bold; margin: 10px 0; }
+.passcode { background: var(--body-color); padding: 15px; border-radius: 10px; margin: 20px 0; }
+.passcode p { font-size: 2.2rem; letter-spacing: 5px; color: var(--primary-color); margin: 0; }
+.qr-box i { font-size: 5rem; margin-top: 10px; }
+
+/* --- BUTTONS --- */
+.btn-primary { background: var(--primary-color); color: var(--body-color); padding: 10px 25px; border-radius: 8px; text-decoration: none; font-weight: bold; }
+.btn-outline { border: 1px solid var(--primary-color); color: var(--primary-color); padding: 10px 25px; border-radius: 8px; text-decoration: none; }
 
 /* --- FOOTER --- */
 .main-footer { padding: 20px; background: var(--sidebar-color); text-align: center; font-size: 0.8rem; color: var(--text-muted); }
 
-/* --- RESPONSIVE DESIGN (THE FIX) --- */
-
-/* Tablet View */
-@media (max-width: 992px) {
-    .brand span { font-size: 1.1rem; }
-    .hero-content h1 { font-size: 2.5rem; }
-}
-
-/* Mobile View (Phone) */
+/* --- RESPONSIVE --- */
 @media (max-width: 600px) {
-    .hide-mobile { display: none; } /* Hides text labels to save space */
-    
-    .nav-container { width: 95%; }
-    
-    .status-header { flex-wrap: wrap; } /* Stack status labels if screen is too thin */
-    
-    .main-content { padding-top: 90px; }
-    
-    .passcode p { font-size: 1.8rem; letter-spacing: 4px; }
-    
-    .info-card { padding: 20px; }
-    
-    .top-nav { height: 60px; }
+    .hide-mobile { display: none; }
+    .status-header { flex-wrap: wrap; justify-content: center; }
+    .main-content { padding-top: 85px; }
+    .passcode p { font-size: 1.8rem; }
 }
 
-/* --- THEME SLIDER STYLING --- */
-.theme-switch-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.theme-switch {
-    display: inline-block;
-    height: 24px;
-    position: relative;
-    width: 50px;
-}
-
-.theme-switch input {
-    display: none; /* Hide the actual checkbox */
-}
-
-.slider {
-    background-color: #333; /* Dark background for the switch */
-    bottom: 0;
-    cursor: pointer;
-    left: 0;
-    position: absolute;
-    right: 0;
+/* --- LOGOUT MODAL STYLES --- */
+.modal-overlay {
+    position: fixed;
     top: 0;
-    transition: .4s;
-    border: 1px solid var(--primary-color);
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    display: none; /* Hidden by default */
+    justify-content: center;
+    align-items: center;
+    z-index: 3000;
+    backdrop-filter: blur(5px);
 }
 
-.slider:before {
-    background-color: var(--primary-color);
-    bottom: 4px;
-    content: "";
-    height: 14px;
-    left: 4px;
-    position: absolute;
-    transition: .4s;
-    width: 14px;
+.modal-content {
+    background: var(--card-bg);
+    padding: 40px;
+    border-radius: 20px;
+    text-align: center;
+    border: 1px solid var(--sidebar-color);
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
-/* When checked (Light Mode), move the slider and change colors */
-input:checked + .slider {
-    background-color: #ccc;
+.modal-icon i {
+    font-size: 4rem;
+    color: #ff6b6b;
+    margin-bottom: 15px;
 }
 
-input:checked + .slider:before {
-    transform: translateX(26px);
-    background-color: #fff;
+.modal-content h2 {
+    margin: 0 0 10px;
+    color: var(--text-color);
 }
 
-/* Rounded effect */
-.slider.round {
-    border-radius: 34px;
+.modal-content p {
+    color: var(--text-muted);
+    margin-bottom: 25px;
 }
 
-.slider.round:before {
-    border-radius: 50%;
+.modal-btns {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.btn-danger {
+    background: #ff6b6b;
+    color: white;
+    padding: 10px 25px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+}
+
+.btn-danger:hover {
+    background: #ff4757;
+    transform: translateY(-2px);
 }

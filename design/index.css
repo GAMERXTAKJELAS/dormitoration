@@ -140,3 +140,67 @@ body {
     font-size: 0.9rem;
     color: var(--text-muted);
 }
+
+/* --- RESPONSIVE ADJUSTMENTS --- */
+
+/* Tablet View (Max width 992px) */
+@media screen and (max-width: 992px) {
+    .hero-content h1 {
+        font-size: 2.5rem; /* Shrink title slightly */
+    }
+    
+    .nav-container {
+        width: 95%; /* Use more screen width */
+    }
+}
+
+/* Mobile Phone View (Max width 600px) */
+@media screen and (max-width: 600px) {
+    /* 1. Header Adjustments */
+    .top-nav {
+        height: 60px;
+    }
+    
+    .brand span {
+        font-size: 1.1rem; /* Smaller logo text */
+    }
+
+    /* Hide extra links to save space, keeping Sign In/Up */
+    .nav-links {
+        gap: 10px;
+    }
+    
+    .nav-links a:first-child {
+        display: none; /* Hide 'About Us' in nav on tiny screens */
+    }
+
+    /* 2. Hero Section Adjustments */
+    .hero-content h1 {
+        font-size: 2rem;
+        line-height: 1.2;
+    }
+    
+    .hero-content p {
+        font-size: 0.9rem;
+    }
+
+    /* 3. Grid Auto-Arrangement */
+    .about-grid {
+        grid-template-columns: 1fr; /* Force 1 column on phones */
+        gap: 20px;
+        text-align: center;
+    }
+
+    .stat-card {
+        padding: 20px;
+    }
+
+    /* 4. Fix Scroll Snapping for small heights */
+    .home-section {
+        padding: 0 5%;
+        height: auto;
+        min-height: 100vh; /* Ensure it still covers the screen */
+        padding-top: 80px; /* Space for fixed header */
+        padding-bottom: 40px;
+    }
+}

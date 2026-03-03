@@ -3,52 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dormitoration</title>
+    <title>Dormitoration | Admin Dashboard</title>
     <link rel="stylesheet" href="/design/dashboard.css">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script src="/script/theme.js" defer></script>
+    <script src="/script/logout_logic.js"></script>
 </head>
-<body>
+<body class="dark-mode">
 
-    <header>
+    <div id="logout-modal" class="modal-overlay" style="display:none;">
+        <div class="modal-content">
+            <i class='bx bx-log-out-circle' style="font-size: 3rem; color: #ff6b6b;"></i>
+            <h2>Leave Session?</h2>
+            <p>You are attempting to leave the admin area. Do you want to log out?</p>
+            <div class="modal-btns">
+                <button class="btn-secondary" onclick="closeLogoutModal()">Cancel</button>
+                <button class="btn-danger" onclick="executeLogout()">Yes, Log Out</button>
+            </div>
+        </div>
+    </div>
+
     <aside class="sidebar-nav">
+        <div class="logo-section">
+            <i class='bx bxs-building-house'></i>
+            <span class="text" style="font-weight: bold; margin-left: 20px;">DORMITOR</span>
+        </div>
+
         <nav class="navbar">
             <ul class="nav-list">
-            <li><a href="/admin/adminhomepage.html">
-                <i class='bx bx-home-alt icon'></i>
-                <span class="text">Home</span>
-            </a></li>
+                <li><a href="/admin/adminhomepage.html">
+                    <i class='bx bx-home-alt icon'></i>
+                    <span class="text">Home</span>
+                </a></li>
 
-            <li><a href="/admin/dashboard.html" class="active">
-                <i class='bx bxs-dashboard icon'></i>
-                <span class="text">Dashboard</span>
-            </a></li>
+                <li><a href="/admin/dashboard.html" class="active">
+                    <i class='bx bxs-dashboard icon'></i>
+                    <span class="text">Dashboard</span>
+                </a></li>
 
-            <li><a href="/admin/report.html">
-                <i class='bx bxs-report icon'></i>
-                <span class="text">Report</span>
-            </a></li>
+                <li><a href="/admin/report.html">
+                    <i class='bx bxs-report icon'></i>
+                    <span class="text">Report</span>
+                </a></li>
 
-            <li><a href="about.html">
-                <i class='bx bx-info-circle icon'></i>
-                <span class="text">About Us</span>
-            </a></li>
-
-            <li><a href="/admin/setting.html">
-                <i class='bx bx-cog icon'></i>
-                <span class="text">Settings</span>
-            </a></li>
+                <li><a href="/admin/setting.html">
+                    <i class='bx bx-cog icon'></i>
+                    <span class="text">Settings</span>
+                </a></li>
             </ul>
         </nav>
+
+        <div class="sidebar-footer" style="position: absolute; bottom: 20px; width: 100%; padding: 0 25px;">
+            <button id="theme-toggle" class="theme-btn" style="background:none; border:none; cursor:pointer; color:var(--text-color); display:flex; align-items:center; gap:20px;">
+                <i class='bx bx-moon' id="theme-icon" style="font-size: 22px;"></i>
+                <span class="text">Theme</span>
+            </button>
+        </div>
     </aside>
-    </header>
+
     <main class="main-box">
-        <h1>System Overview</h1>
+        <header class="dash-header">
+            <h1>System Overview</h1>
+            <p>Welcome back, Admin. Here is what's happening today.</p>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-info">
+                    <h3>1,240</h3>
+                    <p>Total Students</p>
+                </div>
+                <i class='bx bxs-user-badge'></i>
+            </div>
+
+            <div class="stat-card warning">
+                <div class="stat-info">
+                    <h3>12</h3>
+                    <p>Pending Apps</p>
+                </div>
+                <i class='bx bxs-time-five'></i>
+            </div>
+
+            <div class="stat-card success">
+                <div class="stat-info">
+                    <h3>85%</h3>
+                    <p>Room Occupancy</p>
+                </div>
+                <i class='bx bxs-door-open'></i>
+            </div>
+        </div>
+
         <div class="content-card">
-            <p>This box is now managed alongside the sidebar.</p>
+            <h3>Recent Activity</h3>
+            <p>This area can be used for data tables or recent logs.</p>
         </div>
     </main>
-    <footer>
-        
-    </footer>
+
 </body>
 </html>

@@ -3,11 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dormitoration | Home</title>
+    <title>Dormitoration | Admin Home</title>
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="/design/adminhomepage.css">
+    <script src="/script/theme.js" defer></script>
+    <script src="/script/logout_logic.js"></script>
 </head>
 <body class="dark-mode admin-user">
+
+    <div id="logout-modal" class="modal-overlay">
+        <div class="modal-content">
+            <i class='bx bx-help-circle' style="font-size: 3rem; color: #ff6b6b;"></i>
+            <h2>Confirm Logout</h2>
+            <p>Are you sure you want to leave the system?</p>
+            <div class="modal-btns">
+                <button class="btn-secondary" onclick="closeLogoutModal()">Cancel</button>
+                <button class="btn-danger" onclick="executeLogout()">Yes, Log Out</button>
+            </div>
+        </div>
+    </div>
 
     <header class="top-nav">
         <div class="nav-container">
@@ -17,15 +31,20 @@
             </div>
 
             <nav class="nav-links">
-                <a href="about.html">About Us</a>
+                <a href="about.html" class="hide-mobile">About Us</a>
 
                 <div class="admin-controls">
-                    <a href="/admin/dashboard.html" class="nav-item"><i class='bx bxs-dashboard'></i> Dashboard</a>
-                    <a href="/admin/report.html" class="nav-item"><i class='bx bxs-report'></i> Report</a>
+                    <a href="/admin/dashboard.html" class="nav-item">
+                        <i class='bx bxs-dashboard'></i> <span class="hide-mobile">Dashboard</span>
+                    </a>
+                    <a href="/admin/report.html" class="nav-item">
+                        <i class='bx bxs-report'></i> <span class="hide-mobile">Report</span>
+                    </a>
                 </div>
-
-<!--                 <a href="#" class="btn-outline">Sign In</a>
-                <a href="#" class="btn-primary">Sign Up</a> -->
+                
+                <a href="javascript:void(0)" onclick="openLogoutModal()" class="nav-item logout-link">
+                    <i class='bx bx-log-out'></i> <span class="hide-mobile">Log Out</span>
+                </a>
                 
                 <button id="theme-toggle" class="theme-btn">
                     <i class='bx bx-moon' id="theme-icon"></i>
@@ -39,23 +58,16 @@
             <div class="hero-content">
                 <h1>Dormitory Monitor <br><span>Operation System</span></h1>
                 <p>Advanced oversight for modern student living.</p>
+                <div style="margin-top: 30px;">
+                    <a href="/admin/dashboard.html" class="btn-primary">Manage Portal</a>
+                </div>
             </div>
         </section>
     </main>
-
+    
     <footer class="main-footer">
         <p>&copy; 2026 Dormitoration System</p>
     </footer>
 
-    <script>
-        // Theme Toggle Script
-        const btn = document.getElementById('theme-toggle');
-        const icon = document.getElementById('theme-icon');
-        btn.onclick = () => {
-            document.body.classList.toggle('light-mode');
-            icon.classList.toggle('bx-moon');
-            icon.classList.toggle('bx-sun');
-        }
-    </script>
 </body>
 </html>

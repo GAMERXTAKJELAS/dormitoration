@@ -1,4 +1,3 @@
-/* main */
 :root {
     --body-color: #121212;
     --sidebar-color: #1b251e;
@@ -9,126 +8,50 @@
     --transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.light-mode {
+    --body-color: #f5f6fa;
+    --sidebar-color: #ffffff;
+    --primary-color: #2ecc71;
+    --card-bg: #ffffff;
+    --text-color: #1a1a2e;
+    --text-muted: #636e72;
+}
+
 body {
     background-color: var(--body-color);
     color: var(--text-color);
     margin: 0;
     font-family: 'Segoe UI', sans-serif;
 }
-/* /main */
 
-/* --- SIDEBAR BASE STATE --- */
-.sidebar-nav {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 80px; /* Width when closed */
-    height: 100vh;
-    background-color: var(--sidebar-color);
-    transition: var(--transition-smooth);
-    z-index: 1000;
-    overflow: hidden;
-    border-right: 1px solid var(--card-bg);
-}
+/* --- SIDEBAR & MAIN BOX (Keep from previous) --- */
+.sidebar-nav { position: fixed; top: 0; left: 0; width: 80px; height: 100vh; background-color: var(--sidebar-color); transition: var(--transition-smooth); z-index: 1000; overflow: hidden; border-right: 1px solid var(--card-bg); }
+.sidebar-nav:hover { width: 260px; }
+.logo-section { height: 70px; display: flex; align-items: center; padding: 0 25px; color: var(--primary-color); font-size: 24px; }
+.nav-list { list-style: none; padding: 0; margin: 20px 0; }
+.nav-list li a { display: flex; align-items: center; height: 50px; padding: 0 25px; text-decoration: none; color: var(--text-muted); transition: 0.3s; white-space: nowrap; }
+.nav-list li a:hover, .nav-list li a.active { background-color: var(--card-bg); color: var(--primary-color); border-left: 4px solid var(--primary-color); }
+.sidebar-nav .text { opacity: 0; transition: 0.3s; }
+.sidebar-nav:hover .text { opacity: 1; }
 
-/* --- HOVER EXPANSION --- */
-.sidebar-nav:hover {
-    width: 260px; /* Width when opened */
-}
+.main-box { margin-left: 80px; padding: 40px; width: calc(100% - 80px); box-sizing: border-box; }
 
-/* --- LOGO SECTION --- */
-.logo-section {
-    height: 70px;
-    display: flex;
-    align-items: center;
-    padding: 0 25px;
-}
+/* --- REPORT SPECIFIC --- */
+.report-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+.btn-export { background: var(--primary-color); color: var(--body-color); border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; }
 
-.logo-section i {
-    font-size: 30px;
-    color: var(--primary-color);
-    min-width: 30px;
-}
+.filter-section { display: flex; gap: 15px; margin-bottom: 25px; flex-wrap: wrap; }
+.search-box { position: relative; flex: 1; min-width: 200px; }
+.search-box i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+.search-box input, .filter-dropdown, .filter-date { background: var(--card-bg); border: 1px solid var(--text-muted); color: var(--text-color); padding: 10px 10px 10px 40px; border-radius: 8px; width: 100%; box-sizing: border-box; }
+.filter-dropdown, .filter-date { padding: 10px; width: auto; min-width: 150px; }
 
-/* --- NAVIGATION LINKS --- */
-.navbar ul {
-    list-style: none;
-    padding: 0;
-    margin: 20px 0;
-}
+/* --- TABLE --- */
+.table-wrapper { background: var(--card-bg); border-radius: 15px; overflow-x: auto; border: 1px solid rgba(255,255,255,0.05); }
+.report-table { width: 100%; border-collapse: collapse; text-align: left; min-width: 600px; }
+.report-table th { padding: 15px 20px; background: rgba(0,0,0,0.1); color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; }
+.report-table td { padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.95rem; }
+.report-table tr:hover { background: rgba(71, 245, 155, 0.05); }
 
-.navbar li a {
-    display: flex;
-    align-items: center;
-    height: 50px;
-    padding: 0 25px;
-    text-decoration: none;
-    color: var(--text-muted);
-    white-space: nowrap;
-    transition: var(--transition-smooth);
-}
-
-.navbar li a i {
-    font-size: 22px;
-    min-width: 30px;
-    margin-right: 20px;
-}
-
-.navbar li a:hover, .navbar li a.active {
-    background-color: var(--card-bg);
-    color: var(--primary-color);
-}
-
-.nav-list {
-    display: flex;
-    flex-direction: column; /* This ensures vertical auto-arrangement */
-    gap: 5px;               /* This creates automatic equal spacing between links */
-    list-style: none;
-    padding: 10px 0;
-    margin: 0;
-}
-
-.nav-list li {
-    width: 100%;           /* Ensures every link fills the sidebar width */
-}
-
-.nav-list li a {
-    display: flex;
-    align-items: center;
-    padding: 12px 20px;
-    text-decoration: none;
-    color: var(--text-muted);
-    transition: var(--transition-smooth);
-    overflow: hidden;      /* Keeps the sidebar clean when collapsed */
-}
-
-/* Hover & Active Auto-styling */
-.nav-list li a:hover, 
-.nav-list li a.active {
-    background-color: var(--card-bg);
-    color: var(--primary-color);
-    border-left: 4px solid var(--primary-color); /* Adds a "indicator" line automatically */
-}
-
-/* Hide text when sidebar is closed */
-.sidebar-nav .text {
-    opacity: 0;
-    transition: var(--transition-smooth);
-}
-
-.sidebar-nav:hover .text {
-    opacity: 1;
-}
-
-/* --- MAIN BOX MANAGEMENT --- */
-.main-box {
-    margin-left: 80px; /* Matches the closed sidebar width */
-    padding: 40px;
-    transition: var(--transition-smooth);
-    width: calc(100% - 80px);
-}
-
-/* Optional: If you want the main box to push away when sidebar opens */
-/* .sidebar-nav:hover ~ .main-box {
-    margin-left: 260px;
-} */
+.badge-success { color: #2ecc71; background: rgba(46, 204, 113, 0.1); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; }
+.badge-warning { color: #f1c40f; background: rgba(241, 196, 15, 0.1); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; }

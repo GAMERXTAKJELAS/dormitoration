@@ -3,52 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dormitoration</title>
+    <title>Dormitoration | Reports</title>
     <link rel="stylesheet" href="/design/report.css">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script src="/script/theme.js" defer></script>
+    <script src="/script/logout_logic.js"></script>
 </head>
-<body>
+<body class="dark-mode">
 
-    <header>
+    <div id="logout-modal" class="modal-overlay" style="display:none;">
+        <div class="modal-content">
+            <i class='bx bx-log-out-circle' style="font-size: 3rem; color: #ff6b6b;"></i>
+            <h2>Leave Session?</h2>
+            <p>You are attempting to leave the admin area. Do you want to log out?</p>
+            <div class="modal-btns">
+                <button class="btn-secondary" onclick="closeLogoutModal()">Cancel</button>
+                <button class="btn-danger" onclick="executeLogout()">Yes, Log Out</button>
+            </div>
+        </div>
+    </div>
+
     <aside class="sidebar-nav">
+        <div class="logo-section">
+            <i class='bx bxs-report'></i>
+            <span class="text" style="font-weight: bold; margin-left: 20px;">REPORTS</span>
+        </div>
         <nav class="navbar">
             <ul class="nav-list">
-            <li><a href="/admin/adminhomepage.html">
-                <i class='bx bx-home-alt icon'></i>
-                <span class="text">Home</span>
-            </a></li>
-
-            <li><a href="/admin/dashboard.html">
-                <i class='bx bxs-dashboard icon'></i>
-                <span class="text">Dashboard</span>
-            </a></li>
-
-            <li><a href="/admin/report.html" class="active">
-                <i class='bx bxs-report icon'></i>
-                <span class="text">Report</span>
-            </a></li>
-
-            <li><a href="about.html">
-                <i class='bx bx-info-circle icon'></i>
-                <span class="text">About Us</span>
-            </a></li>
-
-            <li><a href="/admin/setting.html">
-                <i class='bx bx-cog icon'></i>
-                <span class="text">Settings</span>
-            </a></li>
+                <li><a href="/admin/adminhomepage.html"><i class='bx bx-home-alt icon'></i><span class="text">Home</span></a></li>
+                <li><a href="/admin/dashboard.html"><i class='bx bxs-dashboard icon'></i><span class="text">Dashboard</span></a></li>
+                <li><a href="/admin/report.html" class="active"><i class='bx bxs-report icon'></i><span class="text">Report</span></a></li>
+                <li><a href="/admin/setting.html"><i class='bx bx-cog icon'></i><span class="text">Settings</span></a></li>
             </ul>
         </nav>
+        <div class="sidebar-footer" style="position: absolute; bottom: 20px; width: 100%; padding: 0 25px;">
+            <button id="theme-toggle" class="theme-btn" style="background:none; border:none; cursor:pointer; color:var(--text-color); display:flex; align-items:center; gap:20px;">
+                <i class='bx bx-moon' id="theme-icon" style="font-size: 22px;"></i>
+                <span class="text">Theme</span>
+            </button>
+        </div>
     </aside>
-    </header>
+
     <main class="main-box">
-        <h1>System Overview</h1>
-        <div class="content-card">
-            <p>This box is now managed alongside the sidebar.</p>
+        <header class="report-header">
+            <h1>Activity Reports</h1>
+            <div class="report-actions">
+                <button class="btn-export"><i class='bx bx-export'></i> Export CSV</button>
+            </div>
+        </header>
+
+        <div class="filter-section">
+            <div class="search-box">
+                <i class='bx bx-search'></i>
+                <input type="text" placeholder="Search student or ID...">
+            </div>
+            <select class="filter-dropdown">
+                <option value="all">All Status</option>
+                <option value="entry">Entry</option>
+                <option value="exit">Exit</option>
+            </select>
+            <input type="date" class="filter-date">
+        </div>
+
+        <div class="table-wrapper">
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>Student Name</th>
+                        <th>Student ID</th>
+                        <th>Action</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>2026-03-03 | 08:45 AM</td>
+                        <td>John Doe</td>
+                        <td>STD-9901</td>
+                        <td>Entry</td>
+                        <td><span class="badge-success">Verified</span></td>
+                    </tr>
+                    <tr>
+                        <td>2026-03-03 | 09:12 AM</td>
+                        <td>Sarah Connor</td>
+                        <td>STD-4402</td>
+                        <td>Exit</td>
+                        <td><span class="badge-success">Verified</span></td>
+                    </tr>
+                    <tr>
+                        <td>2026-03-02 | 11:30 PM</td>
+                        <td>Alex Mercer</td>
+                        <td>STD-1105</td>
+                        <td>Entry</td>
+                        <td><span class="badge-warning">Late Entry</span></td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </main>
-    <footer>
-        
-    </footer>
+
 </body>
 </html>

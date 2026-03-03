@@ -6,8 +6,26 @@
     <title>Dormitoration | Student Portal</title>
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="/design/studenthomepage.css">
+    <script src="/script/theme.js" defer></script>
+    <script src="/script/logout_logic.js"></script>
 </head>
-<body class="dark-mode admin-user"> <header class="top-nav">
+<body class="dark-mode admin-user"> 
+
+    <div id="logout-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-icon">
+                <i class='bx bx-help-circle'></i>
+            </div>
+            <h2>Confirm Logout</h2>
+            <p>Are you sure you want to leave the Student Portal?</p>
+            <div class="modal-btns">
+                <button class="btn-outline" onclick="closeLogoutModal()">Cancel</button>
+                <button class="btn-danger" onclick="executeLogout()">Yes, Log Out</button>
+            </div>
+        </div>
+    </div>
+
+    <header class="top-nav">
         <div class="nav-container">
             <div class="brand">
                 <i class='bx bxs-building-house'></i>
@@ -17,20 +35,21 @@
             <nav class="nav-links">
                 <a href="about.html" class="hide-mobile">About Us</a>
                 <div class="admin-controls">
-                    <a href="/index.html" class="nav-item"><i class='bx bx-log-out'></i> <span class="hide-mobile">Log Out</span></a>
+                    <a href="javascript:void(0)" onclick="openLogoutModal()" class="nav-item">
+                        <i class='bx bx-log-out'></i> 
+                        <span class="hide-mobile">Log Out</span>
+                    </a>
                     <a href="settings.html" class="nav-item"><i class='bx bx-cog'></i> <span class="hide-mobile">Settings</span></a>
                 </div>
-<div class="theme-switch-wrapper">
-    <i class='bx bx-moon'></i> <label class="theme-switch" for="checkbox">
-        <input type="checkbox" id="checkbox" />
-        <div class="slider round"></div>
-    </label>
-    <i class='bx bx-sun'></i> </div>
+                
+                <button id="theme-toggle" class="theme-btn">
+                    <i class='bx bx-moon' id="theme-icon"></i>
+                </button>
             </nav>
         </div>
     </header>
 
-    <main class="main-content status-pending">
+    <main class="main-content status-success">
         
         <div class="status-header">
             <div class="status-indicator pending"><i class='bx bx-time-five'></i> Pending</div>
@@ -41,7 +60,7 @@
         <div class="content-wrapper">
             <div class="view-register">
                 <h1>Welcome, Student</h1>
-                <p>Start your dormitory journey here.</p>
+                <p>You haven't applied for a room in this semester yet.</p>
                 <a href="register-room.html" class="btn-primary">Register Room Now</a>
             </div>
 
@@ -70,7 +89,7 @@
                 <div class="error-card">
                     <i class='bx bxs-error-circle'></i>
                     <h2>Registration Failed</h2>
-                    <p>Information incomplete or blurry document. Please try again.</p>
+                    <p>Reason: Information incomplete or blurry document. Please resubmit your student ID.</p>
                     <a href="register-room.html" class="btn-outline">Fix Registration</a>
                 </div>
             </div>
@@ -79,7 +98,7 @@
                 <div class="pending-card">
                     <div class="loader"></div>
                     <h2>Verifying Details...</h2>
-                    <p>The Admin is currently reviewing your application.</p>
+                    <p>The Admin is currently reviewing your application. Please check back later.</p>
                 </div>
             </div>
         </div>
@@ -90,19 +109,4 @@
     </footer>
 
 </body>
-<script>
-    const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
-
-function switchTheme(e) {
-    if (e.target.checked) {
-        document.body.classList.add('light-mode');
-        document.body.classList.remove('dark-mode');
-    } else {
-        document.body.classList.add('dark-mode');
-        document.body.classList.remove('light-mode');
-    }    
-}
-
-toggleSwitch.addEventListener('change', switchTheme, false);
-</script>
 </html>
