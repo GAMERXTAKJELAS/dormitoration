@@ -1,24 +1,143 @@
+:root {
+    --bg-card: #18191a;
+    --bg-input: #242526;
+    --border-color: #3a3b3c;
+    --text-primary: #e4e6eb;
+    --text-secondary: #b0b3b8;
+    --accent-green: #47f59b;
+    --accent-blue: #3a86ff;
+    --accent-red: #ff4b4b;
+    --radius: 12px;
+}
+
+/* Page Layout */
+body {
+    background-color: #121212;
+    color: var(--text-primary);
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+}
+
+.form-grid-container {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+/* Section Cards */
+.form-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 25px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.form-section h2 {
+    color: var(--accent-green);
+    font-size: 1.25rem;
+    margin-top: 0;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 12px;
+}
+
+.sub-title {
+    color: var(--accent-blue);
+    font-size: 1.05rem;
+    margin: 15px 0 10px 0;
+}
+
+/* Modern Grid System */
+.input-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+}
+
+/* Individual Input Control Group */
+.input-box {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.input-box.full-width {
+    grid-column: span 2;
+}
+
+.input-box label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Styling Inputs, Selects, and Textareas */
+.input-box input,
+.input-box select,
+.input-box textarea {
+    width: 100%;
+    box-sizing: border-box;
+    background-color: var(--bg-input);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    outline: none;
+    transition: all 0.2s ease-in-out;
+}
+
+/* Focus States */
+.input-box input:focus,
+.input-box select:focus,
+.input-box textarea:focus {
+    border-color: var(--accent-green);
+    box-shadow: 0 0 0 3px rgba(71, 245, 155, 0.15);
+}
+
+/* Readonly fields (like Auto Umur) */
+.input-box input[readonly] {
+    background-color: rgba(255, 255, 255, 0.03);
+    color: var(--accent-green);
+    font-weight: bold;
+    cursor: not-allowed;
+}
+
+.input-box textarea {
+    resize: vertical;
+}
+
+/* Modern PDF Upload Area */
 .pdf-upload-box {
-    margin-top: 20px;
-    padding: 15px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 2px dashed #ff4b4b;
-    border-radius: 10px;
+    margin-top: 25px;
+    padding: 20px;
+    background: rgba(255, 75, 75, 0.05);
+    border: 2px dashed rgba(255, 75, 75, 0.4);
+    border-radius: var(--radius);
 }
 
 .pdf-label {
-    font-weight: bold;
+    font-weight: 600;
     color: #ff6b6b;
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 1.05rem;
+    font-size: 1rem;
 }
 
 .pdf-note {
     font-size: 0.85rem;
-    color: #cccccc;
-    margin: 5px 0 15px 0;
+    color: var(--text-secondary);
+    margin: 6px 0 16px 0;
 }
 
 .file-drop-area {
@@ -29,10 +148,10 @@
 
 .btn-pdf-select {
     background-color: #e63946;
-    color: white;
+    color: #fff;
     border: none;
-    padding: 10px 18px;
-    border-radius: 6px;
+    padding: 10px 20px;
+    border-radius: 8px;
     cursor: pointer;
     font-weight: 600;
     display: inline-flex;
@@ -47,6 +166,63 @@
 
 #fileNameDisplay {
     font-size: 0.9rem;
-    color: #e0e0e0;
-    font-style: italic;
+    color: var(--text-primary);
+}
+
+/* Declaration Checkbox & Submit Button */
+.checkbox-container {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.checkbox-container input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--accent-green);
+    cursor: pointer;
+    margin-top: 2px;
+}
+
+.checkbox-container label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    cursor: pointer;
+}
+
+.btn-primary-submit {
+    width: 100%;
+    background-color: var(--accent-green);
+    color: #0d1117;
+    border: none;
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.1s ease, filter 0.2s ease;
+}
+
+.btn-primary-submit:hover {
+    filter: brightness(1.1);
+}
+
+.btn-primary-submit:active {
+    transform: scale(0.99);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 600px) {
+    .input-grid {
+        grid-template-columns: 1fr;
+    }
+    .input-box.full-width {
+        grid-column: span 1;
+    }
+    .file-drop-area {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }
