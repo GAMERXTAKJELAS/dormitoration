@@ -35,9 +35,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Route user based on their assigned database role
                 if (data.role === 'admin') {
-                    window.location.replace('/admin.html');
+                    window.location.replace('/admin/adminhomepage.html');
                 } else {
-                    window.location.replace('/dashboard.html');
+                    window.location.replace('/student/studenthomepage.html');
                 }
             } else {
                 messageDiv.style.color = "#ff4d4d";
