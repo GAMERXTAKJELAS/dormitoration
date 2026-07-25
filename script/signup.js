@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // Direct redirect to student dashboard
                 setTimeout(() => {
-                    window.location.replace('/dashboard.html');
+                    window.location.replace('/student/studenthomepage.html');
                 }, 800);
 
             } else {
