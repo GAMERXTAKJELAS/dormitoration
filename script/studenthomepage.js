@@ -7,29 +7,46 @@ let isAccountViewOpen = false;
 async function initStudentDashboard() {
     const userData = JSON.parse(localStorage.getItem('userData') || '{}');
 
+    // 1. Set Welcome Name
     if (userData.full_name || userData.username) {
         const nameHeader = document.getElementById('welcomeUser');
         if (nameHeader) nameHeader.innerText = `Welcome, ${userData.full_name || userData.username}`;
     }
 
-    // Populate Account Modal Inputs
-    document.getElementById('accFullName').value = userData.full_name || '';
-    document.getElementById('accEmail').value = userData.email || '';
-    document.getElementById('accPhone').value = userData.phone || '';
+    // 2. Populate Account Modal Inputs if they exist
+    const accFullName = document.getElementById('accFullName');
+    const accEmail = document.getElementById('accEmail');
+    const accPhone = document.getElementById('accPhone');
 
-    // Initialize Registration Countdown
-    if (userData.registration_deadline && userData.account_status === 'pending_details') {
-        startRegistrationCountdown(userData.registration_deadline);
+    if (accFullName) accFullName.value = userData.full_name || '';
+    if (accEmail) accEmail.value = userData.email || '';
+    if (accPhone) accPhone.value = userData.phone || '';
+
+    // 3. FORCE COUNTDOWN TO RUN
+    // Check if a deadline exists; if missing, calculate 7 days from created_at or current time
+    let deadlineStr = userData.registration_deadline;
+
+    if (!deadlineStr) {
+        const createdDate = userData.created_at ? new Date(userData.created_at) : new Date();
+        const fallbackDeadline = new Date(createdDate.getTime() + (7 * 24 * 60 * 60 * 1000));
+        deadlineStr = fallbackDeadline.toISOString();
+
+        // Save fallback back to localStorage for consistency
+        userData.registration_deadline = deadlineStr;
+        userData.account_status = userData.account_status || 'pending_details';
+        localStorage.setItem('userData', JSON.stringify(userData));
     }
 
-    // Fetch actual room registration status from backend
+    // Trigger the countdown
+    startRegistrationCountdown(deadlineStr);
+
+    // 4. Fetch actual room registration status from Cloudflare Workers API
     try {
         const response = await fetch(`/api/student/status?phone=${encodeURIComponent(userData.phone || '')}`);
         if (response.ok) {
             const data = await response.json();
             updateDashboardState(data.status, data.roomDetails);
         } else {
-            // Default fallback based on account_status
             updateDashboardState('none');
         }
     } catch (err) {
@@ -40,6 +57,7 @@ async function initStudentDashboard() {
 
 function updateDashboardState(status, details = null) {
     const mainContainer = document.getElementById('mainContainer');
+    if (!mainContainer) return;
     
     // Reset status classes
     mainContainer.classList.remove('status-none', 'status-pending', 'status-success', 'status-fail');
@@ -52,16 +70,21 @@ function updateDashboardState(status, details = null) {
         case 'success':
             mainContainer.classList.add('status-success');
             if (details) {
-                document.getElementById('displayBlock').innerText = details.block || 'Block A';
-                document.getElementById('displayRoom').innerText = `Room ${details.room_number || '---'}`;
-                document.getElementById('displayPasscode').innerText = details.passcode || '#5521';
+                const blockEl = document.getElementById('displayBlock');
+                const roomEl = document.getElementById('displayRoom');
+                const passEl = document.getElementById('displayPasscode');
+
+                if (blockEl) blockEl.innerText = details.block || 'Block A';
+                if (roomEl) roomEl.innerText = `Room ${details.room_number || '---'}`;
+                if (passEl) passEl.innerText = details.passcode || '#5521';
             }
             break;
         case 'rejected':
         case 'fail':
             mainContainer.classList.add('status-fail');
             if (details && details.reason) {
-                document.getElementById('failReason').innerText = `Reason: ${details.reason}`;
+                const failEl = document.getElementById('failReason');
+                if (failEl) failEl.innerText = `Reason: ${details.reason}`;
             }
             break;
         default:
@@ -80,15 +103,20 @@ function toggleAccountView() {
     if (isAccountViewOpen) {
         // Load latest local user data into quick summary fields
         const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-        document.getElementById('summaryName').innerText = userData.full_name || userData.username || 'Not set';
-        document.getElementById('summaryEmail').innerText = userData.email || 'Not set';
-        document.getElementById('summaryPhone').innerText = userData.phone || 'Not set';
-        document.getElementById('summaryStatus').innerText = userData.account_status || 'Pending';
+        const summaryName = document.getElementById('summaryName');
+        const summaryEmail = document.getElementById('summaryEmail');
+        const summaryPhone = document.getElementById('summaryPhone');
+        const summaryStatus = document.getElementById('summaryStatus');
+
+        if (summaryName) summaryName.innerText = userData.full_name || userData.username || 'Not set';
+        if (summaryEmail) summaryEmail.innerText = userData.email || 'Not set';
+        if (summaryPhone) summaryPhone.innerText = userData.phone || 'Not set';
+        if (summaryStatus) summaryStatus.innerText = userData.account_status || 'Pending';
 
         contentViews.forEach(view => view.style.display = 'none');
-        accountSection.style.display = 'block';
+        if (accountSection) accountSection.style.display = 'block';
     } else {
-        accountSection.style.display = 'none';
+        if (accountSection) accountSection.style.display = 'none';
         contentViews.forEach(view => view.style.display = '');
     }
 }
@@ -100,6 +128,8 @@ function startRegistrationCountdown(deadlineStr) {
     const countdownEl = document.getElementById('registrationCountdown');
 
     if (!banner || !countdownEl) return;
+    
+    // Ensure display is set to flex so it becomes visible
     banner.style.display = 'flex';
 
     const interval = setInterval(() => {
@@ -124,17 +154,19 @@ function startRegistrationCountdown(deadlineStr) {
     }, 1000);
 }
 
-// Save Updated Account Details
+// Save Updated Account Details Listener
 document.getElementById('accountForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const messageEl = document.getElementById('accMessage');
     
-    const fullName = document.getElementById('accFullName').value.trim();
-    const email = document.getElementById('accEmail').value.trim();
-    const phone = document.getElementById('accPhone').value.trim();
+    const fullName = document.getElementById('accFullName')?.value.trim();
+    const email = document.getElementById('accEmail')?.value.trim();
+    const phone = document.getElementById('accPhone')?.value.trim();
 
-    messageEl.style.color = '#ffffff';
-    messageEl.innerText = 'Updating details...';
+    if (messageEl) {
+        messageEl.style.color = '#ffffff';
+        messageEl.innerText = 'Updating details...';
+    }
 
     try {
         const response = await fetch('/api/student/update-profile', {
@@ -150,15 +182,21 @@ document.getElementById('accountForm')?.addEventListener('submit', async (e) => 
             userData.phone = phone;
             localStorage.setItem('userData', JSON.stringify(userData));
 
-            messageEl.style.color = '#47f59b';
-            messageEl.innerText = 'Account details updated successfully!';
+            if (messageEl) {
+                messageEl.style.color = '#47f59b';
+                messageEl.innerText = 'Account details updated successfully!';
+            }
             setTimeout(() => toggleAccountView(), 1200);
         } else {
-            messageEl.style.color = '#ff6b6b';
-            messageEl.innerText = 'Failed to update account details.';
+            if (messageEl) {
+                messageEl.style.color = '#ff6b6b';
+                messageEl.innerText = 'Failed to update account details.';
+            }
         }
     } catch (err) {
-        messageEl.style.color = '#ff6b6b';
-        messageEl.innerText = 'Server error. Try again later.';
+        if (messageEl) {
+            messageEl.style.color = '#ff6b6b';
+            messageEl.innerText = 'Server error. Try again later.';
+        }
     }
 });
