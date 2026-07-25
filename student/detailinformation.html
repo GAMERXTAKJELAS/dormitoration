@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dormitoration | Student Detailed Information</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="/design/studenthomepage.css">
+    <script src="/script/theme.js" defer></script>
+    <script src="/script/detail_info.js" defer></script>
+</head>
+<body class="dark-mode">
+
+    <header class="top-nav">
+        <div class="nav-container">
+            <div class="brand">
+                <i class='bx bxs-building-house'></i>
+                <span>Dormitoration</span>
+            </div>
+            <nav class="nav-links">
+                <a href="/student/studenthomepage.html" class="btn-outline"><i class='bx bx-left-arrow-alt'></i> Back to Dashboard</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="account-card detail-card">
+            <h2><i class='bx bx-id-card'></i> Complete Student Profile</h2>
+            <p class="sub-text">Please provide complete and accurate information for hostel allocation verification.</p>
+
+            <form id="detailInfoForm">
+                
+                <!-- SECTION 1: Personal Details -->
+                <div class="form-section">
+                    <h3><i class='bx bx-user'></i> Personal Identification</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Full Name (as per MyKad/Passport)</label>
+                            <input type="text" id="full_name" required placeholder="e.g. Muhammad Syamsul">
+                        </div>
+                        <div class="form-group">
+                            <label>IC / Passport Number</label>
+                            <input type="text" id="ic_number" required placeholder="e.g. 050101-08-1234">
+                        </div>
+                        <div class="form-group">
+                            <label>Gender</label>
+                            <select id="gender" required>
+                                <option value="">Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 2: Academic Info -->
+                <div class="form-section">
+                    <h3><i class='bx bx-book-bookmark'></i> Academic Information</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Matric / Student ID</label>
+                            <input type="text" id="student_id" required placeholder="e.g. IKML2026-1234">
+                        </div>
+                        <div class="form-group">
+                            <label>Course / Program</label>
+                            <input type="text" id="course_name" required placeholder="e.g. Diploma Big Data">
+                        </div>
+                        <div class="form-group">
+                            <label>Current Semester</label>
+                            <select id="semester" required>
+                                <option value="Sem 1">Semester 1</option>
+                                <option value="Sem 2">Semester 2</option>
+                                <option value="Sem 3">Semester 3</option>
+                                <option value="Sem 4">Semester 4</option>
+                                <option value="Sem 5">Semester 5</option>
+                                <option value="Sem 6">Semester 6</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 3: Emergency & Contact -->
+                <div class="form-section">
+                    <h3><i class='bx bx-phone-call'></i> Contact & Guardian Details</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Phone Number</label>
+                            <input type="tel" id="phone" required placeholder="0123456789">
+                        </div>
+                        <div class="form-group">
+                            <label>Guardian Name</label>
+                            <input type="text" id="guardian_name" required placeholder="Parent or Next of Kin">
+                        </div>
+                        <div class="form-group">
+                            <label>Guardian Phone Number</label>
+                            <input type="tel" id="guardian_phone" required placeholder="0198765432">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <a href="/student/studenthomepage.html" class="btn-outline">Cancel</a>
+                    <button type="submit" class="btn-primary">Save & Submit Details</button>
+                </div>
+                <div id="detailMsg" class="form-message"></div>
+            </form>
+        </div>
+    </main>
+
+    <footer class="main-footer">
+        <p>&copy; 2026 Dormitoration System</p>
+    </footer>
+
+</body>
+</html>

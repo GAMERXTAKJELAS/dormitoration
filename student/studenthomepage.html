@@ -121,34 +121,41 @@
                 </div>
             </div>
 
-            <!-- ACCOUNT SECTION: Replaces Settings View -->
-            <div class="view-account" id="accountSection" style="display: none;">
-                <div class="account-card">
-                    <h2><i class='bx bx-id-card'></i> Student Account Details</h2>
-                    <p class="sub-text">View and update your personal info stored in system records.</p>
-                    
-                    <form id="accountForm">
-                        <div class="form-group">
-                            <label>Full Name</label>
-                            <input type="text" id="accFullName" placeholder="Enter Full Name" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Email Address</label>
-                            <input type="email" id="accEmail" placeholder="student@tvetmara.edu.my" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Phone Number</label>
-                            <input type="text" id="accPhone" placeholder="0123456789" required>
-                        </div>
+            <!-- QUICK ACCOUNT OVERVIEW SECTION -->
+        <div class="view-account" id="accountSection" style="display: none;">
+            <div class="account-card">
+                <div class="account-card-header">
+                    <h2><i class='bx bx-user-circle'></i> Basic Profile</h2>
+                    <button class="btn-icon" onclick="toggleAccountView()"><i class='bx bx-x'></i></button>
+                </div>
 
-                        <div class="form-actions">
-                            <button type="button" class="btn-outline" onclick="toggleAccountView()">Back</button>
-                            <button type="submit" class="btn-primary">Save Changes</button>
-                        </div>
-                        <div id="accMessage" class="form-message"></div>
-                    </form>
+                <div class="account-quick-info">
+                    <div class="quick-info-item">
+                        <span>Full Name:</span>
+                        <strong id="summaryName">--</strong>
+                    </div>
+                    <div class="quick-info-item">
+                        <span>Email:</span>
+                        <strong id="summaryEmail">--</strong>
+                    </div>
+                    <div class="quick-info-item">
+                        <span>Phone:</span>
+                        <strong id="summaryPhone">--</strong>
+                    </div>
+                    <div class="quick-info-item">
+                        <span>Account Status:</span>
+                        <span class="badge" id="summaryStatus">Pending</span>
+                    </div>
+                </div>
+
+                <div class="account-card-actions">
+                    <a href="/student/detailinformation.html" class="btn-primary flex-btn">
+                        <i class='bx bx-edit'></i> Edit / Complete Full Details
+                    </a>
+                    <button type="button" class="btn-outline" onclick="toggleAccountView()">Close</button>
                 </div>
             </div>
+        </div>
 
         </div>
     </main>

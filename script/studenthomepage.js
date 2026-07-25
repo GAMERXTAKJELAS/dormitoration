@@ -78,6 +78,13 @@ function toggleAccountView() {
     isAccountViewOpen = !isAccountViewOpen;
 
     if (isAccountViewOpen) {
+        // Load latest local user data into quick summary fields
+        const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+        document.getElementById('summaryName').innerText = userData.full_name || userData.username || 'Not set';
+        document.getElementById('summaryEmail').innerText = userData.email || 'Not set';
+        document.getElementById('summaryPhone').innerText = userData.phone || 'Not set';
+        document.getElementById('summaryStatus').innerText = userData.account_status || 'Pending';
+
         contentViews.forEach(view => view.style.display = 'none');
         accountSection.style.display = 'block';
     } else {
