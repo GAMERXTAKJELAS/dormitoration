@@ -1,4 +1,28 @@
+/* =========================================================
+   1. DEFAULT THEME VARIABLES (LIGHT MODE)
+   ========================================================= */
 :root {
+    --bg-body: #f4f6f9;
+    --bg-card: #ffffff;
+    --bg-input: #f8f9fa;
+    --border-color: #dce1e7;
+    --text-primary: #1f2937;
+    --text-secondary: #6b7280;
+    --accent-green: #059669;
+    --accent-blue: #2563eb;
+    --accent-red: #dc2626;
+    --pdf-bg: rgba(220, 38, 38, 0.05);
+    --pdf-border: rgba(220, 38, 38, 0.3);
+    --btn-submit-bg: #10b981;
+    --btn-submit-text: #ffffff;
+    --radius: 12px;
+}
+
+/* =========================================================
+   2. DARK MODE OVERRIDES (Applied when body has .dark-mode)
+   ========================================================= */
+body.dark-mode {
+    --bg-body: #121212;
     --bg-card: #18191a;
     --bg-input: #242526;
     --border-color: #3a3b3c;
@@ -7,16 +31,20 @@
     --accent-green: #47f59b;
     --accent-blue: #3a86ff;
     --accent-red: #ff4b4b;
-    --radius: 12px;
+    --pdf-bg: rgba(255, 75, 75, 0.08);
+    --pdf-border: rgba(255, 75, 75, 0.4);
+    --btn-submit-bg: #47f59b;
+    --btn-submit-text: #0d1117;
 }
 
 /* Page Layout */
 body {
-    background-color: #121212;
+    background-color: var(--bg-body);
     color: var(--text-primary);
     font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     margin: 0;
     padding: 20px;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .form-grid-container {
@@ -33,7 +61,8 @@ body {
     border: 1px solid var(--border-color);
     border-radius: var(--radius);
     padding: 25px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .form-section h2 {
@@ -54,14 +83,14 @@ body {
     margin: 15px 0 10px 0;
 }
 
-/* Modern Grid System */
+/* Grid Layout */
 .input-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 18px;
 }
 
-/* Individual Input Control Group */
+/* Individual Control Box */
 .input-box {
     display: flex;
     flex-direction: column;
@@ -93,7 +122,7 @@ body {
     border-radius: 8px;
     font-size: 0.95rem;
     outline: none;
-    transition: all 0.2s ease-in-out;
+    transition: border-color 0.2s ease, background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Focus States */
@@ -101,33 +130,30 @@ body {
 .input-box select:focus,
 .input-box textarea:focus {
     border-color: var(--accent-green);
-    box-shadow: 0 0 0 3px rgba(71, 245, 155, 0.15);
+    box-shadow: 0 0 0 3px rgba(71, 245, 155, 0.2);
 }
 
-/* Readonly fields (like Auto Umur) */
+/* Readonly Field (Age) */
 .input-box input[readonly] {
-    background-color: rgba(255, 255, 255, 0.03);
+    opacity: 0.8;
     color: var(--accent-green);
     font-weight: bold;
     cursor: not-allowed;
 }
 
-.input-box textarea {
-    resize: vertical;
-}
-
-/* Modern PDF Upload Area */
+/* PDF Upload Box */
 .pdf-upload-box {
     margin-top: 25px;
     padding: 20px;
-    background: rgba(255, 75, 75, 0.05);
-    border: 2px dashed rgba(255, 75, 75, 0.4);
+    background: var(--pdf-bg);
+    border: 2px dashed var(--pdf-border);
     border-radius: var(--radius);
+    transition: background 0.3s ease;
 }
 
 .pdf-label {
     font-weight: 600;
-    color: #ff6b6b;
+    color: var(--accent-red);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -169,7 +195,7 @@ body {
     color: var(--text-primary);
 }
 
-/* Declaration Checkbox & Submit Button */
+/* Checkbox & Submit Button */
 .checkbox-container {
     display: flex;
     align-items: flex-start;
@@ -194,8 +220,8 @@ body {
 
 .btn-primary-submit {
     width: 100%;
-    background-color: var(--accent-green);
-    color: #0d1117;
+    background-color: var(--btn-submit-bg);
+    color: var(--btn-submit-text);
     border: none;
     padding: 14px;
     border-radius: 8px;
@@ -213,16 +239,12 @@ body {
     transform: scale(0.99);
 }
 
-/* Mobile Responsiveness */
+/* Mobile Responsive */
 @media (max-width: 600px) {
     .input-grid {
         grid-template-columns: 1fr;
     }
     .input-box.full-width {
         grid-column: span 1;
-    }
-    .file-drop-area {
-        flex-direction: column;
-        align-items: flex-start;
     }
 }
