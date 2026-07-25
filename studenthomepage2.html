@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dormitoration | Student Portal</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="/design/studenthomepage.css">
+    <script src="/script/theme.js" defer></script>
+    <script src="/script/logout_logic.js" defer></script>
+    <script src="/script/.js" defer></script>
+</head>
+<body class="dark-mode"> 
+
+    <!-- Logout Confirmation Modal -->
+    <div id="logout-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-icon">
+                <i class='bx bx-help-circle'></i>
+            </div>
+            <h2>Confirm Logout</h2>
+            <p>Are you sure you want to leave the Student Portal?</p>
+            <div class="modal-btns">
+                <button class="btn-outline" onclick="closeLogoutModal()">Cancel</button>
+                <button class="btn-danger" onclick="executeLogout()">Yes, Log Out</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Navigation -->
+    <header class="top-nav">
+        <div class="nav-container">
+            <div class="brand">
+                <i class='bx bxs-building-house'></i>
+                <span>Dormitoration</span>
+            </div>
+
+            <nav class="nav-links">
+                <a href="about.html" class="hide-mobile">About Us</a>
+                <div class="user-controls">
+                    <!-- Account link replaces old Settings button -->
+                    <a href="javascript:void(0)" onclick="toggleAccountView()" class="nav-item">
+                        <i class='bx bx-user-circle'></i>
+                        <span class="hide-mobile">Account</span>
+                    </a>
+                    <a href="javascript:void(0)" onclick="openLogoutModal()" class="nav-item">
+                        <i class='bx bx-log-out'></i> 
+                        <span class="hide-mobile">Log Out</span>
+                    </a>
+                </div>
+                
+                <button id="theme-toggle" class="theme-btn">
+                    <i class='bx bx-moon' id="theme-icon"></i>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content Body -->
+    <main class="main-content status-none" id="mainContainer">
+        
+        <!-- Status Indicator Bar -->
+        <div class="status-header">
+            <div class="status-indicator pending"><i class='bx bx-time-five'></i> Pending</div>
+            <div class="status-indicator success"><i class='bx bx-check-circle'></i> Approved</div>
+            <div class="status-indicator fail"><i class='bx bx-x-circle'></i> Failed</div>
+        </div>
+
+        <!-- 7-Day Deadline Warning Banner -->
+        <div id="deadlineBanner" class="deadline-banner" style="display: none;">
+            <i class='bx bx-alarm-exclamation'></i>
+            <span>Complete Registration Window: <strong id="registrationCountdown">Calculating...</strong></span>
+        </div>
+
+        <div class="content-wrapper">
+
+            <!-- STATE 0: No Application Yet -->
+            <div class="view-register">
+                <h1 id="welcomeUser">Welcome, Student</h1>
+                <p>You haven't applied for a room for this semester yet.</p>
+                <a href="register-room.html" class="btn-primary">Register Room Now</a>
+            </div>
+
+            <!-- STATE 1: Application Approved / Success -->
+            <div class="view-success">
+                <div class="info-grid">
+                    <div class="info-card">
+                        <h3>Room Details</h3>
+                        <div class="badge" id="displayBlock">Block --</div>
+                        <p class="room-no" id="displayRoom">Room ---</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>Smart Access</h3>
+                        <div class="passcode">
+                            <small>PASSCODE</small>
+                            <p id="displayPasscode">#----</p>
+                        </div>
+                        <div class="qr-box">
+                            <i class='bx bx-qr-scan'></i>
+                            <p>Scan to Unlock</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STATE 2: Application Rejected / Failed -->
+            <div class="view-fail">
+                <div class="error-card">
+                    <i class='bx bxs-error-circle'></i>
+                    <h2>Registration Failed</h2>
+                    <p id="failReason">Reason: Information incomplete or blurry document. Please resubmit your application.</p>
+                    <a href="register-room.html" class="btn-outline">Fix Registration</a>
+                </div>
+            </div>
+
+            <!-- STATE 3: Application Under Review / Pending -->
+            <div class="view-pending">
+                <div class="pending-card">
+                    <div class="loader"></div>
+                    <h2>Verifying Details...</h2>
+                    <p>The Admin is currently reviewing your application. Please check back later.</p>
+                </div>
+            </div>
+
+            <!-- ACCOUNT SECTION: Replaces Settings View -->
+            <div class="view-account" id="accountSection" style="display: none;">
+                <div class="account-card">
+                    <h2><i class='bx bx-id-card'></i> Student Account Details</h2>
+                    <p class="sub-text">View and update your personal info stored in system records.</p>
+                    
+                    <form id="accountForm">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" id="accFullName" placeholder="Enter Full Name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email Address</label>
+                            <input type="email" id="accEmail" placeholder="student@tvetmara.edu.my" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Phone Number</label>
+                            <input type="text" id="accPhone" placeholder="0123456789" required>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn-outline" onclick="toggleAccountView()">Back</button>
+                            <button type="submit" class="btn-primary">Save Changes</button>
+                        </div>
+                        <div id="accMessage" class="form-message"></div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="main-footer">
+        <p>&copy; 2026 Dormitoration System</p>
+    </footer>
+
+</body>
+</html>
