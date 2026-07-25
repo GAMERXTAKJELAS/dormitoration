@@ -1,21 +1,40 @@
 /**
  * logout_logic.js
- * High-level security and session management
+ * High-level security and session management for TVETMARA Lumut
  */
 
 // --- 1. THE SECURITY GUARD ---
-// This runs immediately when the script loads
 (function() {
     const isLoggedIn = localStorage.getItem('isLoggedIn');
     const currentPage = window.location.pathname;
 
-    // If no session is found and we aren't already on the login page, redirect.
-    if (!isLoggedIn && !currentPage.includes('../index.html')) {
-        window.location.replace("../index.html");
+    // Allowed public pages that don't require login
+    const isPublicPage = currentPage.endsWith('/log_in.html') || 
+                         currentPage.endsWith('/index.html') || 
+                         currentPage.endsWith('/sign_up.html') || 
+                         currentPage === '/';
+
+    // If no session is found and we aren't on a public page, redirect to login
+    if (!isLoggedIn && !isPublicPage) {
+        window.location.replace("/log_in.html");
     }
 })();
 
-// --- 2. MODAL CONTROLS ---
+// --- 2. BACK-BUTTON INTERCEPTOR ---
+(function() {
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    if (!isLoggedIn) return;
+
+    // Push state so back button is trapped on protected pages
+    window.history.pushState(null, null, window.location.pathname);
+
+    window.addEventListener('popstate', function () {
+        window.history.pushState(null, null, window.location.pathname);
+        openLogoutModal();
+    });
+})();
+
+// --- 3. MODAL CONTROLS ---
 function openLogoutModal() {
     const modal = document.getElementById('logout-modal');
     if (modal) modal.style.display = 'flex';
@@ -26,55 +45,13 @@ function closeLogoutModal() {
     if (modal) modal.style.display = 'none';
 }
 
-// --- 3. THE LOGOUT EXECUTION ---
+// --- 4. THE LOGOUT EXECUTION ---
 function executeLogout() {
-    // Clear the "Session"
+    // Clear session storage
     localStorage.removeItem('isLoggedIn');
-    
-    // Clear history and force-redirect to login
-    // window.location.replace is better than .href because it 
-    // removes the admin page from the browser's "Back" history.
-    window.location.replace("../index.html");
-}
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('userData');
 
-/**
- * logout_logic.js 
- */
-
-// --- 1. THE BACK-BUTTON INTERCEPTOR ---
-(function() {
-    // Check if logged in first
-    const isLoggedIn = localStorage.getItem('isLoggedIn');
-    if (!isLoggedIn) {
-        window.location.replace("/index.html"); //
-        return;
-    }
-
-    // Push a "dummy" state so there is something to "go back" from
-    window.history.pushState(null, null, window.location.pathname);
-
-    // Listen for the back button click
-    window.addEventListener('popstate', function (event) {
-        // Stop the browser from actually going back
-        window.history.pushState(null, null, window.location.pathname);
-        
-        // Show your existing logout modal
-        openLogoutModal();
-    });
-})();
-
-// --- 2. EXISTING MODAL & LOGOUT FUNCTIONS ---
-function openLogoutModal() {
-    const modal = document.getElementById('logout-modal'); //
-    if (modal) modal.style.display = 'flex'; //
-}
-
-function closeLogoutModal() {
-    const modal = document.getElementById('logout-modal'); //
-    if (modal) modal.style.display = 'none'; //
-}
-
-function executeLogout() {
-    localStorage.removeItem('isLoggedIn'); // Clear session
-    window.location.replace("/index.html"); // Redirect and clear history
+    // Force redirect to login page (removes admin page from history)
+    window.location.replace("/log_in.html");
 }
