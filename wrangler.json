@@ -1,0 +1,13 @@
+{
+  "name": "dormitoration",
+  "main": "cloudflare_worker.js",
+  "compatibility_date": "2026-01-01",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "dormitoration",
+      "database_id": "5d249b34-a8d7-4b67-8d8f-3063b2f755de"
+    }
+  ],
+  "assets": { "directory": "./" }
+}
