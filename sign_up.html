@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dormitoration | Sign Up</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="/design/sign_up.css">
+    <script src="/script/theme.js" defer></script>
+</head>
+<body class="dark-mode">
+
+    <!-- Top Navigation Header -->
+    <header class="top-nav">
+        <div class="nav-container">
+            <div class="brand">
+                <i class='bx bxs-building-house'></i>
+                <span>Dormitoration</span>
+            </div>
+
+            <nav class="nav-links">
+                <a href="/index.html">Home</a>
+                <a href="/index.html#about">About Us</a>
+                <button id="theme-toggle" class="theme-btn">
+                    <i class='bx bx-moon' id="theme-icon"></i>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="login-container">
+        <div class="login-card signup-card">
+            <div class="header">
+                <h1>Create Account</h1>
+                <p>Register for Dormitoration System</p>
+            </div>
+
+            <form id="signupForm">
+                <div class="input-group">
+                    <label for="fullname">Full Name</label>
+                    <input type="text" id="fullname" placeholder="Enter full name" required autocomplete="name">
+                </div>
+
+                <div class="input-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" placeholder="e.g. example@gmail.com" required autocomplete="email">
+                </div>
+
+                <div class="input-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" placeholder="e.g. 0123456789" required autocomplete="tel">
+                </div>
+
+                <div class="input-group">
+                    <label for="password">Create Password</label>
+                    <input type="password" id="password" placeholder="Create a password" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input type="password" id="confirmPassword" placeholder="Confirm password" required>
+                </div>
+
+                <button type="submit" class="btn-submit">Sign Up</button>
+            </form>
+
+            <div id="message"></div>
+
+            <div class="auth-footer">
+                <p>Already have an account? <a href="log_in.html" class="signup-link">Sign In</a></p>
+            </div>
+        </div>
+    </main>
+
+    <script src="signup_auth.js"></script>
+</body>
+</html>

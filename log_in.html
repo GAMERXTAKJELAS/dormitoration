@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dormitoration | Login</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="/design/log_in.css">
+    <script src="/script/theme.js" defer></script>
+</head>
+<body class="dark-mode">
+
+    <!-- Top Navigation Header -->
+    <header class="top-nav">
+        <div class="nav-container">
+            <div class="brand">
+                <i class='bx bxs-building-house'></i>
+                <span>Dormitoration</span>
+            </div>
+
+            <nav class="nav-links">
+                <a href="/index.html">Home</a>
+                <a href="/index.html#about">About Us</a>
+                <button id="theme-toggle" class="theme-btn">
+                    <i class='bx bx-moon' id="theme-icon"></i>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="login-container">
+        <div class="login-card">
+            <div class="header">
+                <h1>Dormitoration</h1>
+                <p>Smart Management System</p>
+            </div>
+
+            <form id="loginForm">
+                <div class="input-group">
+                    <label for="identifier">Email or Student ID</label>
+                    <input type="text" id="identifier" placeholder="Enter email or student ID" required autocomplete="username">
+                </div>
+
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter password" required autocomplete="current-password">
+                </div>
+
+                <button type="submit" class="btn-submit">Sign In</button>
+            </form>
+
+            <div id="message"></div>
+
+            <div class="auth-footer">
+                <p>Don't have an account? <a href="/sign_up.html" class="signup-link">Sign Up</a></p>
+            </div>
+        </div>
+    </main>
+
+    <script src="test_auth.js"></script>
+</body>
+</html>
