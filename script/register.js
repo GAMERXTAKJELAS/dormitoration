@@ -1,186 +1,125 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const registerForm = document.getElementById('registerForm') || document.querySelector('form');
-    const messageDiv = document.getElementById('message');
+/**
+ * Dormitoration - Backend Registration Endpoint (Cloudflare Worker)
+ * File: /script/register.js
+ */
 
-    if (!registerForm) return;
+export async function handleRegister(request, env, headers) {
+  try {
+    const body = await request.json();
+    
+    // Extract payload sent from signup.js
+    const { 
+      ic_number, 
+      matriks_number, 
+      full_name, 
+      email, 
+      phone, 
+      password, 
+      tarikh_lahir, 
+      umur, 
+      jantina, 
+      negeri, 
+      role 
+    } = body;
 
-    registerForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        // 1. Target inputs
-        const fullNameInput = registerForm.querySelector('input[placeholder*="full name"]') || document.getElementById('regFullName');
-        const emailInput = registerForm.querySelector('input[type="email"]') || document.getElementById('regEmail');
-        const phoneInput = registerForm.querySelector('input[placeholder*="0123456789"]') || document.getElementById('regPhone');
-        const matriksInput = document.getElementById('regMatriks');
-        const icInput = document.getElementById('regIC');
-        const passwordInputs = registerForm.querySelectorAll('input[type="password"]');
-
-        const fullName = fullNameInput ? fullNameInput.value.trim() : '';
-        const email = emailInput ? emailInput.value.trim() : '';
-        const phone = phoneInput ? phoneInput.value.trim() : '';
-        const matriks = matriksInput ? matriksInput.value.trim() : '';
-        const rawIC = icInput ? icInput.value.trim() : '';
-        const password = passwordInputs[0] ? passwordInputs[0].value : '';
-        const confirmPassword = passwordInputs[1] ? passwordInputs[1].value : '';
-
-        // 2. Client-side password matching check
-        if (passwordInputs.length > 1 && password !== confirmPassword) {
-            if (messageDiv) {
-                messageDiv.className = "status-error";
-                messageDiv.innerText = "Passwords do not match!";
-            }
-            return;
-        }
-
-        // 3. Extract IC details (DOB, Age, Gender, State)
-        const icData = parseMalaysianIC(rawIC);
-        if (rawIC && !icData.valid) {
-            if (messageDiv) {
-                messageDiv.className = "status-error";
-                messageDiv.innerText = "Sila masukkan No. IC yang sah (12 digit).";
-            }
-            return;
-        }
-
-        if (messageDiv) {
-            messageDiv.className = "status-loading";
-            messageDiv.innerText = "Creating account and logging in...";
-        }
-
-        // 4. Payload with EXPLICIT NULL for username
-        const payload = { 
-            username: null, // Removed generated fallback username completely
-            ic_number: icData.valid ? icData.cleanIC : null,
-            matriks_number: matriks || null,
-            full_name: fullName || null,
-            email: email || null,
-            phone: phone, 
-            password: password, 
-            tarikh_lahir: icData.valid ? icData.tarikhLahir : null,
-            umur: icData.valid ? icData.umur : null,
-            jantina: icData.valid ? icData.jantina : null,
-            negeri: icData.valid ? icData.negeri : null,
-            role: 'student' 
-        };
-
-        try {
-            const response = await fetch('/api/auth/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                const userPayload = data.user || {
-                    ...payload,
-                    account_status: 'pending_details'
-                };
-
-                localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('userRole', 'student');
-                localStorage.setItem('userData', JSON.stringify(userPayload));
-
-                if (messageDiv) {
-                    messageDiv.className = "status-success";
-                    messageDiv.innerText = "Welcome! Redirecting to student home page...";
-                }
-                
-                setTimeout(() => {
-                    window.location.replace('/student/studenthomepage.html');
-                }, 800);
-
-            } else {
-                if (messageDiv) {
-                    messageDiv.className = "status-error";
-                    messageDiv.innerText = data.details || data.error || 'Registration failed.';
-                }
-            }
-        } catch (err) {
-            console.warn("Server unavailable. Saving session locally:", err);
-
-            // Offline Fallback - Username remains null
-            const fallbackPayload = {
-                ...payload,
-                id: 'temp_' + Date.now(),
-                account_status: 'pending_details'
-            };
-
-            localStorage.setItem('isLoggedIn', 'true');
-            localStorage.setItem('userRole', 'student');
-            localStorage.setItem('userData', JSON.stringify(fallbackPayload));
-
-            if (messageDiv) {
-                messageDiv.className = "status-success";
-                messageDiv.innerText = "Offline mode active. Redirecting...";
-            }
-
-            setTimeout(() => {
-                window.location.replace('/student/studenthomepage.html');
-            }, 800);
-        }
-    });
-});
-
-/* =========================================================
-   MALAYSIAN IC EXTRACTOR (DOB, AGE, GENDER, STATE)
-   ========================================================= */
-function parseMalaysianIC(icString) {
-    if (!icString) return { valid: false };
-
-    const cleanIC = icString.replace(/\D/g, '');
-    if (cleanIC.length !== 12) return { valid: false };
-
-    const yearDigits = parseInt(cleanIC.substring(0, 2), 10);
-    const monthDigits = parseInt(cleanIC.substring(2, 4), 10);
-    const dayDigits = parseInt(cleanIC.substring(4, 6), 10);
-    const stateCode = cleanIC.substring(6, 8);
-    const lastDigit = parseInt(cleanIC.substring(11, 12), 10);
-
-    if (monthDigits < 1 || monthDigits > 12 || dayDigits < 1 || dayDigits > 31) {
-        return { valid: false };
+    // Basic validation
+    if (!ic_number && !phone) {
+      return new Response(
+        JSON.stringify({ error: 'Pengenalan (IC atau No. Telefon) diperlukan.' }), 
+        { status: 400, headers }
+      );
     }
 
-    const currentTwoDigitYear = new Date().getFullYear() % 100;
-    const fullYear = (yearDigits <= currentTwoDigitYear) ? (2000 + yearDigits) : (1900 + yearDigits);
-
-    const monthStr = String(monthDigits).padStart(2, '0');
-    const dayStr = String(dayDigits).padStart(2, '0');
-    const tarikhLahir = `${fullYear}-${monthStr}-${dayStr}`;
-
-    const dob = new Date(fullYear, monthDigits - 1, dayDigits);
-    const today = new Date();
-    let umur = today.getFullYear() - dob.getFullYear();
-    const m = today.getMonth() - dob.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
-        umur--;
+    if (!password) {
+      return new Response(
+        JSON.stringify({ error: 'Kata laluan diperlukan.' }), 
+        { status: 400, headers }
+      );
     }
 
-    const jantina = (lastDigit % 2 !== 0) ? 'Lelaki' : 'Perempuan';
-    const negeri = getMalaysianState(stateCode);
+    // 1. Check if user already exists in Cloudflare D1 (by IC or Phone)
+    const existingCheck = await env.DB.prepare(
+      `SELECT id FROM users WHERE (ic_number = ? AND ic_number IS NOT NULL) OR (phone = ? AND phone IS NOT NULL) LIMIT 1`
+    ).bind(ic_number || null, phone || null).first();
 
-    return { valid: true, cleanIC, tarikhLahir, umur, jantina, negeri };
-}
+    if (existingCheck) {
+      return new Response(
+        JSON.stringify({ error: 'Akaun dengan No. IC atau No. Telefon ini telah wujud.' }), 
+        { status: 409, headers }
+      );
+    }
 
-function getMalaysianState(code) {
-    const stateMap = {
-        '01': 'Johor', '21': 'Johor', '22': 'Johor', '23': 'Johor', '24': 'Johor',
-        '02': 'Kedah', '25': 'Kedah', '26': 'Kedah', '27': 'Kedah',
-        '03': 'Kelantan', '28': 'Kelantan', '29': 'Kelantan',
-        '04': 'Melaka', '30': 'Melaka',
-        '05': 'Negeri Sembilan', '31': 'Negeri Sembilan',
-        '06': 'Pahang', '32': 'Pahang', '33': 'Pahang',
-        '07': 'Pulau Pinang', '34': 'Pulau Pinang', '35': 'Pulau Pinang',
-        '08': 'Perak', '36': 'Perak', '37': 'Perak', '38': 'Perak', '39': 'Perak',
-        '09': 'Perlis', '40': 'Perlis',
-        '10': 'Selangor', '41': 'Selangor', '42': 'Selangor', '43': 'Selangor', '44': 'Selangor',
-        '11': 'Terengganu', '45': 'Terengganu', '46': 'Terengganu',
-        '12': 'Sabah', '47': 'Sabah', '48': 'Sabah', '49': 'Sabah',
-        '13': 'Sarawak', '50': 'Sarawak', '51': 'Sarawak', '52': 'Sarawak', '53': 'Sarawak',
-        '14': 'Wilayah Persekutuan Kuala Lumpur', '54': 'Wilayah Persekutuan Kuala Lumpur', '55': 'Wilayah Persekutuan Kuala Lumpur',
-        '15': 'Wilayah Persekutuan Labuan', '56': 'Wilayah Persekutuan Labuan',
-        '16': 'Wilayah Persekutuan Putrajaya', '57': 'Wilayah Persekutuan Putrajaya'
+    // 2. Insert new user into D1 (username explicitly set to NULL)
+    const query = `
+      INSERT INTO users (
+        username, 
+        ic_number, 
+        matriks_number, 
+        full_name, 
+        email, 
+        phone, 
+        password, 
+        tarikh_lahir, 
+        umur, 
+        jantina, 
+        negeri, 
+        role, 
+        account_status
+      ) VALUES (
+        NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending_details'
+      )
+    `;
+
+    const result = await env.DB.prepare(query)
+      .bind(
+        ic_number || null, 
+        matriks_number || null, 
+        full_name || null, 
+        email || null, 
+        phone || null, 
+        password, 
+        tarikh_lahir || null, 
+        umur || null, 
+        jantina || null, 
+        negeri || null, 
+        role || 'student'
+      )
+      .run();
+
+    // 3. Construct response object for frontend session storage
+    const createdUser = {
+      id: result.meta?.last_row_id || null,
+      username: null,
+      ic_number: ic_number || null,
+      matriks_number: matriks_number || null,
+      full_name: full_name || null,
+      email: email || null,
+      phone: phone || null,
+      tarikh_lahir: tarikh_lahir || null,
+      umur: umur || null,
+      jantina: jantina || null,
+      negeri: negeri || null,
+      role: role || 'student',
+      account_status: 'pending_details'
     };
-    return stateMap[code] || 'Lain-lain';
+
+    return new Response(
+      JSON.stringify({ 
+        success: true, 
+        message: 'Akaun berjaya didaftarkan!', 
+        user: createdUser 
+      }), 
+      { status: 200, headers }
+    );
+
+  } catch (err) {
+    console.error("D1 Register Error:", err);
+    return new Response(
+      JSON.stringify({ 
+        error: 'Ralat pelayan semasa mendaftar.', 
+        details: err.message 
+      }), 
+      { status: 500, headers }
+    );
+  }
 }
