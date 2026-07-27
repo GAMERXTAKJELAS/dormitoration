@@ -7,7 +7,6 @@ export async function handleRegister(request, env, headers) {
   try {
     const body = await request.json();
     
-    // Extract payload sent from signup.js
     const { 
       ic_number, 
       matriks_number, 
@@ -22,10 +21,9 @@ export async function handleRegister(request, env, headers) {
       role 
     } = body;
 
-    // Basic validation
-    if (!ic_number && !phone) {
+    if (!phone && !email) {
       return new Response(
-        JSON.stringify({ error: 'Pengenalan (IC atau No. Telefon) diperlukan.' }), 
+        JSON.stringify({ error: 'No. Telefon atau e-mel diperlukan.' }), 
         { status: 400, headers }
       );
     }
@@ -37,64 +35,50 @@ export async function handleRegister(request, env, headers) {
       );
     }
 
-    // 1. Check if user already exists in Cloudflare D1 (by IC or Phone)
+    // 1. Check if user already exists in D1 (by phone or email)
     const existingCheck = await env.DB.prepare(
-      `SELECT id FROM users WHERE (ic_number = ? AND ic_number IS NOT NULL) OR (phone = ? AND phone IS NOT NULL) LIMIT 1`
-    ).bind(ic_number || null, phone || null).first();
+      `SELECT id FROM users WHERE (phone = ? AND phone IS NOT NULL) OR (email = ? AND email IS NOT NULL) LIMIT 1`
+    ).bind(phone || null, email || null).first();
 
     if (existingCheck) {
       return new Response(
-        JSON.stringify({ error: 'Akaun dengan No. IC atau No. Telefon ini telah wujud.' }), 
+        JSON.stringify({ error: 'Akaun dengan No. Telefon atau e-mel ini telah wujud.' }), 
         { status: 409, headers }
       );
     }
 
-    // 2. Insert new user into D1 (username explicitly set to NULL)
-    const query = `
+    // 2. Insert into `users` table (Only columns present in schema)
+    const result = await env.DB.prepare(`
       INSERT INTO users (
         username, 
-        ic_number, 
-        matriks_number, 
+        phone, 
         full_name, 
         email, 
-        phone, 
-        password, 
-        tarikh_lahir, 
-        umur, 
-        jantina, 
-        negeri, 
+        password_hash, 
         role, 
         account_status
       ) VALUES (
-        NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending_details'
+        NULL, ?, ?, ?, ?, ?, 'pending_details'
       )
-    `;
+    `).bind(
+      phone || null, 
+      full_name || null, 
+      email || null, 
+      password, 
+      role || 'student'
+    ).run();
 
-    const result = await env.DB.prepare(query)
-      .bind(
-        ic_number || null, 
-        matriks_number || null, 
-        full_name || null, 
-        email || null, 
-        phone || null, 
-        password, 
-        tarikh_lahir || null, 
-        umur || null, 
-        jantina || null, 
-        negeri || null, 
-        role || 'student'
-      )
-      .run();
+    const newUserId = result.meta?.last_row_id;
 
-    // 3. Construct response object for frontend session storage
+    // 3. Return user object + IC metadata so frontend can store in localStorage
     const createdUser = {
-      id: result.meta?.last_row_id || null,
+      id: newUserId,
       username: null,
-      ic_number: ic_number || null,
-      matriks_number: matriks_number || null,
       full_name: full_name || null,
       email: email || null,
       phone: phone || null,
+      ic_number: ic_number || null,
+      matriks_number: matriks_number || null,
       tarikh_lahir: tarikh_lahir || null,
       umur: umur || null,
       jantina: jantina || null,
