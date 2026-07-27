@@ -10,7 +10,7 @@ export async function handleLogin(request, env, headers) {
 
   // Fetch user from D1 database
   const user = await env.DB.prepare(`
-    SELECT * FROM users WHERE phone = ? OR username = ?
+    SELECT * FROM users WHERE phone = ? OR username = ? OR email = ?
   `).bind(identifier, identifier).first();
 
   if (!user || user.password_hash !== password) {
