@@ -156,13 +156,15 @@ body {
 }
 
 /* ==========================================================================
-   5. FORM INPUTS & BUTTONS
+   5. FORM INPUTS & BUTTONS (Supports both .input-group and .form-group)
    ========================================================================== */
-.input-group {
+.input-group,
+.form-group {
     margin-bottom: 20px;
 }
 
-.input-group label {
+.input-group label,
+.form-group label {
     display: block;
     font-size: 0.85rem;
     font-weight: 600;
@@ -171,7 +173,9 @@ body {
 }
 
 .input-group input,
-.input-group select {
+.input-group select,
+.form-group input,
+.form-group select {
     width: 100%;
     padding: 12px 16px;
     background: var(--body-color);
@@ -184,7 +188,8 @@ body {
     appearance: none; /* Custom arrow look across browsers */
 }
 
-.input-group select {
+.input-group select,
+.form-group select {
     cursor: pointer;
     background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2347f59b'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
     background-repeat: no-repeat;
@@ -193,17 +198,21 @@ body {
 }
 
 .input-group input:focus,
-.input-group select:focus {
+.input-group select:focus,
+.form-group input:focus,
+.form-group select:focus {
     border-color: var(--primary-color);
 }
 
 /* Style options inside dropdown menu */
-.input-group select option {
+.input-group select option,
+.form-group select option {
     background-color: var(--card-bg);
     color: var(--text-color);
 }
 
-.btn-submit {
+.btn-submit,
+.btn-primary {
     width: 100%;
     padding: 12px;
     border: none;
@@ -217,12 +226,14 @@ body {
     margin-top: 10px;
 }
 
-.btn-submit:hover {
+.btn-submit:hover,
+.btn-primary:hover {
     opacity: 0.9;
     transform: translateY(-1px);
 }
 
-.btn-submit:active {
+.btn-submit:active,
+.btn-primary:active {
     transform: translateY(0);
 }
 
@@ -284,4 +295,3 @@ body {
         padding: 25px 20px;
     }
 }
-
