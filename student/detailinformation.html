@@ -13,44 +13,63 @@
 </head>
 <body class="dark-mode">
 
- <header class="top-nav">
-    <div class="nav-container">
-        <div class="brand">
-            <i class='bx bxs-building-house'></i>
-            <span>Dormitoration</span>
+<!-- Top Navigation -->
+    <header class="top-nav">
+        <div class="nav-container">
+            <div class="brand">
+                <i class='bx bxs-building-house'></i>
+                <span>Dormitoration</span>
+            </div>
+
+            <nav class="nav-links">
+                <a href="/student/studenthomepage.html" class="btn-outline">
+                    <i class='bx bx-left-arrow-alt'></i> Back to Dashboard
+                </a>
+            </nav>
         </div>
-        <nav class="nav-links">
-            <a href="/student/studenthomepage.html" class="btn-outline">
-                <i class='bx bx-left-arrow-alt'></i> Back to Dashboard
-            </a>
-        </nav>
-    </div>
-</header>
+    </header>
 
     <main class="main-content">
         <div class="account-card detail-card">
             <h2><i class='bx bx-id-card'></i> Complete Student Profile</h2>
             <p class="sub-text">Please provide complete and accurate information for hostel allocation verification.</p>
 
-           <form id="detailInfoForm" class="form-grid-container">
+            <!-- Status / Feedback Message Container -->
+            <div id="detailMsg" class="message-banner"></div>
+
+            <form id="detailInfoForm" class="form-grid-container">
     
+<!-- CSV AUTO-FILL BOX -->
+<div class="form-section csv-upload-card" style="border: 2px dashed var(--primary-color); background: rgba(71, 245, 155, 0.05); text-align: center; margin-bottom: 25px;">
+    <h2><i class='bx bx-file'></i> Auto-Fill Form guna CSV File</h2>
+    <p class="sub-text">Muat naik CSV file contain detail pelajar untuk isi form dibawah secara automatik.</p>
+    
+    <div style="display: flex; gap: 10px; justify-content: center; align-items: center; margin-top: 15px;">
+        <button type="button" class="btn-primary-submit" style="width: auto; padding: 10px 20px;" onclick="document.getElementById('csvFileInput').click()">
+            <i class='bx bx-upload'></i> Muat naik CSV File
+        </button>
+        <span id="csvFileNameDisplay" style="font-size: 0.9rem; color: var(--text-muted);">Tiada CSV dipilih</span>
+        <input type="file" id="csvFileInput" accept=".csv" style="display: none;">
+    </div>
+</div>
+
     <!-- BAHAGIAN A: BUTIR-BUTIR PERIBADI -->
     <div class="form-section">
         <h2><i class='bx bx-user'></i> BAHAGIAN A: BUTIR-BUTIR PERIBADI</h2>
         <div class="input-grid">
             <div class="input-box full-width">
                 <label>Nama Pelajar</label>
-                <input type="text" id="namaPelajar" name="namaPelajar" required placeholder="NAMA PENUH SEPERTI DALAM IC">
+                <input type="text" id="namaPelajar" name="namaPelajar" placeholder="NAMA PENUH SEPERTI DALAM IC">
             </div>
 
             <div class="input-box">
                 <label>No. Kad Pengenalan</label>
-                <input type="text" id="noIC" name="noIC" required placeholder="030101-08-XXXX">
+                <input type="text" id="noIC" name="noIC" placeholder="030101-08-XXXX">
             </div>
 
             <div class="input-box">
                 <label>Tarikh Lahir</label>
-                <input type="date" id="tarikhLahir" name="tarikhLahir" required onchange="calculateAge()">
+                <input type="date" id="tarikhLahir" name="tarikhLahir">
             </div>
 
             <div class="input-box">
@@ -60,7 +79,7 @@
 
             <div class="input-box">
                 <label>Jantina</label>
-                <select id="jantina" name="jantina" required>
+                <select id="jantina" name="jantina">
                     <option value="">-- Pilih --</option>
                     <option value="Lelaki">Lelaki</option>
                     <option value="Perempuan">Perempuan</option>
@@ -69,32 +88,32 @@
 
             <div class="input-box">
                 <label>No. Telefon</label>
-                <input type="tel" id="noTel" name="noTel" required placeholder="01X-XXXXXXX">
+                <input type="tel" id="noTel" name="noTel" placeholder="01X-XXXXXXX">
             </div>
 
             <div class="input-box full-width">
                 <label>Alamat Rumah</label>
-                <textarea id="alamatRumah" name="alamatRumah" rows="2" required></textarea>
+                <textarea id="alamatRumah" name="alamatRumah" rows="2"></textarea>
             </div>
 
             <div class="input-box">
                 <label>Poskod</label>
-                <input type="text" id="poskod" name="poskod" required>
+                <input type="text" id="poskod" name="poskod">
             </div>
 
             <div class="input-box">
                 <label>Bandar</label>
-                <input type="text" id="bandar" name="bandar" required>
+                <input type="text" id="bandar" name="bandar">
             </div>
 
             <div class="input-box">
                 <label>Negeri</label>
-                <input type="text" id="negeri" name="negeri" required>
+                <input type="text" id="negeri" name="negeri">
             </div>
 
             <div class="input-box full-width">
                 <label>Sebab Memohon Untuk Tinggal Di Asrama</label>
-                <textarea id="sebabMemohon" name="sebabMemohon" rows="3" required></textarea>
+                <textarea id="sebabMemohon" name="sebabMemohon" rows="3"></textarea>
             </div>
         </div>
     </div>
@@ -105,13 +124,15 @@
         <div class="input-grid">
             <div class="input-box">
                 <label>Program</label>
-                <input type="text" id="program" name="program" required placeholder="Contoh: DKT">
+                <input type="text" id="program" name="program" placeholder="Contoh: DKT">
             </div>
 
             <div class="input-box">
                 <label>Semester</label>
-                <select id="semester" name="semester" required>
+                <select id="semester" name="semester">
                     <option value="">-- Pilih Semester --</option>
+                    <option value="1">Semester 1</option>
+                    <option value="2">Semester 2</option>
                     <option value="3">Semester 3</option>
                     <option value="4">Semester 4</option>
                     <option value="5">Semester 5</option>
@@ -121,12 +142,12 @@
 
             <div class="input-box">
                 <label>Keputusan GPA</label>
-                <input type="number" step="0.01" id="gpa" name="gpa" placeholder="0.00 - 4.00" required>
+                <input type="number" step="0.01" id="gpa" name="gpa" placeholder="0.00 - 4.00">
             </div>
 
             <div class="input-box">
                 <label>Keputusan CGPA</label>
-                <input type="number" step="0.01" id="cgpa" name="cgpa" placeholder="0.00 - 4.00" required>
+                <input type="number" step="0.01" id="cgpa" name="cgpa" placeholder="0.00 - 4.00">
             </div>
 
             <div class="input-box full-width">
@@ -147,27 +168,27 @@
         <div class="input-grid">
             <div class="input-box">
                 <label>Nama Bapa/Penjaga 1</label>
-                <input type="text" id="namaPenjaga1" name="namaPenjaga1" required>
+                <input type="text" id="namaPenjaga1" name="namaPenjaga1">
             </div>
             <div class="input-box">
                 <label>No. Kad Pengenalan</label>
-                <input type="text" id="icPenjaga1" name="icPenjaga1" required>
+                <input type="text" id="icPenjaga1" name="icPenjaga1">
             </div>
             <div class="input-box">
                 <label>No. Telefon</label>
-                <input type="tel" id="telPenjaga1" name="telPenjaga1" required>
+                <input type="tel" id="telPenjaga1" name="telPenjaga1">
             </div>
             <div class="input-box">
                 <label>Hubungan</label>
-                <input type="text" id="hubunganPenjaga1" name="hubunganPenjaga1" value="Bapa" required>
+                <input type="text" id="hubunganPenjaga1" name="hubunganPenjaga1" value="Bapa">
             </div>
             <div class="input-box">
                 <label>Pekerjaan & Nama Majikan</label>
-                <input type="text" id="pekerjaanPenjaga1" name="pekerjaanPenjaga1" required>
+                <input type="text" id="pekerjaanPenjaga1" name="pekerjaanPenjaga1">
             </div>
             <div class="input-box">
                 <label>Pendapatan Bulanan (RM)</label>
-                <input type="number" id="pendapatanPenjaga1" name="pendapatanPenjaga1" required>
+                <input type="number" id="pendapatanPenjaga1" name="pendapatanPenjaga1">
             </div>
         </div>
 
@@ -203,23 +224,23 @@
         <div class="input-grid" style="margin-top: 15px;">
             <div class="input-box full-width">
                 <label>Tanggungan Anak Yang Masih Belajar / Bersekolah</label>
-                <input type="number" id="tanggunganAnak" name="tanggunganAnak" placeholder="Jumlah anak masih sekolah" required>
+                <input type="number" id="tanggunganAnak" name="tanggunganAnak" placeholder="Jumlah anak masih sekolah">
             </div>
         </div>
 
-        <!-- PDF ONLY FILE ATTACHMENT SECTION -->
+        <!-- PDF ATTACHMENT SECTION -->
         <div class="pdf-upload-box">
             <label class="pdf-label">
                 <i class='bx bxs-file-pdf'></i> Muat Naik Slip Gaji / Penyata Pendapatan (PDF Sahaja)
             </label>
-            <p class="pdf-note">* Sila sertakan Slip Gaji / Penyata Pendapatan Terkini yang disahkan[cite: 1]. Format fail mestilah **PDF**.</p>
+            <p class="pdf-note">* Sila sertakan Slip Gaji / Penyata Pendapatan Terkini. Format fail mestilah **PDF**.</p>
             
             <div class="file-drop-area">
-                <button type="button" class="btn-pdf-select" onclick="document.getElementById('slipGajiPDF').click()">
+                <button type="button" class="btn-pdf-select" id="btnPdfSelect">
                     <i class='bx bx-upload'></i> Pilih Fail PDF
                 </button>
                 <span id="fileNameDisplay">Tiada fail dipilih</span>
-                <input type="file" id="slipGajiPDF" name="slipGajiPDF" accept="application/pdf" style="display: none;" onchange="handlePDFSelection(event)" required>
+                <input type="file" id="slipGajiPDF" name="slipGajiPDF" accept="application/pdf" style="display: none;">
             </div>
         </div>
 
@@ -228,17 +249,18 @@
     <!-- PERAKUAN PELAJAR -->
     <div class="form-section">
         <div class="checkbox-container">
-            <input type="checkbox" id="perakuan" name="perakuan" required>
-            <label for="perakuan">Saya dengan ini mengaku bahawa semua maklumat yang diberikan di atas adalah benar[cite: 1].</label>
+            <input type="checkbox" id="perakuan" name="perakuan">
+            <label for="perakuan">Saya dengan ini mengaku bahawa semua maklumat yang diberikan di atas adalah benar.</label>
         </div>
         
-        <button type="submit" class="btn-primary-submit">Hantar Permohonan</button>
+        <button type="submit" class="btn-primary-submit">Simpan & Hantar Permohonan</button>
     </div>
 
 </form>
         </div>
     </main>
 
+<!-- Full-Width Matching Footer -->
     <footer class="main-footer">
         <p>&copy; 2026 Dormitoration System</p>
     </footer>
