@@ -47,7 +47,32 @@ export async function handleRegister(request, env, headers) {
       );
     }
 
-    // 2. Insert into `users` table (Only columns present in schema)
+    // 2. Fetch active deadline duration & unit from system_settings
+    const valSetting = await env.DB.prepare(
+      `SELECT setting_value FROM system_settings WHERE setting_key = 'temp_account_deadline_value'`
+    ).first();
+
+    const unitSetting = await env.DB.prepare(
+      `SELECT setting_value FROM system_settings WHERE setting_key = 'temp_account_deadline_unit'`
+    ).first();
+
+    const durationVal = valSetting ? parseInt(valSetting.setting_value, 10) : 7;
+    const durationUnit = unitSetting ? unitSetting.setting_value : 'days';
+
+    // 3. Calculate future DATETIME for ISO format
+    const deadlineDate = new Date();
+    if (durationUnit === 'hours') {
+      deadlineDate.setHours(deadlineDate.getHours() + durationVal);
+    } else if (durationUnit === 'months') {
+      deadlineDate.setMonth(deadlineDate.getMonth() + durationVal);
+    } else {
+      // Default: days
+      deadlineDate.setDate(deadlineDate.getDate() + durationVal);
+    }
+
+    const registrationDeadline = deadlineDate.toISOString();
+
+    // 4. Insert into `users` table including registration_deadline
     const result = await env.DB.prepare(`
       INSERT INTO users (
         username, 
@@ -56,21 +81,23 @@ export async function handleRegister(request, env, headers) {
         email, 
         password_hash, 
         role, 
-        account_status
+        account_status,
+        registration_deadline
       ) VALUES (
-        NULL, ?, ?, ?, ?, ?, 'pending_details'
+        NULL, ?, ?, ?, ?, ?, 'pending_details', ?
       )
     `).bind(
       phone || null, 
       full_name || null, 
       email || null, 
       password, 
-      role || 'student'
+      role || 'student',
+      registrationDeadline
     ).run();
 
     const newUserId = result.meta?.last_row_id;
 
-    // 3. Return user object + IC metadata so frontend can store in localStorage
+    // 5. Return user object + IC metadata so frontend can store in localStorage
     const createdUser = {
       id: newUserId,
       username: null,
@@ -84,7 +111,8 @@ export async function handleRegister(request, env, headers) {
       jantina: jantina || null,
       negeri: negeri || null,
       role: role || 'student',
-      account_status: 'pending_details'
+      account_status: 'pending_details',
+      registration_deadline: registrationDeadline
     };
 
     return new Response(
