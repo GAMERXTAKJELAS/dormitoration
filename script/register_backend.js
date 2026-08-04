@@ -95,7 +95,7 @@ export async function handleRegister(request, env, headers) {
 
     const newUserId = userResult.meta?.last_row_id;
 
-// 5. Insert Extracted IC & Profile into `hostel_applications`
+// 5. Insert Draft Application Row with Default Values for all Required Columns
     if (newUserId && ic_number) {
       
       const now = new Date();
@@ -113,8 +113,42 @@ export async function handleRegister(request, env, headers) {
           gender,
           home_address,
           postcode,
-          state
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          city,
+          state,
+          reason_for_apply,
+          program,
+          semester,
+          gpa_cgpa,
+          contributions,
+          guardian1_name,
+          guardian1_ic,
+          guardian1_phone,
+          guardian1_address,
+          guardian1_relationship,
+          guardian1_job,
+          guardian1_income,
+          guardian2_name,
+          guardian2_ic,
+          guardian2_phone,
+          guardian2_address,
+          guardian2_relationship,
+          guardian2_job,
+          guardian2_income,
+          dependents_count,
+          submission_status,
+          head_of_program_support,
+          admin_approval
+        ) VALUES (
+          ?, ?, ?, ?, ?, ?,
+          '', '', '', '',
+          '', '', 1, 0.0, '',
+          '', '', '', '', '', '', 0.0,
+          '', '', '', '', '', '', 0.0,
+          0,
+          'DRAFT',
+          'PENDING',
+          'PENDING'
+        )
         ON CONFLICT(user_id) DO UPDATE SET
           session_id = excluded.session_id,
           ic_number = excluded.ic_number,
@@ -127,10 +161,7 @@ export async function handleRegister(request, env, headers) {
         ic_number,
         tarikh_lahir || null,
         umur || null,
-        jantina || null,
-        "", // home_address
-        "", // postcode
-        ""  // state
+        jantina || null
       ).run();
     }
 
