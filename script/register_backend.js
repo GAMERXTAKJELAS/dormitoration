@@ -103,16 +103,13 @@ export async function handleRegister(request, env, headers) {
           ic_number,
           dob,
           age,
-          gender,
-          created_at,
-          updated_at
-        ) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+          gender
+        ) VALUES (?, ?, ?, ?, ?)
         ON CONFLICT(user_id) DO UPDATE SET
           ic_number = excluded.ic_number,
           dob = excluded.dob,
           age = excluded.age,
           gender = excluded.gender,
-          updated_at = CURRENT_TIMESTAMP
       `).bind(
         newUserId,
         ic_number,
