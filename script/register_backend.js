@@ -109,7 +109,7 @@ export async function handleRegister(request, env, headers) {
           ic_number = excluded.ic_number,
           dob = excluded.dob,
           age = excluded.age,
-          gender = excluded.gender,
+          gender = excluded.gender
       `).bind(
         newUserId,
         ic_number,
