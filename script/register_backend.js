@@ -35,14 +35,18 @@ export async function handleRegister(request, env, headers) {
       );
     }
 
-    // 1. Check if user already exists in D1 (by phone or email)
+    // 1. Check if user already exists in D1 (by phone, email, or IC)
     const existingCheck = await env.DB.prepare(
-      `SELECT id FROM users WHERE (phone = ? AND phone IS NOT NULL) OR (email = ? AND email IS NOT NULL) LIMIT 1`
-    ).bind(phone || null, email || null).first();
+      `SELECT id FROM users WHERE 
+        (phone = ? AND phone IS NOT NULL) OR 
+        (email = ? AND email IS NOT NULL) OR 
+        (ic_number = ? AND ic_number IS NOT NULL) 
+       LIMIT 1`
+    ).bind(phone || null, email || null, ic_number || null).first();
 
     if (existingCheck) {
       return new Response(
-        JSON.stringify({ error: 'Akaun dengan No. Telefon atau e-mel ini telah wujud.' }), 
+        JSON.stringify({ error: 'Akaun dengan No. Telefon, e-mel, atau IC ini telah wujud.' }), 
         { status: 409, headers }
       );
     }
@@ -59,53 +63,65 @@ export async function handleRegister(request, env, headers) {
     const durationVal = valSetting ? parseInt(valSetting.setting_value, 10) : 7;
     const durationUnit = unitSetting ? unitSetting.setting_value : 'days';
 
-    // 3. Calculate future DATETIME for ISO format
+    // 3. Calculate future registration deadline ISO date
     const deadlineDate = new Date();
     if (durationUnit === 'hours') {
       deadlineDate.setHours(deadlineDate.getHours() + durationVal);
     } else if (durationUnit === 'months') {
       deadlineDate.setMonth(deadlineDate.getMonth() + durationVal);
     } else {
-      // Default: days
       deadlineDate.setDate(deadlineDate.getDate() + durationVal);
     }
 
     const registrationDeadline = deadlineDate.toISOString();
 
-    // 4. Insert into `users` table including registration_deadline
+    // 4. Insert directly into `users` table with extracted IC fields
     const result = await env.DB.prepare(`
       INSERT INTO users (
         username, 
+        ic_number,
+        matriks_number,
         phone, 
         full_name, 
         email, 
         password_hash, 
+        tarikh_lahir,
+        umur,
+        jantina,
+        negeri,
         role, 
         account_status,
-        registration_deadline
+        registration_deadline,
+        created_at
       ) VALUES (
-        NULL, ?, ?, ?, ?, ?, 'pending_details', ?
+        NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending_details', ?, CURRENT_TIMESTAMP
       )
     `).bind(
+      ic_number || null,
+      matriks_number || null,
       phone || null, 
       full_name || null, 
       email || null, 
       password, 
+      tarikh_lahir || null,
+      umur || null,
+      jantina || null,
+      negeri || null,
       role || 'student',
       registrationDeadline
     ).run();
 
     const newUserId = result.meta?.last_row_id;
 
-    // 5. Return user object + IC metadata so frontend can store in localStorage
+    // 5. Construct user response payload
     const createdUser = {
       id: newUserId,
       username: null,
+      ic_number: ic_number || null,
+      matriks_number: matriks_number || null,
       full_name: full_name || null,
       email: email || null,
       phone: phone || null,
-      ic_number: ic_number || null,
-      matriks_number: matriks_number || null,
       tarikh_lahir: tarikh_lahir || null,
       umur: umur || null,
       jantina: jantina || null,

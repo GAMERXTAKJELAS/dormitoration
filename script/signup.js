@@ -8,9 +8,9 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
 
         // 1. Target form input fields
-        const fullNameInput = registerForm.querySelector('input[placeholder*="full name"]') || document.getElementById('regFullName');
-        const emailInput = registerForm.querySelector('input[type="email"]') || document.getElementById('regEmail');
-        const phoneInput = registerForm.querySelector('input[placeholder*="0123456789"]') || document.getElementById('regPhone');
+        const fullNameInput = registerForm.querySelector('input[placeholder*="full name"]') || document.getElementById('fullname');
+        const emailInput = registerForm.querySelector('input[type="email"]') || document.getElementById('email');
+        const phoneInput = registerForm.querySelector('input[placeholder*="0123456789"]') || document.getElementById('phone');
         const matriksInput = document.getElementById('regMatriks');
         const icInput = document.getElementById('regIC');
         const passwordInputs = registerForm.querySelectorAll('input[type="password"]');
@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 3. Extract IC details (DOB, Age, Gender, State)
         const icData = parseMalaysianIC(rawIC);
-        if (rawIC && !icData.valid) {
+        if (!icData.valid) {
             if (messageDiv) {
                 messageDiv.style.color = "#ff4d4d";
                 messageDiv.innerText = "Sila masukkan No. IC yang sah (12 digit).";
@@ -44,22 +44,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (messageDiv) {
             messageDiv.style.color = "#ffffff";
-            messageDiv.innerText = "Creating account and logging in...";
+            messageDiv.innerText = "Creating account and saving initial data...";
         }
 
-        // 4. Payload sending username as NULL
+        // 4. Payload sending parsed IC metadata & student profile
         const payload = { 
             username: null, 
-            ic_number: icData.valid ? icData.cleanIC : null,
+            ic_number: icData.cleanIC,
             matriks_number: matriks || null,
             full_name: fullName || null,
             email: email || null,
             phone: phone, 
             password: password, 
-            tarikh_lahir: icData.valid ? icData.tarikhLahir : null,
-            umur: icData.valid ? icData.umur : null,
-            jantina: icData.valid ? icData.jantina : null,
-            negeri: icData.valid ? icData.negeri : null,
+            tarikh_lahir: icData.tarikhLahir,
+            umur: icData.umur,
+            jantina: icData.jantina,
+            negeri: icData.negeri,
             role: 'student' 
         };
 
@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
 
             if (response.ok) {
-                // Save complete user payload into localStorage for subsequent forms
+                // Save user payload returned by server into localStorage
                 const userPayload = data.user || {
                     ...payload,
                     account_status: 'pending_details'
@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (messageDiv) {
                     messageDiv.style.color = "#4CAF50";
-                    messageDiv.innerText = "Welcome! Redirecting to student home page...";
+                    messageDiv.innerText = "Account created successfully! Redirecting...";
                 }
                 
                 setTimeout(() => {
@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             console.warn("Server unavailable. Saving session locally:", err);
 
-            // Local fallback session storage
+            // Fallback session storage in case of local network disconnection
             const fallbackPayload = {
                 ...payload,
                 id: 'temp_' + Date.now(),
