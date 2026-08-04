@@ -95,36 +95,16 @@ export async function handleRegister(request, env, headers) {
 
     const newUserId = userResult.meta?.last_row_id;
 
-// 5. Auto-Resolve Session & Insert into `hostel_applications`
+// 5. Auto-Generate Session Code & Insert into `hostel_applications`
     if (newUserId && ic_number) {
       
-      // A. Calculate active session code (e.g. "JD26" or "JJ26")
+      // Calculate active session code (e.g. "JD26" or "JJ26")
       const now = new Date();
       const month = now.getMonth() + 1;
       const yearShort = now.getFullYear().toString().slice(-2);
       const sessionCode = (month >= 1 && month <= 6) ? `JJ${yearShort}` : `JD${yearShort}`;
-      const sessionName = (month >= 1 && month <= 6) ? `Januari - Jun 20${yearShort}` : `Julai - Disember 20${yearShort}`;
 
-      // B. Check if session already exists in `sessions` table
-      let session = await env.DB.prepare(
-        `SELECT id FROM sessions WHERE code = ? LIMIT 1`
-      ).bind(sessionCode).first();
-
-      let activeSessionId;
-
-      if (session) {
-        activeSessionId = session.id;
-      } else {
-        // Automatically create the new session in D1 if it's a new intake period!
-        const newSessionResult = await env.DB.prepare(`
-          INSERT INTO sessions (code, name, is_active, created_at)
-          VALUES (?, ?, 1, CURRENT_TIMESTAMP)
-        `).bind(sessionCode, sessionName).run();
-        
-        activeSessionId = newSessionResult.meta?.last_row_id;
-      }
-
-      // C. Insert profile & auto-assigned session into hostel_applications
+      // Insert directly without needing a sessions table lookup
       await env.DB.prepare(`
         INSERT INTO hostel_applications (
           user_id,
@@ -142,7 +122,7 @@ export async function handleRegister(request, env, headers) {
           gender = excluded.gender
       `).bind(
         newUserId,
-        activeSessionId,
+        sessionCode, // "JD26" passed directly
         ic_number,
         tarikh_lahir || null,
         umur || null,
