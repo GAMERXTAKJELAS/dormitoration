@@ -1,6 +1,6 @@
 /**
  * Dormitoration - Backend Registration Endpoint (Cloudflare Worker)
- * File: /script/register_backend.js
+ * File: /script/register.js
  */
 
 export async function handleRegister(request, env, headers) {
@@ -9,15 +9,13 @@ export async function handleRegister(request, env, headers) {
     
     const { 
       ic_number, 
-      matriks_number, 
       full_name, 
       email, 
       phone, 
       password, 
-      tarikh_lahir, 
-      umur, 
-      jantina, 
-      negeri, 
+      tarikh_lahir, // mapped to 'dob' in D1
+      umur,         // mapped to 'age' in D1
+      jantina,      // mapped to 'gender' in D1
       role 
     } = body;
 
@@ -71,7 +69,7 @@ export async function handleRegister(request, env, headers) {
 
     const registrationDeadline = deadlineDate.toISOString();
 
-    // 4. Insert AUTH data ONLY into `users` table
+    // 4. Insert AUTH data into `users` table
     const userResult = await env.DB.prepare(`
       INSERT INTO users (
         username, 
@@ -97,44 +95,35 @@ export async function handleRegister(request, env, headers) {
 
     const newUserId = userResult.meta?.last_row_id;
 
-    // 5. Insert Extracted IC & Profile directly into `hostel_applications` table
+    // 5. Insert Extracted IC & Profile into `hostel_applications` using exact schema column names
     if (newUserId && ic_number) {
       await env.DB.prepare(`
         INSERT INTO hostel_applications (
           user_id,
           ic_number,
-          matriks_number,
-          full_name,
-          tarikh_lahir,
-          umur,
-          jantina,
-          negeri,
+          dob,
+          age,
+          gender,
           status,
           created_at,
           updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'DRAFT', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        ) VALUES (?, ?, ?, ?, ?, 'DRAFT', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         ON CONFLICT(user_id) DO UPDATE SET
           ic_number = excluded.ic_number,
-          matriks_number = excluded.matriks_number,
-          full_name = excluded.full_name,
-          tarikh_lahir = excluded.tarikh_lahir,
-          umur = excluded.umur,
-          jantina = excluded.jantina,
-          negeri = excluded.negeri,
+          dob = excluded.dob,
+          age = excluded.age,
+          gender = excluded.gender,
           updated_at = CURRENT_TIMESTAMP
       `).bind(
         newUserId,
         ic_number,
-        matriks_number || null,
-        full_name || null,
         tarikh_lahir || null,
         umur || null,
-        jantina || null,
-        negeri || null
+        jantina || null
       ).run();
     }
 
-    // 6. Return standard user response object
+    // 6. Return response object
     const createdUser = {
       id: newUserId,
       username: null,
@@ -142,11 +131,9 @@ export async function handleRegister(request, env, headers) {
       email: email || null,
       phone: phone || null,
       ic_number: ic_number || null,
-      matriks_number: matriks_number || null,
       tarikh_lahir: tarikh_lahir || null,
       umur: umur || null,
       jantina: jantina || null,
-      negeri: negeri || null,
       role: role || 'student',
       account_status: 'pending_details',
       registration_deadline: registrationDeadline
