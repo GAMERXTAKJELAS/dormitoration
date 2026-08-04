@@ -113,9 +113,35 @@
                     <input type="checkbox" checked>
                 </div>
             </div>
+            <!-- Insert this inside <div class="settings-grid"> in settings.html -->
 
+<div class="settings-card">
+    <div class="card-header">
+        <i class='bx bx-time-five'></i>
+        <h2>Default Registration Window</h2>
+    </div>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
+        Set the default timeframe new temporary student accounts have before their registration window expires.
+    </p>
+
+    <div class="form-group">
+        <label for="deadline-value">Duration Value</label>
+        <div class="input-duration-group">
+            <input type="number" id="deadline-value" min="1" value="7" class="setting-input">
+            <select id="deadline-unit" class="setting-select">
+                <option value="hours">Hours</option>
+                <option value="days" selected>Days</option>
+                <option value="months">Months</option>
+            </select>
+                    </div>
+                </div>
+
+                <div class="setting-footer" style="margin-top: 20px; display: flex; justify-content: flex-end;">
+                    <button id="save-deadline-btn" class="btn-primary">Save Default Deadline</button>
+                </div>
+            </div>
         </div>
     </main>
-
+    <script src="/script/settings_deadline.js"></script>
 </body>
 </html>
