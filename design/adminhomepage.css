@@ -247,3 +247,144 @@ body {
 
 .btn-secondary { background: var(--sidebar-color); color: var(--text-color); border: 1px solid var(--text-muted); padding: 10px 20px; border-radius: 6px; cursor: pointer; }
 .btn-danger { background: #ff6b6b; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+
+/* --- ADMIN LANDING LAYOUT --- */
+.dashboard-landing {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 35px;
+}
+
+/* Adjust section padding for scroll snap container */
+.home-section {
+    padding-top: 90px !important;
+    height: auto !important;
+    min-height: calc(100vh - 60px);
+}
+
+/* --- STATS STRIP --- */
+.stats-strip {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    width: 100%;
+    flex-wrap: wrap;
+}
+
+.stat-badge {
+    background: var(--card-bg);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 15px 25px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    min-width: 200px;
+    transition: var(--transition-smooth);
+}
+
+.stat-badge i {
+    font-size: 2rem;
+    color: var(--primary-color);
+}
+
+.badge-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.badge-num {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: var(--text-color);
+}
+
+.badge-label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.status-online {
+    color: var(--primary-color);
+}
+
+/* --- SHORTCUT CARDS GRID --- */
+.shortcuts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+    width: 100%;
+}
+
+.shortcut-card {
+    background: var(--card-bg);
+    border: 1px solid transparent;
+    border-radius: 14px;
+    padding: 25px;
+    text-decoration: none;
+    color: var(--text-color);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: var(--transition-smooth);
+    text-align: left;
+}
+
+.shortcut-card:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-4px);
+}
+
+.card-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(71, 245, 155, 0.1);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-icon i {
+    font-size: 1.6rem;
+    color: var(--primary-color);
+}
+
+.shortcut-card h3 {
+    margin: 0;
+    font-size: 1.15rem;
+}
+
+.shortcut-card p {
+    margin: 0;
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+.card-link {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-top: 5px;
+}
+
+/* Responsive tweaks for mobile view */
+@media screen and (max-width: 600px) {
+    .stats-strip {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .stat-badge {
+        justify-content: flex-start;
+    }
+
+    .shortcuts-grid {
+        grid-template-columns: 1fr;
+    }
+}
