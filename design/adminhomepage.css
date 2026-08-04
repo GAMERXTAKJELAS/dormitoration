@@ -388,3 +388,33 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+/* Inactive Badge Styling */
+.badge-inactive {
+    opacity: 0.55;
+    border-style: dashed !important;
+    cursor: not-allowed;
+}
+
+.badge-inactive .badge-num {
+    color: var(--text-muted) !important;
+}
+
+/* Card Header with Top-Right Chevron */
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.action-icon {
+    font-size: 1.4rem;
+    color: var(--text-muted);
+    transition: var(--transition-smooth);
+}
+
+.shortcut-card:hover .action-icon {
+    color: var(--primary-color);
+    transform: translateX(4px);
+}

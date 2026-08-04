@@ -56,71 +56,80 @@
     <main class="scroll-container">
         <section class="home-section">
             <div class="dashboard-landing">
-                
-                <!-- Hero Header -->
-                <div class="hero-content">
-                    <h1>Dormitory Monitor <br><span>Operation System</span></h1>
-                    <p>Advanced oversight for modern student living.</p>
-                </div>
+    
+    <!-- Hero Header -->
+    <div class="hero-content">
+        <h1>Dormitory Monitor <br><span>Operation System</span></h1>
+        <p>Advanced oversight for modern student living.</p>
+    </div>
 
-                <!-- 1. Quick Stats Strip -->
-                <div class="stats-strip">
-                    <div class="stat-badge">
-                        <i class='bx bx-time-five'></i>
-                        <div class="badge-info">
-                            <span class="badge-num" id="pending-count">12</span>
-                            <span class="badge-label">Pending Apps</span>
-                        </div>
-                    </div>
-
-                    <div class="stat-badge">
-                        <i class='bx bx-pie-chart-alt-2'></i>
-                        <div class="badge-info">
-                            <span class="badge-num">85%</span>
-                            <span class="badge-label">Room Occupancy</span>
-                        </div>
-                    </div>
-
-                    <div class="stat-badge">
-                        <i class='bx bx-chip'></i>
-                        <div class="badge-info">
-                            <span class="badge-num status-online">24/25</span>
-                            <span class="badge-label">Locks Online</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 2. Action Shortcuts Grid -->
-                <div class="shortcuts-grid">
-                    <a href="/admin/dashboard.html#applications" class="shortcut-card">
-                        <div class="card-icon"><i class='bx bxs-user-check'></i></div>
-                        <h3>Application Review</h3>
-                        <p>Verify student details and approve intake applications.</p>
-                        <span class="card-link">Review Applications →</span>
-                    </a>
-
-                    <a href="/admin/dashboard.html#rooms" class="shortcut-card">
-                        <div class="card-icon"><i class='bx bxs-door-open'></i></div>
-                        <h3>Room Allocation</h3>
-                        <p>Assign approved students to blocks and auto-allocate beds.</p>
-                        <span class="card-link">Manage Allocations →</span>
-                    </a>
-
-                    <a href="/admin/report.html" class="shortcut-card">
-                        <div class="card-icon"><i class='bx bxs-bar-chart-alt-2'></i></div>
-                        <h3>Reports & Logs</h3>
-                        <p>Generate CSV exports, monitor system activity and hardware events.</p>
-                        <span class="card-link">View System Reports →</span>
-                    </a>
-                </div>
-
+    <!-- 1. Real-Time Stats Strip -->
+    <div class="stats-strip">
+        <!-- Live Data from D1 -->
+        <div class="stat-badge">
+            <i class='bx bx-time-five'></i>
+            <div class="badge-info">
+                <span class="badge-num" id="pending-count">0</span>
+                <span class="badge-label">Pending Applications</span>
             </div>
+        </div>
+
+        <!-- Inactive Badge (No rooms configured yet) -->
+        <div class="stat-badge badge-inactive" title="Room setup pending">
+            <i class='bx bx-pie-chart-alt-2'></i>
+            <div class="badge-info">
+                <span class="badge-num">N/A</span>
+                <span class="badge-label">Room Occupancy</span>
+            </div>
+        </div>
+
+        <!-- Inactive Badge (Hardware not connected yet) -->
+        <div class="stat-badge badge-inactive" title="Hardware integration offline">
+            <i class='bx bx-chip'></i>
+            <div class="badge-info">
+                <span class="badge-num">Offline</span>
+                <span class="badge-label">Locks Active</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Professional Action Cards -->
+    <div class="shortcuts-grid">
+        <a href="/admin/dashboard.html#applications" class="shortcut-card">
+            <div class="card-header">
+                <div class="card-icon"><i class='bx bxs-user-check'></i></div>
+                <i class='bx bx-chevron-right action-icon'></i>
+            </div>
+            <h3>Application Review</h3>
+            <p>Verify student details and approve intake applications.</p>
+        </a>
+
+        <a href="/admin/dashboard.html#rooms" class="shortcut-card">
+            <div class="card-header">
+                <div class="card-icon"><i class='bx bxs-door-open'></i></div>
+                <i class='bx bx-chevron-right action-icon'></i>
+            </div>
+            <h3>Room Allocation</h3>
+            <p>Assign approved students to blocks and manage beds.</p>
+        </a>
+
+        <a href="/admin/report.html" class="shortcut-card">
+            <div class="card-header">
+                <div class="card-icon"><i class='bx bxs-bar-chart-alt-2'></i></div>
+                <i class='bx bx-chevron-right action-icon'></i>
+            </div>
+            <h3>Reports & Logs</h3>
+            <p>Generate CSV exports, monitor system activity and logs.</p>
+        </a>
+    </div>
+
+</div>
         </section>
     </main>
     
     <footer class="main-footer">
         <p>&copy; 2026 Dormitoration System</p>
     </footer>
-
+    <script src="/script/admin_stats.js"></script>
 </body>
 </html>
