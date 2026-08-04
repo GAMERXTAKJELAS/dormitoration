@@ -1,6 +1,6 @@
 /**
  * Dormitoration - Backend Registration Endpoint (Cloudflare Worker)
- * File: /script/register.js
+ * File: /script/register_backend.js
  */
 
 export async function handleRegister(request, env, headers) {
@@ -35,18 +35,14 @@ export async function handleRegister(request, env, headers) {
       );
     }
 
-    // 1. Check if user already exists in D1 (by phone, email, or IC)
+    // 1. Check if user already exists in `users` table
     const existingCheck = await env.DB.prepare(
-      `SELECT id FROM users WHERE 
-        (phone = ? AND phone IS NOT NULL) OR 
-        (email = ? AND email IS NOT NULL) OR 
-        (ic_number = ? AND ic_number IS NOT NULL) 
-       LIMIT 1`
-    ).bind(phone || null, email || null, ic_number || null).first();
+      `SELECT id FROM users WHERE (phone = ? AND phone IS NOT NULL) OR (email = ? AND email IS NOT NULL) LIMIT 1`
+    ).bind(phone || null, email || null).first();
 
     if (existingCheck) {
       return new Response(
-        JSON.stringify({ error: 'Akaun dengan No. Telefon, e-mel, atau IC ini telah wujud.' }), 
+        JSON.stringify({ error: 'Akaun dengan No. Telefon atau e-mel ini telah wujud.' }), 
         { status: 409, headers }
       );
     }
@@ -75,53 +71,78 @@ export async function handleRegister(request, env, headers) {
 
     const registrationDeadline = deadlineDate.toISOString();
 
-    // 4. Insert directly into `users` table with extracted IC fields
-    const result = await env.DB.prepare(`
+    // 4. Insert AUTH data ONLY into `users` table
+    const userResult = await env.DB.prepare(`
       INSERT INTO users (
         username, 
-        ic_number,
-        matriks_number,
         phone, 
         full_name, 
         email, 
         password_hash, 
-        tarikh_lahir,
-        umur,
-        jantina,
-        negeri,
         role, 
         account_status,
         registration_deadline,
         created_at
       ) VALUES (
-        NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending_details', ?, CURRENT_TIMESTAMP
+        NULL, ?, ?, ?, ?, ?, 'pending_details', ?, CURRENT_TIMESTAMP
       )
     `).bind(
-      ic_number || null,
-      matriks_number || null,
       phone || null, 
       full_name || null, 
       email || null, 
       password, 
-      tarikh_lahir || null,
-      umur || null,
-      jantina || null,
-      negeri || null,
       role || 'student',
       registrationDeadline
     ).run();
 
-    const newUserId = result.meta?.last_row_id;
+    const newUserId = userResult.meta?.last_row_id;
 
-    // 5. Construct user response payload
+    // 5. Insert Extracted IC & Profile directly into `hostel_applications` table
+    if (newUserId && ic_number) {
+      await env.DB.prepare(`
+        INSERT INTO hostel_applications (
+          user_id,
+          ic_number,
+          matriks_number,
+          full_name,
+          tarikh_lahir,
+          umur,
+          jantina,
+          negeri,
+          status,
+          created_at,
+          updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'DRAFT', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        ON CONFLICT(user_id) DO UPDATE SET
+          ic_number = excluded.ic_number,
+          matriks_number = excluded.matriks_number,
+          full_name = excluded.full_name,
+          tarikh_lahir = excluded.tarikh_lahir,
+          umur = excluded.umur,
+          jantina = excluded.jantina,
+          negeri = excluded.negeri,
+          updated_at = CURRENT_TIMESTAMP
+      `).bind(
+        newUserId,
+        ic_number,
+        matriks_number || null,
+        full_name || null,
+        tarikh_lahir || null,
+        umur || null,
+        jantina || null,
+        negeri || null
+      ).run();
+    }
+
+    // 6. Return standard user response object
     const createdUser = {
       id: newUserId,
       username: null,
-      ic_number: ic_number || null,
-      matriks_number: matriks_number || null,
       full_name: full_name || null,
       email: email || null,
       phone: phone || null,
+      ic_number: ic_number || null,
+      matriks_number: matriks_number || null,
       tarikh_lahir: tarikh_lahir || null,
       umur: umur || null,
       jantina: jantina || null,
