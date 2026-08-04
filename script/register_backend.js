@@ -95,7 +95,7 @@ export async function handleRegister(request, env, headers) {
 
     const newUserId = userResult.meta?.last_row_id;
 
-    // 5. Insert Extracted IC & Profile into `hostel_applications` using exact schema column names
+// 5. Insert Extracted IC & Profile into `hostel_applications` using exact schema column names
     if (newUserId && ic_number) {
       await env.DB.prepare(`
         INSERT INTO hostel_applications (
@@ -104,10 +104,9 @@ export async function handleRegister(request, env, headers) {
           dob,
           age,
           gender,
-          status,
           created_at,
           updated_at
-        ) VALUES (?, ?, ?, ?, ?, 'DRAFT', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        ) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         ON CONFLICT(user_id) DO UPDATE SET
           ic_number = excluded.ic_number,
           dob = excluded.dob,
