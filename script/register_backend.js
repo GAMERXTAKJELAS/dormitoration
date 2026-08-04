@@ -95,13 +95,15 @@ export async function handleRegister(request, env, headers) {
 
     const newUserId = userResult.meta?.last_row_id;
 
-// 5. Insert Draft Application Row with Default Values for all Required Columns
+// 5. Query Active Session & Insert Draft Application
     if (newUserId && ic_number) {
-      
-      const now = new Date();
-      const month = now.getMonth() + 1;
-      const yearShort = now.getFullYear().toString().slice(-2);
-      const sessionCode = (month >= 1 && month <= 6) ? `JJ${yearShort}` : `JD${yearShort}`;
+
+      // Fetch the active session ID from application_sessions (returns null if none active)
+      const activeSession = await env.DB.prepare(`
+        SELECT id FROM application_sessions WHERE is_active = 1 LIMIT 1
+      `).first();
+
+      const sessionId = activeSession ? activeSession.id : null;
 
       await env.DB.prepare(`
         INSERT INTO hostel_applications (
@@ -157,7 +159,7 @@ export async function handleRegister(request, env, headers) {
           gender = excluded.gender
       `).bind(
         newUserId,
-        sessionCode,
+        sessionId,
         ic_number,
         tarikh_lahir || null,
         umur || null,
