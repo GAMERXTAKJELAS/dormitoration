@@ -1,65 +1,56 @@
-export async function handleAdminDeadlineSettings(request, env, headers) {
-  const method = request.method;
+document.addEventListener("DOMContentLoaded", () => {
+    const valueInput = document.getElementById("deadline-value");
+    const unitSelect = document.getElementById("deadline-unit");
+    const saveBtn = document.getElementById("save-deadline-btn");
 
-  // GET Handler
-  if (method === 'GET') {
-    try {
-      const valResult = await env.DB.prepare(
-        `SELECT setting_value FROM system_settings WHERE setting_key = 'temp_account_deadline_value'`
-      ).first();
-
-      const unitResult = await env.DB.prepare(
-        `SELECT setting_value FROM system_settings WHERE setting_key = 'temp_account_deadline_unit'`
-      ).first();
-
-      return new Response(
-        JSON.stringify({
-          value: valResult ? parseInt(valResult.setting_value, 10) : 7,
-          unit: unitResult ? unitResult.setting_value : 'days'
-        }),
-        { status: 200, headers }
-      );
-    } catch (err) {
-      return new Response(
-        JSON.stringify({ value: 7, unit: 'days', error: err.message }),
-        { status: 200, headers }
-      );
+    // Fetch existing global setting from D1
+    async function loadDeadlineSetting() {
+        try {
+            const res = await fetch("/api/admin/settings/deadline");
+            if (res.ok) {
+                const data = await res.json();
+                if (data.value && data.unit) {
+                    valueInput.value = data.value;
+                    unitSelect.value = data.unit;
+                }
+            }
+        } catch (err) {
+            console.error("Error loading deadline setting:", err);
+        }
     }
-  }
 
-  // POST Handler (Updated with INSERT OR REPLACE)
-  if (method === 'POST') {
-    try {
-      const { value, unit } = await request.json();
+    // Save global default deadline
+    if (saveBtn) {
+        saveBtn.addEventListener("click", async () => {
+            const val = parseInt(valueInput.value, 10);
+            const unit = unitSelect.value;
 
-      if (!value || isNaN(value) || value < 1) {
-        return new Response(
-          JSON.stringify({ error: 'Sila masukkan tempoh masa yang sah.' }),
-          { status: 400, headers }
-        );
-      }
+            if (!val || val < 1) {
+                alert("Please enter a valid duration.");
+                return;
+            }
 
-      // Use INSERT OR REPLACE INTO for SQLite/D1
-      await env.DB.prepare(`
-        INSERT OR REPLACE INTO system_settings (setting_key, setting_value, updated_at)
-        VALUES ('temp_account_deadline_value', ?, CURRENT_TIMESTAMP)
-      `).bind(value.toString()).run();
+            try {
+                const res = await fetch("/api/admin/settings/deadline", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ value: val, unit: unit })
+                });
 
-      await env.DB.prepare(`
-        INSERT OR REPLACE INTO system_settings (setting_key, setting_value, updated_at)
-        VALUES ('temp_account_deadline_unit', ?, CURRENT_TIMESTAMP)
-      `).bind(unit.toString()).run();
+                const data = await res.json();
 
-      return new Response(
-        JSON.stringify({ message: 'Setting saved successfully!' }),
-        { status: 200, headers }
-      );
-    } catch (err) {
-      console.error("Settings DB Error:", err);
-      return new Response(
-        JSON.stringify({ error: 'Database save failed', details: err.message }),
-        { status: 500, headers }
-      );
+                if (res.ok) {
+                    alert("Default registration window updated successfully!");
+                } else {
+                    // Show exact server error if available
+                    alert(`Failed to save setting: ${data.details || data.error || 'Unknown server error'}`);
+                }
+            } catch (err) {
+                console.error("Error saving deadline setting:", err);
+                alert(`Network error: ${err.message}`);
+            }
+        });
     }
-  }
-}
+
+    loadDeadlineSetting();
+});

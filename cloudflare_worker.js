@@ -1,6 +1,7 @@
-import { handleRegister } from './script/register.js';
-import { handleLogin } from './script/login.js';
-import { handleAdminStats } from './script/adminpage.js'; // Adjust path if needed
+import { handleRegister } from './script/register_backend.js';
+import { handleLogin } from './script/login_backend.js';
+import { handleAdminStats } from './script/adminpage_backend.js';
+import { handleAdminDeadlineSettings } from './script/settings_backend.js';
 
 export default {
   async fetch(request, env, ctx) {
@@ -29,12 +30,17 @@ export default {
         return await handleLogin(request, env, headers);
       }
 
-      // Route to admin stats script (GET request for live D1 count)
+      // Route to admin stats script
       if (url.pathname === '/api/admin/stats' && request.method === 'GET') {
         return await handleAdminStats(env, headers);
       }
 
-      // Serve static frontend assets (index.html, etc.)
+      // Route to settings backend (Handles GET and POST)
+      if (url.pathname === '/api/admin/settings/deadline') {
+        return await handleAdminDeadlineSettings(request, env, headers);
+      }
+
+      // Serve static frontend assets
       return env.ASSETS.fetch(request);
 
     } catch (err) {
