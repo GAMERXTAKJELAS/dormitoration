@@ -145,9 +145,9 @@ export async function handleRegister(request, env, headers) {
           '', '', '', '', '', '', 0.0,
           '', '', '', '', '', '', 0.0,
           0,
-          'DRAFT',
-          'PENDING',
-          'PENDING'
+          'draft',
+          'pending',
+          'pending'
         )
         ON CONFLICT(user_id) DO UPDATE SET
           session_id = excluded.session_id,
