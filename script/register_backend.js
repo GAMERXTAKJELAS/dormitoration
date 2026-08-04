@@ -95,16 +95,14 @@ export async function handleRegister(request, env, headers) {
 
     const newUserId = userResult.meta?.last_row_id;
 
-// 5. Auto-Generate Session Code & Insert into `hostel_applications`
+// 5. Insert Extracted IC & Profile into `hostel_applications`
     if (newUserId && ic_number) {
       
-      // Calculate active session code (e.g. "JD26" or "JJ26")
       const now = new Date();
       const month = now.getMonth() + 1;
       const yearShort = now.getFullYear().toString().slice(-2);
       const sessionCode = (month >= 1 && month <= 6) ? `JJ${yearShort}` : `JD${yearShort}`;
 
-      // Insert directly without needing a sessions table lookup
       await env.DB.prepare(`
         INSERT INTO hostel_applications (
           user_id,
@@ -112,8 +110,9 @@ export async function handleRegister(request, env, headers) {
           ic_number,
           dob,
           age,
-          gender
-        ) VALUES (?, ?, ?, ?, ?, ?)
+          gender,
+          home_address
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(user_id) DO UPDATE SET
           session_id = excluded.session_id,
           ic_number = excluded.ic_number,
@@ -122,11 +121,12 @@ export async function handleRegister(request, env, headers) {
           gender = excluded.gender
       `).bind(
         newUserId,
-        sessionCode, // "JD26" passed directly
+        sessionCode,
         ic_number,
         tarikh_lahir || null,
         umur || null,
-        jantina || null
+        jantina || null,
+        ""
       ).run();
     }
 
