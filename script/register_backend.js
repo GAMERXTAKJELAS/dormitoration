@@ -114,7 +114,7 @@ export async function handleRegister(request, env, headers) {
           home_address,
           postcode,
           state
-        ) VALUES (?, ?, ?, ?, ?, ?, '', '', '')
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(user_id) DO UPDATE SET
           session_id = excluded.session_id,
           ic_number = excluded.ic_number,
@@ -128,7 +128,9 @@ export async function handleRegister(request, env, headers) {
         tarikh_lahir || null,
         umur || null,
         jantina || null,
-        ""
+        "", // home_address
+        "", // postcode
+        ""  // state
       ).run();
     }
 
