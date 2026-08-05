@@ -95,15 +95,14 @@ export async function handleRegister(request, env, headers) {
 
     const newUserId = userResult.meta?.last_row_id;
 
-// 5. Query Active Session & Insert Draft Application
+// 5. Insert Draft Application with Dynamic Text Session Code
     if (newUserId && ic_number) {
 
-      // Fetch the active session ID from application_sessions (returns null if none active)
-      const activeSession = await env.DB.prepare(`
-        SELECT id FROM application_sessions WHERE is_active = 1 LIMIT 1
-      `).first();
-
-      const sessionId = activeSession ? activeSession.id : null;
+      // Dynamically create session code based on current date (e.g., "JJ26" or "JD26")
+      const now = new Date();
+      const month = now.getMonth() + 1; // 1-12
+      const yearShort = now.getFullYear().toString().slice(-2); // e.g. "26"
+      const currentSession = (month >= 1 && month <= 6) ? `JJ${yearShort}` : `JD${yearShort}`;
 
       await env.DB.prepare(`
         INSERT INTO hostel_applications (
@@ -159,7 +158,7 @@ export async function handleRegister(request, env, headers) {
           gender = excluded.gender
       `).bind(
         newUserId,
-        sessionId,
+        currentSession, // Passes string like "JD26" directly
         ic_number,
         tarikh_lahir || null,
         umur || null,
