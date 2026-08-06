@@ -13,9 +13,9 @@ export async function handleRegister(request, env, headers) {
       email, 
       phone, 
       password, 
-      tarikh_lahir, // mapped to 'dob' in D1
-      umur,         // mapped to 'age' in D1
-      jantina,      // mapped to 'gender' in D1
+      tarikh_lahir, 
+      umur,         
+      jantina,      
       role 
     } = body;
 
@@ -33,7 +33,24 @@ export async function handleRegister(request, env, headers) {
       );
     }
 
-    // 1. Check if user already exists in `users` table
+    // =========================================================================
+    // 0. AUTO-CLEANUP: Purge Terminated & Expired Accounts
+    // =========================================================================
+    // If an account is already marked as 'terminated' OR its registration_deadline 
+    // has expired, wipe it from D1 so the user (or email/phone) can re-register freshly.
+    const nowISO = new Date().toISOString();
+    
+    await env.DB.prepare(`
+      DELETE FROM users 
+      WHERE (phone = ? AND phone IS NOT NULL) OR (email = ? AND email IS NOT NULL)
+      AND (
+        account_status = 'terminated' 
+        OR (registration_deadline IS NOT NULL AND registration_deadline <= ?)
+      )
+    `).bind(phone || null, email || null, nowISO).run();
+    // =========================================================================
+
+    // 1. Check if ACTIVE user already exists in `users` table
     const existingCheck = await env.DB.prepare(
       `SELECT id FROM users WHERE (phone = ? AND phone IS NOT NULL) OR (email = ? AND email IS NOT NULL) LIMIT 1`
     ).bind(phone || null, email || null).first();
@@ -44,6 +61,8 @@ export async function handleRegister(request, env, headers) {
         { status: 409, headers }
       );
     }
+
+    // ... [Rest of your step 2 to step 6 code remains exactly the same]
 
     // 2. Fetch active deadline duration & unit from system_settings
     const valSetting = await env.DB.prepare(
