@@ -7,24 +7,40 @@ export async function handleAdminApplications(request, env, headers) {
   const url = new URL(request.url);
   const method = request.method;
 
-  // 1. GET Request: Fetch all student applications merged with accounts
   if (method === 'GET' && url.pathname === '/api/admin/applications') {
     try {
+      // Query both registered users AND unlinked CSV applications while excluding admins
       const { results } = await env.DB.prepare(`
         SELECT 
           u.id AS user_id,
-          COALESCE(u.full_name, h.full_name) AS full_name,
-          COALESCE(u.email, h.email) AS email,
-          u.phone,
-          h.ic_number,
+          h.id AS application_id,
+          COALESCE(u.full_name, h.full_name, 'N/A') AS full_name,
+          COALESCE(u.email, h.email, '-') AS email,
+          COALESCE(u.phone, h.guardian1_phone, '-') AS phone,
+          COALESCE(h.ic_number, '-') AS ic_number,
           u.role,
-          h.program,
-          h.session_id,
+          COALESCE(h.program, 'Pending Fill') AS program,
+          COALESCE(h.session_id, '-') AS session_id,
+          COALESCE(h.admin_approval, 'pending') AS status
+        FROM users u
+        LEFT JOIN hostel_applications h ON u.id = h.user_id OR u.ic_number = h.ic_number
+        WHERE (u.role IS NULL OR u.role != 'admin')
+
+        UNION ALL
+
+        SELECT 
+          NULL AS user_id,
+          h.id AS application_id,
+          h.full_name,
+          h.email,
+          '-' AS phone,
+          h.ic_number,
+          'student' AS role,
+          COALESCE(h.program, 'Pending Fill') AS program,
+          COALESCE(h.session_id, '-') AS session_id,
           COALESCE(h.admin_approval, 'pending') AS status
         FROM hostel_applications h
-        LEFT JOIN users u ON u.ic_number = h.ic_number OR u.id = h.user_id
-        WHERE u.role IS NULL OR u.role != 'admin'
-        ORDER BY h.created_at DESC
+        WHERE h.user_id IS NULL AND h.ic_number NOT IN (SELECT ic_number FROM users WHERE ic_number IS NOT NULL)
       `).all();
 
       return new Response(
@@ -32,6 +48,7 @@ export async function handleAdminApplications(request, env, headers) {
         { status: 200, headers }
       );
     } catch (err) {
+      console.error("Fetch Applications DB Error:", err);
       return new Response(
         JSON.stringify({ success: false, error: 'Failed to fetch application list', details: err.message }),
         { status: 500, headers }
