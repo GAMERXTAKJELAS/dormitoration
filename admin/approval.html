@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dormitoration | Application Approval</title>
+    <link rel="stylesheet" href="/design/dashboard.css">
+    <link rel="stylesheet" href="/design/approval.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script src="/script/theme.js" defer></script>
+    <script src="/script/logout_logic.js"></script>
+</head>
+<body class="dark-mode">
+
+    <!-- Logout Modal -->
+    <div id="logout-modal" class="modal-overlay" style="display:none;">
+        <div class="modal-content">
+            <i class='bx bx-log-out-circle' style="font-size: 3rem; color: #ff6b6b;"></i>
+            <h2>Leave Session?</h2>
+            <p>You are attempting to leave the admin area. Do you want to log out?</p>
+            <div class="modal-btns">
+                <button class="btn-secondary" onclick="closeLogoutModal()">Cancel</button>
+                <button class="btn-danger" onclick="executeLogout()">Yes, Log Out</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar-nav">
+        <div class="logo-section">
+            <i class='bx bxs-building-house'></i>
+            <span class="text" style="font-weight: bold; margin-left: 20px;">DORMITORY</span>
+        </div>
+
+        <nav class="navbar">
+            <ul class="nav-list">
+                <li><a href="/admin/adminhomepage.html">
+                    <i class='bx bx-home-alt icon'></i>
+                    <span class="text">Home</span>
+                </a></li>
+
+                <li><a href="/admin/dashboard.html">
+                    <i class='bx bxs-dashboard icon'></i>
+                    <span class="text">Dashboard</span>
+                </a></li>
+
+                <li><a href="/admin/approval.html" class="active">
+                    <i class='bx bxs-check-shield icon'></i>
+                    <span class="text">Approval</span>
+                </a></li>
+
+                <li><a href="/admin/report.html">
+                    <i class='bx bxs-report icon'></i>
+                    <span class="text">Report</span>
+                </a></li>
+
+                <li><a href="/admin/setting.html">
+                    <i class='bx bx-cog icon'></i>
+                    <span class="text">Settings</span>
+                </a></li>
+            </ul>
+        </nav>
+
+        <div class="sidebar-footer" style="position: absolute; bottom: 20px; width: 100%; padding: 0 25px;">
+            <button id="theme-toggle" class="theme-btn" style="background:none; border:none; cursor:pointer; color:var(--text-color); display:flex; align-items:center; gap:20px;">
+                <i class='bx bx-moon' id="theme-icon" style="font-size: 22px;"></i>
+                <span class="text">Theme</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-box">
+        <header class="dash-header">
+            <h1>Hostel Application Approvals</h1>
+            <p>Review, verify, and approve incoming student room applications for session JD26/JJ26.</p>
+        </header>
+
+        <!-- Approval Summary Cards -->
+        <div class="stats-grid">
+            <div class="stat-card warning">
+                <div class="stat-info">
+                    <h3 id="count-pending">12</h3>
+                    <p>Pending Review</p>
+                </div>
+                <i class='bx bxs-time-five'></i>
+            </div>
+
+            <div class="stat-card success">
+                <div class="stat-info">
+                    <h3 id="count-approved">148</h3>
+                    <p>Approved Students</p>
+                </div>
+                <i class='bx bxs-check-circle'></i>
+            </div>
+
+            <div class="stat-card danger">
+                <div class="stat-info">
+                    <h3 id="count-rejected">5</h3>
+                    <p>Rejected / Returned</p>
+                </div>
+                <i class='bx bxs-x-circle'></i>
+            </div>
+        </div>
+
+        <!-- Filter & Application Table Box -->
+        <div class="content-card">
+            <div class="table-header-toolbar">
+                <h3>Applications Queue</h3>
+                <div class="filter-controls">
+                    <input type="text" id="search-student" placeholder="Search by name, IC, or email..." class="input-field">
+                    <select id="filter-status" class="select-field">
+                        <option value="all">All Status</option>
+                        <option value="pending" selected>Pending</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Student Name</th>
+                            <th>IC Number</th>
+                            <th>Program</th>
+                            <th>Session</th>
+                            <th>CGPA</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="approval-table-body">
+                        <!-- Example Row (Data will load dynamically via API) -->
+                        <tr>
+                            <td>
+                                <strong>Syamsul</strong><br>
+                                <small style="color: var(--text-muted);">syamsulock0457@gmail.com</small>
+                            </td>
+                            <td>04XXXX-XX-XXXX</td>
+                            <td>Diploma Tech Computer (Big Data)</td>
+                            <td>JD26</td>
+                            <td>3.75</td>
+                            <td><span class="badge warning">Pending</span></td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="btn-icon view" title="View Application Details"><i class='bx bx-show'></i></button>
+                                    <button class="btn-icon approve" title="Approve Application"><i class='bx bx-check'></i></button>
+                                    <button class="btn-icon reject" title="Reject Application"><i class='bx bx-x'></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>
