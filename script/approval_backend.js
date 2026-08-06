@@ -7,7 +7,7 @@ export async function handleAdminApplications(request, env, headers) {
   const url = new URL(request.url);
   const method = request.method;
 
-  // 1. GET Request: Fetch all applications (Registered users + Unlinked CSV imports)
+  // 1. GET Request: Fetch all applications
   if (method === 'GET' && url.pathname === '/api/admin/applications') {
     try {
       const { results } = await env.DB.prepare(`
@@ -31,10 +31,10 @@ export async function handleAdminApplications(request, env, headers) {
         SELECT 
           NULL AS user_id,
           h.id AS application_id,
-          h.full_name,
-          h.email,
+          COALESCE(h.full_name, 'N/A') AS full_name,
+          COALESCE(h.email, '-') AS email,
           '-' AS phone,
-          h.ic_number,
+          COALESCE(h.ic_number, '-') AS ic_number,
           'student' AS role,
           COALESCE(h.program, 'Pending Fill') AS program,
           COALESCE(h.session_id, '-') AS session_id,
