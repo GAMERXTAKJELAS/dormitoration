@@ -1,6 +1,6 @@
 /**
  * Dormitoration - Backend Registration Endpoint (Cloudflare Worker)
- * File: /script/register.js
+ * File: /script/register_backend.js
  */
 
 export async function handleRegister(request, env, headers) {
@@ -19,6 +19,7 @@ export async function handleRegister(request, env, headers) {
       role 
     } = body;
 
+    // Validation
     if (!phone && !email) {
       return new Response(
         JSON.stringify({ error: 'No. Telefon atau e-mel diperlukan.' }), 
@@ -32,20 +33,6 @@ export async function handleRegister(request, env, headers) {
         { status: 400, headers }
       );
     }
-
-    // =========================================================================
-    // 0. AUTO-CLEANUP: Purge Terminated & Expired Accounts
-    // =========================================================================
-    const nowISO = new Date().toISOString();
-    
-    await env.DB.prepare(`
-      DELETE FROM users 
-      WHERE (phone = ? AND phone IS NOT NULL) OR (email = ? AND email IS NOT NULL)
-      AND (
-        account_status = 'terminated' 
-        OR (registration_deadline IS NOT NULL AND registration_deadline <= ?)
-      )
-    `).bind(phone || null, email || null, nowISO).run();
 
     // 1. Check if ACTIVE user already exists in `users` table
     const existingCheck = await env.DB.prepare(
