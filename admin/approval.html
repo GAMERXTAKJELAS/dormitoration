@@ -4,9 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dormitoration | Application Approval</title>
+    
     <link rel="stylesheet" href="/design/dashboard.css">
     <link rel="stylesheet" href="/design/approval.css">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    
     <script src="/script/theme.js" defer></script>
     <script src="/script/logout_logic.js"></script>
 </head>
@@ -69,52 +71,27 @@
         </div>
     </aside>
 
-    <!-- Main Content Area -->
+    <!-- Main Box -->
     <main class="main-box">
         <header class="dash-header">
             <h1>Hostel Application Approvals</h1>
-            <p>Review, verify, and approve incoming student room applications for session JD26/JJ26.</p>
+            <p>Review, verify, and approve incoming student room applications.</p>
         </header>
 
-        <!-- Approval Summary Cards -->
-        <div class="stats-grid">
-            <div class="stat-card warning">
-                <div class="stat-info">
-                    <h3 id="count-pending">12</h3>
-                    <p>Pending Review</p>
-                </div>
-                <i class='bx bxs-time-five'></i>
-            </div>
-
-            <div class="stat-card success">
-                <div class="stat-info">
-                    <h3 id="count-approved">148</h3>
-                    <p>Approved Students</p>
-                </div>
-                <i class='bx bxs-check-circle'></i>
-            </div>
-
-            <div class="stat-card danger">
-                <div class="stat-info">
-                    <h3 id="count-rejected">5</h3>
-                    <p>Rejected / Returned</p>
-                </div>
-                <i class='bx bxs-x-circle'></i>
-            </div>
-        </div>
-
-        <!-- Filter & Application Table Box -->
+        <!-- Main Content Table Container -->
         <div class="content-card">
             <div class="table-header-toolbar">
-                <h3>Applications Queue</h3>
-                <div class="filter-controls">
-                    <input type="text" id="search-student" placeholder="Search by name, IC, or email..." class="input-field">
-                    <select id="filter-status" class="select-field">
-                        <option value="all">All Status</option>
-                        <option value="pending" selected>Pending</option>
-                        <option value="approved">Approved</option>
-                        <option value="rejected">Rejected</option>
-                    </select>
+                <div class="search-box">
+                    <i class='bx bx-search search-icon'></i>
+                    <input type="text" id="search-student" placeholder="Search student by name, phone, or email..." class="input-field">
+                </div>
+
+                <!-- 4 Sorting Buttons -->
+                <div class="filter-group">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="pending">Pending</button>
+                    <button class="filter-btn" data-filter="approved">Approved</button>
+                    <button class="filter-btn" data-filter="returned">Returned</button>
                 </div>
             </div>
 
@@ -122,33 +99,17 @@
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>Student Name</th>
-                            <th>IC Number</th>
+                            <th>Name</th>
                             <th>Program</th>
                             <th>Session</th>
-                            <th>CGPA</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="approval-table-body">
-                        <!-- Example Row (Data will load dynamically via API) -->
                         <tr>
-                            <td>
-                                <strong>Syamsul</strong><br>
-                                <small style="color: var(--text-muted);">syamsulock0457@gmail.com</small>
-                            </td>
-                            <td>04XXXX-XX-XXXX</td>
-                            <td>Diploma Tech Computer (Big Data)</td>
-                            <td>JD26</td>
-                            <td>3.75</td>
-                            <td><span class="badge warning">Pending</span></td>
-                            <td>
-                                <div class="action-btns">
-                                    <button class="btn-icon view" title="View Application Details"><i class='bx bx-show'></i></button>
-                                    <button class="btn-icon approve" title="Approve Application"><i class='bx bx-check'></i></button>
-                                    <button class="btn-icon reject" title="Reject Application"><i class='bx bx-x'></i></button>
-                                </div>
+                            <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 30px;">
+                                Loading student applications...
                             </td>
                         </tr>
                     </tbody>
@@ -156,6 +117,6 @@
             </div>
         </div>
     </main>
-
+    <script src="/script/approval.js"></script>
 </body>
 </html>
