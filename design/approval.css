@@ -237,3 +237,23 @@
 .btn-icon.view:hover { background: #3498db; color: #fff; }
 .btn-icon.approve:hover { background: #2ecc71; color: #fff; }
 .btn-icon.reject:hover { background: #ff6b6b; color: #fff; }
+
+/* CSV Upload Button */
+.btn-csv-upload {
+    background: var(--primary-color, #2ecc71);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: 0.2s ease;
+}
+
+.btn-csv-upload:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}

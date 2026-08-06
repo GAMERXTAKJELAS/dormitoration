@@ -14,7 +14,7 @@ export async function handleRegister(request, env, headers) {
       phone, 
       password, 
       tarikh_lahir, 
-      umur,         
+      umur,        
       jantina,      
       role 
     } = body;
@@ -36,8 +36,6 @@ export async function handleRegister(request, env, headers) {
     // =========================================================================
     // 0. AUTO-CLEANUP: Purge Terminated & Expired Accounts
     // =========================================================================
-    // If an account is already marked as 'terminated' OR its registration_deadline 
-    // has expired, wipe it from D1 so the user (or email/phone) can re-register freshly.
     const nowISO = new Date().toISOString();
     
     await env.DB.prepare(`
@@ -48,7 +46,6 @@ export async function handleRegister(request, env, headers) {
         OR (registration_deadline IS NOT NULL AND registration_deadline <= ?)
       )
     `).bind(phone || null, email || null, nowISO).run();
-    // =========================================================================
 
     // 1. Check if ACTIVE user already exists in `users` table
     const existingCheck = await env.DB.prepare(
@@ -61,8 +58,6 @@ export async function handleRegister(request, env, headers) {
         { status: 409, headers }
       );
     }
-
-    // ... [Rest of your step 2 to step 6 code remains exactly the same]
 
     // 2. Fetch active deadline duration & unit from system_settings
     const valSetting = await env.DB.prepare(
@@ -114,75 +109,86 @@ export async function handleRegister(request, env, headers) {
 
     const newUserId = userResult.meta?.last_row_id;
 
-// 5. Insert Draft Application with Dynamic Text Session Code
+    // 5. Link or Insert Application Data (Handles CSV Pre-population Sync)
     if (newUserId && ic_number) {
-
-      // Dynamically create session code based on current date (e.g., "JJ26" or "JD26")
       const now = new Date();
-      const month = now.getMonth() + 1; // 1-12
-      const yearShort = now.getFullYear().toString().slice(-2); // e.g. "26"
+      const month = now.getMonth() + 1; 
+      const yearShort = now.getFullYear().toString().slice(-2); 
       const currentSession = (month >= 1 && month <= 6) ? `JJ${yearShort}` : `JD${yearShort}`;
 
-      await env.DB.prepare(`
-        INSERT INTO hostel_applications (
-          user_id,
-          session_id,
+      // Check if a CSV pre-populated record already exists for this IC number
+      const existingApp = await env.DB.prepare(
+        `SELECT id FROM hostel_applications WHERE ic_number = ? AND (user_id IS NULL OR user_id = ?)`
+      ).bind(ic_number, newUserId).first();
+
+      if (existingApp) {
+        // If it exists from CSV upload, link the new user ID and preserve imported details
+        await env.DB.prepare(`
+          UPDATE hostel_applications 
+          SET user_id = ?,
+              dob = COALESCE(NULLIF(dob, ''), ?),
+              age = COALESCE(age, ?),
+              gender = COALESCE(NULLIF(gender, ''), ?),
+              updated_at = CURRENT_TIMESTAMP
+          WHERE ic_number = ?
+        `).bind(newUserId, tarikh_lahir || null, umur || null, jantina || null, ic_number).run();
+      } else {
+        // Otherwise, insert a brand new draft application row
+        await env.DB.prepare(`
+          INSERT INTO hostel_applications (
+            user_id,
+            session_id,
+            ic_number,
+            dob,
+            age,
+            gender,
+            home_address,
+            postcode,
+            city,
+            state,
+            reason_for_apply,
+            program,
+            semester,
+            gpa_cgpa,
+            contributions,
+            guardian1_name,
+            guardian1_ic,
+            guardian1_phone,
+            guardian1_address,
+            guardian1_relationship,
+            guardian1_job,
+            guardian1_income,
+            guardian2_name,
+            guardian2_ic,
+            guardian2_phone,
+            guardian2_address,
+            guardian2_relationship,
+            guardian2_job,
+            guardian2_income,
+            dependents_count,
+            submission_status,
+            head_of_program_support,
+            admin_approval
+          ) VALUES (
+            ?, ?, ?, ?, ?, ?,
+            '', '', '', '',
+            '', '', 1, 0.0, '',
+            '', '', '', '', '', '', 0.0,
+            '', '', '', '', '', '', 0.0,
+            0,
+            'draft',
+            'pending',
+            'pending'
+          )
+        `).bind(
+          newUserId,
+          currentSession,
           ic_number,
-          dob,
-          age,
-          gender,
-          home_address,
-          postcode,
-          city,
-          state,
-          reason_for_apply,
-          program,
-          semester,
-          gpa_cgpa,
-          contributions,
-          guardian1_name,
-          guardian1_ic,
-          guardian1_phone,
-          guardian1_address,
-          guardian1_relationship,
-          guardian1_job,
-          guardian1_income,
-          guardian2_name,
-          guardian2_ic,
-          guardian2_phone,
-          guardian2_address,
-          guardian2_relationship,
-          guardian2_job,
-          guardian2_income,
-          dependents_count,
-          submission_status,
-          head_of_program_support,
-          admin_approval
-        ) VALUES (
-          ?, ?, ?, ?, ?, ?,
-          '', '', '', '',
-          '', '', 1, 0.0, '',
-          '', '', '', '', '', '', 0.0,
-          '', '', '', '', '', '', 0.0,
-          0,
-          'draft',
-          'pending',
-          'pending'
-        )
-        ON CONFLICT(user_id) DO UPDATE SET
-          session_id = excluded.session_id,
-          ic_number = excluded.ic_number,
-          dob = excluded.dob,
-          age = excluded.age,
-          gender = excluded.gender
-      `).bind(
-        newUserId,
-        currentSession, // Passes string like "JD26" directly
-        ic_number,
-        tarikh_lahir || null,
-        umur || null,
-        jantina || null
-      ).run();
+          tarikh_lahir || null,
+          umur || null,
+          jantina || null
+        ).run();
+      }
     }
 
     // 6. Return response object
