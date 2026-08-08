@@ -1,5 +1,5 @@
 /**
- * Dormitoration - Backend Registration Endpoint (Cloudflare Worker)
+ * Dormitoration - Backend Registration Endpoint (Cloudflare Worker D1)
  * File: /script/register.js
  */
 
@@ -19,6 +19,9 @@ export async function handleRegister(request, env, headers) {
       role 
     } = body;
 
+    // -------------------------------------------------------------------------
+    // 0. Basic Input Validations
+    // -------------------------------------------------------------------------
     if (!phone && !email) {
       return new Response(
         JSON.stringify({ error: 'No. Telefon atau e-mel diperlukan.' }), 
@@ -33,33 +36,38 @@ export async function handleRegister(request, env, headers) {
       );
     }
 
-    // =========================================================================
-    // 0. AUTO-CLEANUP: Purge Terminated & Expired Accounts
-    // =========================================================================
     const nowISO = new Date().toISOString();
-    
-    await env.DB.prepare(`
-      DELETE FROM users 
-      WHERE (phone = ? AND phone IS NOT NULL) OR (email = ? AND email IS NOT NULL)
-      AND (
-        account_status = 'terminated' 
-        OR (registration_deadline IS NOT NULL AND registration_deadline <= ?)
-      )
-    `).bind(phone || null, email || null, nowISO).run();
 
-    // 1. Check if ACTIVE user already exists in `users` table
-    const existingCheck = await env.DB.prepare(
-      `SELECT id FROM users WHERE (phone = ? AND phone IS NOT NULL) OR (email = ? AND email IS NOT NULL) LIMIT 1`
-    ).bind(phone || null, email || null).first();
+    // -------------------------------------------------------------------------
+    // 1. Check for Existing Account (By Phone, Email, or IC Number)
+    // -------------------------------------------------------------------------
+    const existingUser = await env.DB.prepare(`
+      SELECT id, account_status, registration_deadline 
+      FROM users 
+      WHERE (phone = ? AND phone IS NOT NULL) 
+         OR (email = ? AND email IS NOT NULL)
+      LIMIT 1
+    `).bind(phone || null, email || null).first();
 
-    if (existingCheck) {
-      return new Response(
-        JSON.stringify({ error: 'Akaun dengan No. Telefon atau e-mel ini telah wujud.' }), 
-        { status: 409, headers }
-      );
+    if (existingUser) {
+      const isTerminated = existingUser.account_status === 'terminated';
+      const isExpired = existingUser.registration_deadline && existingUser.registration_deadline <= nowISO;
+
+      if (isTerminated || isExpired) {
+        // Old account is terminated/expired -> PURGE OLD USER ACCOUNT
+        await env.DB.prepare(`DELETE FROM users WHERE id = ?`).bind(existingUser.id).run();
+      } else {
+        // Account exists and is active/pending
+        return new Response(
+          JSON.stringify({ error: 'Akaun dengan No. Telefon atau e-mel ini telah wujud dan aktif.' }), 
+          { status: 409, headers }
+        );
+      }
     }
 
-    // 2. Fetch active deadline duration & unit from system_settings
+    // -------------------------------------------------------------------------
+    // 2. Fetch Active Deadline Settings & Calculate Registration Expiry Date
+    // -------------------------------------------------------------------------
     const valSetting = await env.DB.prepare(
       `SELECT setting_value FROM system_settings WHERE setting_key = 'temp_account_deadline_value'`
     ).first();
@@ -71,7 +79,6 @@ export async function handleRegister(request, env, headers) {
     const durationVal = valSetting ? parseInt(valSetting.setting_value, 10) : 7;
     const durationUnit = unitSetting ? unitSetting.setting_value : 'days';
 
-    // 3. Calculate future registration deadline ISO date
     const deadlineDate = new Date();
     if (durationUnit === 'hours') {
       deadlineDate.setHours(deadlineDate.getHours() + durationVal);
@@ -83,7 +90,9 @@ export async function handleRegister(request, env, headers) {
 
     const registrationDeadline = deadlineDate.toISOString();
 
-    // 4. Insert AUTH data into `users` table
+    // -------------------------------------------------------------------------
+    // 3. Insert NEW User Account into `users` Table
+    // -------------------------------------------------------------------------
     const userResult = await env.DB.prepare(`
       INSERT INTO users (
         username, 
@@ -109,31 +118,39 @@ export async function handleRegister(request, env, headers) {
 
     const newUserId = userResult.meta?.last_row_id;
 
-    // 5. Link or Insert Application Data (Handles CSV Pre-population Sync)
+    // -------------------------------------------------------------------------
+    // 4. Update / Re-link Hostel Application DB
+    // -------------------------------------------------------------------------
     if (newUserId && ic_number) {
       const now = new Date();
       const month = now.getMonth() + 1; 
       const yearShort = now.getFullYear().toString().slice(-2); 
       const currentSession = (month >= 1 && month <= 6) ? `JJ${yearShort}` : `JD${yearShort}`;
 
-      // Check if a CSV pre-populated record already exists for this IC number
+      // Check if an existing hostel application row exists for this IC (e.g., from old user or CSV pre-pop)
       const existingApp = await env.DB.prepare(
-        `SELECT id FROM hostel_applications WHERE ic_number = ? AND (user_id IS NULL OR user_id = ?)`
-      ).bind(ic_number, newUserId).first();
+        `SELECT id FROM hostel_applications WHERE ic_number = ? LIMIT 1`
+      ).bind(ic_number).first();
 
       if (existingApp) {
-        // If it exists from CSV upload, link the new user ID and preserve imported details
+        // UPDATE existing hostel application: attach newUserId & refresh registered details
         await env.DB.prepare(`
           UPDATE hostel_applications 
           SET user_id = ?,
-              dob = COALESCE(NULLIF(dob, ''), ?),
-              age = COALESCE(age, ?),
-              gender = COALESCE(NULLIF(gender, ''), ?),
+              dob = COALESCE(NULLIF(?, ''), dob),
+              age = COALESCE(?, age),
+              gender = COALESCE(NULLIF(?, ''), gender),
               updated_at = CURRENT_TIMESTAMP
           WHERE ic_number = ?
-        `).bind(newUserId, tarikh_lahir || null, umur || null, jantina || null, ic_number).run();
+        `).bind(
+          newUserId, 
+          tarikh_lahir || null, 
+          umur || null, 
+          jantina || null, 
+          ic_number
+        ).run();
       } else {
-        // Otherwise, insert a brand new draft application row
+        // INSERT a brand-new draft application row if no prior record exists
         await env.DB.prepare(`
           INSERT INTO hostel_applications (
             user_id,
@@ -191,7 +208,9 @@ export async function handleRegister(request, env, headers) {
       }
     }
 
-    // 6. Return response object
+    // -------------------------------------------------------------------------
+    // 5. Build and Send Success Response
+    // -------------------------------------------------------------------------
     const createdUser = {
       id: newUserId,
       username: null,
@@ -210,7 +229,7 @@ export async function handleRegister(request, env, headers) {
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: 'Akaun berjaya didaftarkan!', 
+        message: 'Akaun baru berjaya didaftarkan dan dikemaskini!', 
         user: createdUser 
       }), 
       { status: 200, headers }

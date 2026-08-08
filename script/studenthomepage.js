@@ -13,123 +13,168 @@ async function initStudentDashboard() {
         if (nameHeader) nameHeader.innerText = `Welcome, ${userData.full_name || userData.username}`;
     }
 
-    // 2. Populate Account Modal Inputs if they exist
-    const accFullName = document.getElementById('accFullName');
-    const accEmail = document.getElementById('accEmail');
-    const accPhone = document.getElementById('accPhone');
-
-    if (accFullName) accFullName.value = userData.full_name || '';
-    if (accEmail) accEmail.value = userData.email || '';
-    if (accPhone) accPhone.value = userData.phone || '';
-
-    // 3. FORCE COUNTDOWN TO RUN
-    // Check if a deadline exists; if missing, calculate 7 days from created_at or current time
+    // 2. Countdown logic
     let deadlineStr = userData.registration_deadline;
-
     if (!deadlineStr) {
         const createdDate = userData.created_at ? new Date(userData.created_at) : new Date();
         const fallbackDeadline = new Date(createdDate.getTime() + (7 * 24 * 60 * 60 * 1000));
         deadlineStr = fallbackDeadline.toISOString();
 
-        // Save fallback back to localStorage for consistency
         userData.registration_deadline = deadlineStr;
         userData.account_status = userData.account_status || 'pending_details';
         localStorage.setItem('userData', JSON.stringify(userData));
     }
 
-    // Trigger the countdown
     startRegistrationCountdown(deadlineStr);
 
-    // 4. Fetch actual room registration status from Cloudflare Workers API
+    // 3. Fetch status from API
+    fetchLiveStatus(userData.id || userData.phone);
+}
+
+async function fetchLiveStatus(identifier) {
     try {
-        const response = await fetch(`/api/student/status?phone=${encodeURIComponent(userData.phone || '')}`);
+        const response = await fetch(`/api/student/status?user_id=${encodeURIComponent(identifier)}`);
         if (response.ok) {
             const data = await response.json();
-            updateDashboardState(data.status, data.roomDetails);
+            updateDashboardState(data.status, data.roomDetails, data.reason);
         } else {
             updateDashboardState('none');
         }
     } catch (err) {
-        console.warn("Could not fetch latest live status, fallback to local storage.");
+        console.warn("Could not fetch live status, falling back.");
         updateDashboardState('none');
     }
 }
 
-function updateDashboardState(status, details = null) {
+function updateDashboardState(status, details = null, reason = null) {
     const mainContainer = document.getElementById('mainContainer');
     if (!mainContainer) return;
-    
-    // Reset status classes
-    mainContainer.classList.remove('status-none', 'status-pending', 'status-success', 'status-fail');
+
+    // Hide all view containers
+    const views = document.querySelectorAll('.view-register, .view-success, .view-fail, .view-pending, .view-appealed');
+    views.forEach(v => v.style.display = 'none');
+
+    mainContainer.classList.remove('status-none', 'status-pending', 'status-success', 'status-fail', 'status-appealed');
 
     switch (status) {
         case 'pending':
             mainContainer.classList.add('status-pending');
+            document.querySelector('.view-pending').style.display = 'block';
             break;
+
         case 'approved':
         case 'success':
             mainContainer.classList.add('status-success');
+            document.querySelector('.view-success').style.display = 'block';
             if (details) {
-                const blockEl = document.getElementById('displayBlock');
-                const roomEl = document.getElementById('displayRoom');
-                const passEl = document.getElementById('displayPasscode');
-
-                if (blockEl) blockEl.innerText = details.block || 'Block A';
-                if (roomEl) roomEl.innerText = `Room ${details.room_number || '---'}`;
-                if (passEl) passEl.innerText = details.passcode || '#5521';
+                document.getElementById('displayBlock').innerText = details.block || 'Block A';
+                document.getElementById('displayRoom').innerText = `Room ${details.room_number || '---'}`;
+                document.getElementById('displayPasscode').innerText = details.passcode || '#5521';
             }
             break;
+
+        case 'returned':
         case 'rejected':
         case 'fail':
             mainContainer.classList.add('status-fail');
-            if (details && details.reason) {
-                const failEl = document.getElementById('failReason');
-                if (failEl) failEl.innerText = `Reason: ${details.reason}`;
+            document.querySelector('.view-fail').style.display = 'block';
+            if (reason) {
+                document.getElementById('failReason').innerText = `Sebab Ditolak: ${reason}`;
             }
             break;
+
+        case 'appealed':
+            mainContainer.classList.add('status-appealed');
+            document.querySelector('.view-appealed').style.display = 'block';
+            break;
+
         default:
             mainContainer.classList.add('status-none');
+            document.querySelector('.view-register').style.display = 'block';
             break;
     }
 }
 
-// Account View Toggle Function
-function toggleAccountView() {
-    const accountSection = document.getElementById('accountSection');
-    const contentViews = document.querySelectorAll('.view-register, .view-success, .view-fail, .view-pending');
+/* Modals Management */
+function openAppealModal() {
+    document.getElementById('appeal-modal').style.display = 'flex';
+}
 
-    isAccountViewOpen = !isAccountViewOpen;
+function closeAppealModal() {
+    document.getElementById('appeal-modal').style.display = 'none';
+}
 
-    if (isAccountViewOpen) {
-        // Load latest local user data into quick summary fields
-        const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-        const summaryName = document.getElementById('summaryName');
-        const summaryEmail = document.getElementById('summaryEmail');
-        const summaryPhone = document.getElementById('summaryPhone');
-        const summaryStatus = document.getElementById('summaryStatus');
+function openDeleteModal() {
+    document.getElementById('delete-modal').style.display = 'flex';
+}
 
-        if (summaryName) summaryName.innerText = userData.full_name || userData.username || 'Not set';
-        if (summaryEmail) summaryEmail.innerText = userData.email || 'Not set';
-        if (summaryPhone) summaryPhone.innerText = userData.phone || 'Not set';
-        if (summaryStatus) summaryStatus.innerText = userData.account_status || 'Pending';
+function closeDeleteModal() {
+    document.getElementById('delete-modal').style.display = 'none';
+}
 
-        contentViews.forEach(view => view.style.display = 'none');
-        if (accountSection) accountSection.style.display = 'block';
-    } else {
-        if (accountSection) accountSection.style.display = 'none';
-        contentViews.forEach(view => view.style.display = '');
+/* Rayuan Form Submission */
+document.getElementById('appealForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+    const reason = document.getElementById('appealReason').value;
+
+    try {
+        const response = await fetch('/api/student/appeal', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                user_id: userData.id,
+                appeal_reason: reason
+            })
+        });
+
+        if (response.ok) {
+            alert('Rayuan anda telah berjaya dihantar!');
+            closeAppealModal();
+            updateDashboardState('appealed');
+        } else {
+            alert('Gagal menghantar rayuan. Sila cuba lagi.');
+        }
+    } catch (err) {
+        alert('Ralat pelayan. Cuba lagi kemudian.');
+    }
+});
+
+/* Account Deletion Logic (Deletes user only, unlinks application) */
+async function confirmDeleteAccount() {
+    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+
+    try {
+        const response = await fetch(`/api/student/delete-account`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: userData.id })
+        });
+
+        if (response.ok) {
+            alert('Akaun anda telah dipadamkan.');
+            localStorage.clear();
+            window.location.replace('/log_in.html');
+        } else {
+            alert('Gagal memadam akaun.');
+        }
+    } catch (err) {
+        alert('Ralat pelayan semasa memadam akaun.');
     }
 }
 
-// Live Countdown Timer
+function toggleAccountView() {
+    const accountSection = document.getElementById('accountSection');
+    isAccountViewOpen = !isAccountViewOpen;
+    accountSection.style.display = isAccountViewOpen ? 'block' : 'none';
+}
+
 function startRegistrationCountdown(deadlineStr) {
     const deadline = new Date(deadlineStr).getTime();
     const banner = document.getElementById('deadlineBanner');
     const countdownEl = document.getElementById('registrationCountdown');
 
     if (!banner || !countdownEl) return;
-    
-    // Ensure display is set to flex so it becomes visible
     banner.style.display = 'flex';
 
     const interval = setInterval(() => {
@@ -139,7 +184,7 @@ function startRegistrationCountdown(deadlineStr) {
         if (diff <= 0) {
             clearInterval(interval);
             countdownEl.innerText = "EXPIRED";
-            alert("Your 7-day registration window has expired. Logging out...");
+            alert("Registration window expired.");
             localStorage.clear();
             window.location.replace('/log_in.html');
             return;
@@ -153,50 +198,3 @@ function startRegistrationCountdown(deadlineStr) {
         countdownEl.innerText = `${days}d ${hours}h ${mins}m ${secs}s remaining`;
     }, 1000);
 }
-
-// Save Updated Account Details Listener
-document.getElementById('accountForm')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const messageEl = document.getElementById('accMessage');
-    
-    const fullName = document.getElementById('accFullName')?.value.trim();
-    const email = document.getElementById('accEmail')?.value.trim();
-    const phone = document.getElementById('accPhone')?.value.trim();
-
-    if (messageEl) {
-        messageEl.style.color = '#ffffff';
-        messageEl.innerText = 'Updating details...';
-    }
-
-    try {
-        const response = await fetch('/api/student/update-profile', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ fullName, email, phone })
-        });
-
-        if (response.ok) {
-            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-            userData.full_name = fullName;
-            userData.email = email;
-            userData.phone = phone;
-            localStorage.setItem('userData', JSON.stringify(userData));
-
-            if (messageEl) {
-                messageEl.style.color = '#47f59b';
-                messageEl.innerText = 'Account details updated successfully!';
-            }
-            setTimeout(() => toggleAccountView(), 1200);
-        } else {
-            if (messageEl) {
-                messageEl.style.color = '#ff6b6b';
-                messageEl.innerText = 'Failed to update account details.';
-            }
-        }
-    } catch (err) {
-        if (messageEl) {
-            messageEl.style.color = '#ff6b6b';
-            messageEl.innerText = 'Server error. Try again later.';
-        }
-    }
-});

@@ -27,6 +27,42 @@
         </div>
     </div>
 
+    <!-- Rayuan (Appeal) Modal -->
+    <div id="appeal-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-icon warning-icon">
+                <i class='bx bx-edit-alt'></i>
+            </div>
+            <h2>Borang Rayuan Permohonan</h2>
+            <p>Nyatakan sebab rayuan atau kemaskini maklumat permohonan anda.</p>
+            <form id="appealForm">
+                <div class="form-group" style="text-align: left;">
+                    <label for="appealReason">Sebab Rayuan / Nota Tambahan:</label>
+                    <textarea id="appealReason" rows="4" required placeholder="Contoh: Saya telah mengemas kini dokumen yang salah..." style="width:100%; padding:10px; border-radius:8px; background:var(--body-color); color:var(--text-color); border:1px solid var(--sidebar-color);"></textarea>
+                </div>
+                <div class="modal-btns" style="margin-top: 15px;">
+                    <button type="button" class="btn-outline" onclick="closeAppealModal()">Batal</button>
+                    <button type="submit" class="btn-primary">Hantar Rayuan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Account Modal -->
+    <div id="delete-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-icon">
+                <i class='bx bx-trash'></i>
+            </div>
+            <h2>Padam Akaun Pengguna</h2>
+            <p>Akaun pengguna anda akan dipadamkan dari sistem. Rekod permohonan asrama akan dinyahpautkan.</p>
+            <div class="modal-btns">
+                <button class="btn-outline" onclick="closeDeleteModal()">Batal</button>
+                <button class="btn-danger" onclick="confirmDeleteAccount()">Padam Akaun</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Top Navigation -->
     <header class="top-nav">
         <div class="nav-container">
@@ -37,7 +73,6 @@
 
             <nav class="nav-links">
                 <div class="user-controls">
-                    <!-- Account link replaces old Settings button -->
                     <a href="javascript:void(0)" onclick="toggleAccountView()" class="nav-item">
                         <i class='bx bx-user-circle'></i>
                         <span class="hide-mobile">Account</span>
@@ -62,13 +97,14 @@
         <div class="status-header">
             <div class="status-indicator pending"><i class='bx bx-time-five'></i> Pending</div>
             <div class="status-indicator success"><i class='bx bx-check-circle'></i> Approved</div>
-            <div class="status-indicator fail"><i class='bx bx-x-circle'></i> Failed</div>
+            <div class="status-indicator fail"><i class='bx bx-x-circle'></i> Returned / Disapproved</div>
+            <div class="status-indicator appealed"><i class='bx bx-refresh'></i> Appeal Under Review</div>
         </div>
 
         <!-- 7-Day Deadline Warning Banner -->
         <div id="deadlineBanner" class="deadline-banner" style="display: none;">
             <i class='bx bx-alarm-exclamation'></i>
-            <span>Countdown before account terminate(Please fill you details information as soon as possible!): <strong id="registrationCountdown">Calculating...</strong></span>
+            <span>Countdown before account terminate: <strong id="registrationCountdown">Calculating...</strong></span>
         </div>
 
         <div class="content-wrapper">
@@ -102,13 +138,24 @@
                 </div>
             </div>
 
-            <!-- STATE 2: Application Rejected / Failed -->
+            <!-- STATE 2: Application Returned / Disapproved / Failed -->
             <div class="view-fail">
                 <div class="error-card">
                     <i class='bx bxs-error-circle'></i>
-                    <h2>Registration Failed</h2>
-                    <p id="failReason">Reason: Information incomplete or blurry document. Please resubmit your application.</p>
-                    <a href="register-room.html" class="btn-outline">Fix Registration</a>
+                    <h2>Permohonan Dikembalikan / Ditolak</h2>
+                    <p id="failReason">Sebab: Maklumat permohonan tidak lengkap atau tidak memenuhi syarat.</p>
+                    
+                    <div class="action-buttons-group">
+                        <button class="btn-primary" onclick="openAppealModal()">
+                            <i class='bx bx-paper-plane'></i> Hantar Rayuan (Appeal)
+                        </button>
+                        <a href="/student/detailinformation.html" class="btn-outline">
+                            <i class='bx bx-edit'></i> Kemaskini Borang
+                        </a>
+                        <button class="btn-danger-outline" onclick="openDeleteModal()">
+                            <i class='bx bx-user-x'></i> Padam Akaun Saya
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -121,41 +168,50 @@
                 </div>
             </div>
 
-            <!-- QUICK ACCOUNT OVERVIEW SECTION -->
-        <div class="view-account" id="accountSection" style="display: none;">
-            <div class="account-card">
-                <div class="account-card-header">
-                    <h2><i class='bx bx-user-circle'></i> Basic Profile</h2>
-                    <button class="btn-icon" onclick="toggleAccountView()"><i class='bx bx-x'></i></button>
-                </div>
-
-                <div class="account-quick-info">
-                    <div class="quick-info-item">
-                        <span>Full Name:</span>
-                        <strong id="summaryName">--</strong>
-                    </div>
-                    <div class="quick-info-item">
-                        <span>Email:</span>
-                        <strong id="summaryEmail">--</strong>
-                    </div>
-                    <div class="quick-info-item">
-                        <span>Phone:</span>
-                        <strong id="summaryPhone">--</strong>
-                    </div>
-                    <div class="quick-info-item">
-                        <span>Account Status:</span>
-                        <span class="badge" id="summaryStatus">Pending</span>
-                    </div>
-                </div>
-
-                <div class="account-card-actions">
-                    <a href="/student/detailinformation.html" class="btn-primary flex-btn">
-                        <i class='bx bx-edit'></i> Edit / Complete Full Details
-                    </a>
-                    <button type="button" class="btn-outline" onclick="toggleAccountView()">Close</button>
+            <!-- STATE 4: Rayuan Under Review -->
+            <div class="view-appealed" style="display:none;">
+                <div class="pending-card">
+                    <i class='bx bx-refresh bx-spin' style="font-size:3rem; color:var(--primary-color);"></i>
+                    <h2>Rayuan Dalam Semakan</h2>
+                    <p>Rayuan anda telah dihantar dan sedang diproses oleh pihak pentadbir.</p>
                 </div>
             </div>
-        </div>
+
+            <!-- QUICK ACCOUNT OVERVIEW SECTION -->
+            <div class="view-account" id="accountSection" style="display: none;">
+                <div class="account-card">
+                    <div class="account-card-header">
+                        <h2><i class='bx bx-user-circle'></i> Basic Profile</h2>
+                        <button class="btn-icon" onclick="toggleAccountView()"><i class='bx bx-x'></i></button>
+                    </div>
+
+                    <div class="account-quick-info">
+                        <div class="quick-info-item">
+                            <span>Full Name:</span>
+                            <strong id="summaryName">--</strong>
+                        </div>
+                        <div class="quick-info-item">
+                            <span>Email:</span>
+                            <strong id="summaryEmail">--</strong>
+                        </div>
+                        <div class="quick-info-item">
+                            <span>Phone:</span>
+                            <strong id="summaryPhone">--</strong>
+                        </div>
+                        <div class="quick-info-item">
+                            <span>Account Status:</span>
+                            <span class="badge" id="summaryStatus">Pending</span>
+                        </div>
+                    </div>
+
+                    <div class="account-card-actions">
+                        <a href="/student/detailinformation.html" class="btn-primary flex-btn">
+                            <i class='bx bx-edit'></i> Edit / Complete Full Details
+                        </a>
+                        <button type="button" class="btn-outline" onclick="toggleAccountView()">Close</button>
+                    </div>
+                </div>
+            </div>
 
         </div>
     </main>

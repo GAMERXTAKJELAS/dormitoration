@@ -254,3 +254,48 @@ body {
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 15px;
 }
+
+/* Action Button Group in State Fail */
+.action-buttons-group {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+.btn-danger-outline {
+    border: 1px solid #ff6b6b;
+    color: #ff6b6b;
+    background: transparent;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: var(--transition-smooth);
+}
+
+.btn-danger-outline:hover {
+    background: #ff6b6b;
+    color: #ffffff;
+}
+
+.warning-icon i {
+    font-size: 3.5rem;
+    color: #ffa500;
+}
+
+/* Status Indicator for Appealed */
+.status-appealed .appealed {
+    opacity: 1;
+    color: #3498db;
+    border-color: #3498db;
+}
+
+.status-appealed .view-appealed {
+    display: block !important;
+    text-align: center;
+}

@@ -3,16 +3,17 @@ import { handleLogin } from './script/login_backend.js';
 import { handleAdminStats } from './script/adminpage_backend.js';
 import { handleAdminDeadlineSettings } from './script/settings_backend.js';
 import { handleAdminApplications } from './script/approval_backend.js';
+import { handleStudentRoutes } from './studenthomepage_backend.js';
 
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
-    // Standard CORS headers
+    // Standard CORS headers (ADDED 'DELETE' to Access-Control-Allow-Methods)
     const headers = {
       'Content-Type': 'application/json',
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PATCH, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
     };
 
@@ -44,6 +45,14 @@ export default {
       // Route to approval applications backend (Handles GET and PATCH)
       if (url.pathname.startsWith('/api/admin/applications')) {
         return await handleAdminApplications(request, env, headers);
+      }
+
+      // -----------------------------------------------------------------
+      // ADDED: Route to Student Portal backend (/api/student/*)
+      // -----------------------------------------------------------------
+      if (url.pathname.startsWith('/api/student')) {
+        const studentResponse = await handleStudentRoutes(request, env, headers);
+        if (studentResponse) return studentResponse;
       }
 
       // Serve static frontend assets
