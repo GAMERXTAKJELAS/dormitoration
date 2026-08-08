@@ -7,131 +7,80 @@ export async function handleAdminApplications(request, env, headers) {
   const url = new URL(request.url);
   const method = request.method;
 
-  // 1. GET Request: Fetch all student records & applications
+  // 1. GET Request: Fetch applications linked directly by user ID
   if (method === 'GET' && url.pathname === '/api/admin/applications') {
     try {
-      const { results } = await env.DB.prepare(`
+      const query = `
         SELECT 
           u.id AS user_id,
           h.id AS application_id,
-          COALESCE(u.full_name, h.full_name, 'N/A') AS full_name,
-          COALESCE(u.email, h.email, '-') AS email,
-          COALESCE(u.phone, h.guardian1_phone, '-') AS phone,
+          u.full_name AS full_name,
+          u.email AS email,
+          u.phone AS phone,
           COALESCE(h.ic_number, '-') AS ic_number,
-          COALESCE(u.role, 'student') AS role,
+          u.role AS role,
           COALESCE(h.program, 'Pending Fill') AS program,
           COALESCE(h.session_id, '-') AS session_id,
           COALESCE(h.admin_approval, 'pending') AS status
         FROM users u
         LEFT JOIN hostel_applications h ON u.id = h.user_id
-        WHERE (u.role IS NULL OR u.role != 'admin')
+        WHERE u.role != 'admin' OR u.role IS NULL
+      `;
 
-        UNION ALL
-
-        SELECT 
-          CAST(NULL AS INTEGER) AS user_id,
-          h.id AS application_id,
-          COALESCE(h.full_name, 'N/A') AS full_name,
-          COALESCE(h.email, '-') AS email,
-          '-' AS phone,
-          COALESCE(h.ic_number, '-') AS ic_number,
-          'student' AS role,
-          COALESCE(h.program, 'Pending Fill') AS program,
-          COALESCE(h.session_id, '-') AS session_id,
-          COALESCE(h.admin_approval, 'pending') AS status
-        FROM hostel_applications h
-        WHERE h.user_id IS NULL
-      `).all();
+      const statement = env.DB.prepare(query);
+      const { results } = await statement.all();
 
       return new Response(
         JSON.stringify({ success: true, data: results || [] }),
-        { status: 200, headers }
+        { status: 200, headers: { ...headers, "Content-Type": "application/json" } }
       );
     } catch (err) {
       console.error("Fetch Applications DB Error:", err);
       return new Response(
-        JSON.stringify({ success: false, error: 'Failed to fetch application list', details: err.message }),
-        { status: 500, headers }
+        JSON.stringify({ 
+          success: false, 
+          error: 'Failed to fetch application list', 
+          details: err.message || err.toString() 
+        }),
+        { status: 500, headers: { ...headers, "Content-Type": "application/json" } }
       );
     }
   }
 
-  // 2. PATCH Request: Update status by application_id OR user_id
+  // 2. PATCH Request: Update application status using user_id
   if (method === 'PATCH' && url.pathname === '/api/admin/applications/status') {
     try {
-      const { user_id, application_id, status } = await request.json();
+      const body = await request.json();
+      const { user_id, status } = body;
 
-      if (!status) {
+      if (!user_id || !status) {
         return new Response(
-          JSON.stringify({ error: 'Status is required.' }),
-          { status: 400, headers }
+          JSON.stringify({ error: 'user_id and status are required.' }),
+          { status: 400, headers: { ...headers, "Content-Type": "application/json" } }
         );
       }
 
+      // Updates existing record or creates a base application row if one doesn't exist yet
       await env.DB.prepare(`
-        UPDATE hostel_applications 
-        SET admin_approval = ?, updated_at = CURRENT_TIMESTAMP
-        WHERE (id = ?) OR (user_id IS NOT NULL AND user_id = ?)
-      `).bind(status, application_id || null, user_id || null).run();
+        INSERT INTO hostel_applications (user_id, admin_approval)
+        VALUES (?, ?)
+        ON CONFLICT(user_id) DO UPDATE SET
+          admin_approval = excluded.admin_approval,
+          updated_at = CURRENT_TIMESTAMP
+      `).bind(user_id, status).run();
 
       return new Response(
         JSON.stringify({ success: true, message: 'Status updated successfully!' }),
-        { status: 200, headers }
+        { status: 200, headers: { ...headers, "Content-Type": "application/json" } }
       );
     } catch (err) {
       console.error("Update Approval Status DB Error:", err);
       return new Response(
         JSON.stringify({ error: 'Database update failed', details: err.message }),
-        { status: 500, headers }
+        { status: 500, headers: { ...headers, "Content-Type": "application/json" } }
       );
     }
   }
 
-  // 3. POST Request: CSV Import
-  if (method === 'POST' && url.pathname === '/api/admin/applications/import-csv') {
-    try {
-      const formData = await request.formData();
-      const file = formData.get("file");
-
-      if (!file) {
-        return new Response(JSON.stringify({ error: "No CSV file uploaded." }), { status: 400, headers });
-      }
-
-      const text = await file.text();
-      const lines = text.split("\n").map(l => l.trim()).filter(l => l.length > 0);
-
-      const rows = lines.slice(1); // Drop header row
-      let insertedCount = 0;
-
-      for (const row of rows) {
-        const cols = row.split(",").map(c => c.trim().replace(/^"|"$/g, ''));
-        if (cols.length < 2) continue;
-
-        const [ic_number, full_name, program, session_id, email] = cols;
-
-        await env.DB.prepare(`
-          INSERT INTO hostel_applications (ic_number, full_name, program, session_id, email, admin_approval)
-          VALUES (?, ?, ?, ?, ?, 'pending')
-          ON CONFLICT(ic_number) DO UPDATE SET
-            full_name = excluded.full_name,
-            program = excluded.program,
-            session_id = excluded.session_id,
-            email = excluded.email,
-            updated_at = CURRENT_TIMESTAMP
-        `).bind(ic_number, full_name, program || 'N/A', session_id || 'N/A', email || '').run();
-
-        insertedCount++;
-      }
-
-      return new Response(
-        JSON.stringify({ success: true, insertedCount }),
-        { status: 200, headers }
-      );
-    } catch (err) {
-      return new Response(
-        JSON.stringify({ error: "Failed to process CSV file", details: err.message }),
-        { status: 500, headers }
-      );
-    }
-  }
+  return new Response(JSON.stringify({ error: "Route not found" }), { status: 404, headers });
 }
