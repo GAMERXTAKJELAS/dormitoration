@@ -9,12 +9,11 @@ let currentFilter = 'all';
 document.addEventListener("DOMContentLoaded", () => {
     const searchInput = document.getElementById("search-student");
     const filterBtns = document.querySelectorAll(".filter-btn");
-    const csvFileInput = document.getElementById("csv-file-input");
 
-    // Fetch application list from D1 via Worker API
+    // Fetch existing application list from D1 via Worker API
     loadApplications();
 
-    // Bind Live Search
+    // Bind Live Search Input
     if (searchInput) {
         searchInput.addEventListener("input", renderTable);
     }
@@ -28,11 +27,6 @@ document.addEventListener("DOMContentLoaded", () => {
             renderTable();
         });
     });
-
-    // Handle CSV File Selection & Upload
-    if (csvFileInput) {
-        csvFileInput.addEventListener("change", handleCSVUpload);
-    }
 });
 
 // Fetch data from Cloudflare Worker Endpoint
@@ -61,15 +55,15 @@ function renderTable() {
     tbody.innerHTML = "";
 
     const filtered = allStudents.filter(item => {
+        // 1. Status Filter Matching
         const status = (item.status || "pending").toLowerCase();
         const statusMatch = currentFilter === "all" || status === currentFilter.toLowerCase();
 
+        // 2. Search Text Matching (Name, Email, Phone)
         const name = (item.full_name || "").toLowerCase();
         const email = (item.email || "").toLowerCase();
         const phone = (item.phone || "").toLowerCase();
-        const ic = (item.ic_number || "").toLowerCase();
-        
-        const searchMatch = name.includes(searchVal) || email.includes(searchVal) || phone.includes(searchVal) || ic.includes(searchVal);
+        const searchMatch = name.includes(searchVal) || email.includes(searchVal) || phone.includes(searchVal);
 
         return statusMatch && searchMatch;
     });
@@ -97,21 +91,21 @@ function renderTable() {
         tr.innerHTML = `
             <td>
                 <strong>${student.full_name || 'N/A'}</strong><br>
-                <small style="color: var(--text-muted);">${student.email || student.ic_number || student.phone || '-'}</small>
+                <small style="color: var(--text-muted);">${student.email || student.phone || '-'}</small>
             </td>
             <td>${student.program || 'Pending Fill'}</td>
             <td>${student.session_id || '-'}</td>
             <td><span class="badge ${badgeClass}">${statusLabel}</span></td>
             <td>
                 <div class="action-btns">
-                    <button class="btn-icon view" onclick="viewDetails(${student.user_id || student.id})" title="More Details">
+                    <button class="btn-icon view" onclick="viewDetails(${student.user_id})" title="More Details">
                         <i class='bx bx-info-circle'></i>
                     </button>
-                    <button class="btn-icon approve" onclick="updateApplicationStatus(${student.user_id || student.id}, 'approved')" title="Approve">
+                    <button class="btn-icon approve" onclick="updateApplicationStatus(${student.user_id}, 'approved')" title="Approve">
                         <i class='bx bx-check'></i>
                     </button>
-                    <button class="btn-icon reject" onclick="updateApplicationStatus(${student.user_id || student.id}, 'returned')" title="Return">
-                        <i class='bx bx-x'></i>
+                    <button class="btn-icon reject" onclick="updateApplicationStatus(${student.user_id}, 'returned')" title="Return">
+                        <i class='bx bx-undo'></i>
                     </button>
                 </div>
             </td>
@@ -133,39 +127,9 @@ function showEmptyTable(message) {
     }
 }
 
-// 3. Handle CSV File Upload & Parsing
-async function handleCSVUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-        const res = await fetch("/api/admin/applications/import-csv", {
-            method: "POST",
-            body: formData
-        });
-
-        const result = await res.json();
-        if (res.ok) {
-            alert(`Muat naik CSV berjaya! ${result.insertedCount || 0} rekod pelajar telah ditambah/diselaraskan.`);
-            loadApplications(); // Refresh list
-        } else {
-            alert(`Gagal memuat naik CSV: ${result.error || 'Server error'}`);
-        }
-    } catch (err) {
-        console.error("Error uploading CSV:", err);
-        alert(`Ralat rangkaian semasa muat naik CSV: ${err.message}`);
-    } finally {
-        event.target.value = ''; // Reset input
-    }
-}
-
 // Update Application Status Action
 async function updateApplicationStatus(userId, newStatus) {
-    const actionText = newStatus === 'returned' ? 'kembalikan (returned)' : 'luluskan (approved)';
-    if (!confirm(`Adakah anda pasti mahu ${actionText} permohonan ini?`)) return;
+    if (!confirm(`Adakah anda pasti mahu mengubah status permohonan kepada ${newStatus}?`)) return;
 
     try {
         const res = await fetch("/api/admin/applications/status", {
@@ -178,7 +142,10 @@ async function updateApplicationStatus(userId, newStatus) {
 
         if (res.ok) {
             alert("Status permohonan berjaya dikemaskini!");
-            loadApplications();
+            // Update local state and re-render
+            const target = allStudents.find(s => s.user_id === userId);
+            if (target) target.status = newStatus;
+            renderTable();
         } else {
             alert(`Gagal mengemaskini: ${data.error || 'Server error'}`);
         }
@@ -188,6 +155,7 @@ async function updateApplicationStatus(userId, newStatus) {
     }
 }
 
+// Navigate to details page
 function viewDetails(userId) {
     window.location.href = `/admin/application_details.html?id=${userId}`;
 }
