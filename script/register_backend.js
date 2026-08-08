@@ -118,95 +118,94 @@ export async function handleRegister(request, env, headers) {
 
     const newUserId = userResult.meta?.last_row_id;
 
-    // -------------------------------------------------------------------------
-    // 4. Update / Re-link Hostel Application DB
-    // -------------------------------------------------------------------------
-    if (newUserId && ic_number) {
-      const now = new Date();
-      const month = now.getMonth() + 1; 
-      const yearShort = now.getFullYear().toString().slice(-2); 
-      const currentSession = (month >= 1 && month <= 6) ? `JJ${yearShort}` : `JD${yearShort}`;
+// -------------------------------------------------------------------------
+// 4. Update / Re-link Hostel Application DB
+// -------------------------------------------------------------------------
+if (newUserId && ic_number) {
+  const now = new Date();
+  const month = now.getMonth() + 1; 
+  const yearShort = now.getFullYear().toString().slice(-2); 
+  const currentSession = (month >= 1 && month <= 6) ? `JJ${yearShort}` : `JD${yearShort}`;
 
-      // Check if an existing hostel application row exists for this IC (e.g., from old user or CSV pre-pop)
-      const existingApp = await env.DB.prepare(
-        `SELECT id FROM hostel_applications WHERE ic_number = ? LIMIT 1`
-      ).bind(ic_number).first();
+  // Check if an existing hostel application row exists for this IC
+  const existingApp = await env.DB.prepare(
+    `SELECT id FROM hostel_applications WHERE ic_number = ? LIMIT 1`
+  ).bind(ic_number).first();
 
-      if (existingApp) {
-        // UPDATE existing hostel application: attach newUserId & refresh registered details
-        await env.DB.prepare(`
-          UPDATE hostel_applications 
-          SET user_id = ?,
-              dob = COALESCE(NULLIF(?, ''), dob),
-              age = COALESCE(?, age),
-              gender = COALESCE(NULLIF(?, ''), gender),
-              updated_at = CURRENT_TIMESTAMP
-          WHERE ic_number = ?
-        `).bind(
-          newUserId, 
-          tarikh_lahir || null, 
-          umur || null, 
-          jantina || null, 
-          ic_number
-        ).run();
-      } else {
-        // INSERT a brand-new draft application row if no prior record exists
-        await env.DB.prepare(`
-          INSERT INTO hostel_applications (
-            user_id,
-            session_id,
-            ic_number,
-            dob,
-            age,
-            gender,
-            home_address,
-            postcode,
-            city,
-            state,
-            reason_for_apply,
-            program,
-            semester,
-            gpa_cgpa,
-            contributions,
-            guardian1_name,
-            guardian1_ic,
-            guardian1_phone,
-            guardian1_address,
-            guardian1_relationship,
-            guardian1_job,
-            guardian1_income,
-            guardian2_name,
-            guardian2_ic,
-            guardian2_phone,
-            guardian2_address,
-            guardian2_relationship,
-            guardian2_job,
-            guardian2_income,
-            dependents_count,
-            submission_status,
-            head_of_program_support,
-            admin_approval
-          ) VALUES (
-            ?, ?, ?, ?, ?, ?,
-            '', '', '', '',
-            '', '', 1, 0.0, '',
-            '', '', '', '', '', '', 0.0,
-            '', '', '', '', '', '', 0.0,
-            0,
-            'draft',
-            'pending',
-            'pending'
-          )
-        `).bind(
-          newUserId,
-          currentSession,
-          ic_number,
-          tarikh_lahir || null,
-          umur || null,
-          jantina || null
-        ).run();
-      }
-    }
+  if (existingApp) {
+    // FIX 2: UPDATE existing hostel application to attach newUserId (e.g. 31)
+    await env.DB.prepare(`
+      UPDATE hostel_applications 
+      SET user_id = ?,
+          dob = COALESCE(NULLIF(?, ''), dob),
+          age = COALESCE(?, age),
+          gender = COALESCE(NULLIF(?, ''), gender)
+      WHERE ic_number = ?
+    `).bind(
+      newUserId, 
+      tarikh_lahir || null, 
+      umur || null, 
+      jantina || null, 
+      ic_number
+    ).run();
+  } else {
+    // INSERT a brand-new draft application row if no prior record exists
+    await env.DB.prepare(`
+      INSERT INTO hostel_applications (
+        user_id,
+        session_id,
+        ic_number,
+        dob,
+        age,
+        gender,
+        home_address,
+        postcode,
+        city,
+        state,
+        reason_for_apply,
+        program,
+        semester,
+        gpa_cgpa,
+        contributions,
+        guardian1_name,
+        guardian1_ic,
+        guardian1_phone,
+        guardian1_address,
+        guardian1_relationship,
+        guardian1_job,
+        guardian1_income,
+        guardian2_name,
+        guardian2_ic,
+        guardian2_phone,
+        guardian2_address,
+        guardian2_relationship,
+        guardian2_job,
+        guardian2_income,
+        dependents_count,
+        submission_status,
+        head_of_program_support,
+        admin_approval
+      ) VALUES (
+        ?, ?, ?, ?, ?, ?,
+        '', '', '', '',
+        '', '', 1, 0.0, '',
+        '', '', '', '', '', '', 0.0,
+        '', '', '', '', '', '', 0.0,
+        0,
+        'draft',
+        'pending',
+        'pending'
+      )
+    `).bind(
+      newUserId,
+      currentSession,
+      ic_number,
+      tarikh_lahir || null,
+      umur || null,
+      jantina || null
+    ).run();
+  }
+}
 
     // -------------------------------------------------------------------------
     // 5. Build and Send Success Response
