@@ -3,7 +3,7 @@ import { handleLogin } from './script/login_backend.js';
 import { handleAdminStats } from './script/adminpage_backend.js';
 import { handleAdminDeadlineSettings } from './script/settings_backend.js';
 import { handleAdminApplications } from './script/approval_backend.js';
-import { handleStudentRoutes } from './studenthomepage_backend.js';
+import { handleStudentRoutes } from './script/studenthomepage_backend.js';
 
 export default {
   async fetch(request, env, ctx) {
