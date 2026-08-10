@@ -1,50 +1,13 @@
-document.addEventListener('DOMContentLoaded', () => {
-    initStudentDashboard();
-});
+// studenthomepage.js
 
-let isAccountViewOpen = false;
 let countdownInterval = null;
 
-async function initStudentDashboard() {
-    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-
-    // 1. Set Welcome Name & Account Info safely
-    const nameHeader = document.getElementById('welcomeUser');
-    if (nameHeader) nameHeader.innerText = `Welcome, ${userData.full_name || userData.username || 'Student'}`;
-
-    const sumName = document.getElementById('summaryName');
-    const sumEmail = document.getElementById('summaryEmail');
-    const sumPhone = document.getElementById('summaryPhone');
-
-    if (sumName) sumName.innerText = userData.full_name || '--';
-    if (sumEmail) sumEmail.innerText = userData.email || '--';
-    if (sumPhone) sumPhone.innerText = userData.phone || '--';
-
-    // 2. Fetch live status from D1 Database
-    if (userData.id) {
-        await fetchLiveStatus(userData.id);
-    } else {
-        updateDashboardState('none');
-    }
-}
-
-async function fetchLiveStatus(userId) {
-    try {
-        const response = await fetch(`/api/student/status?user_id=${encodeURIComponent(userId)}`);
-        if (response.ok) {
-            const data = await response.json();
-            console.log("D1 Live Status Data:", data); // Debug log to see response in F12 Console
-            updateDashboardState(data.status, data.roomDetails, data.reason);
-        } else {
-            console.warn("Status fetch failed with status:", response.status);
-            updateDashboardState('none');
-        }
-    } catch (err) {
-        console.warn("Could not fetch status from database:", err);
-        updateDashboardState('none');
-    }
-}
-
+/**
+ * Updates the dashboard state based on application status and details.
+ * @param {string} status - Current application status (none, pending, approved, fail, etc.)
+ * @param {Object|null} details - Room/Block/Passcode details if approved
+ * @param {string|null} reason - Rejection reason if failed
+ */
 function updateDashboardState(status, details = null, reason = null) {
     const mainContainer = document.getElementById('mainContainer');
     const deadlineBanner = document.getElementById('deadlineBanner');
@@ -52,37 +15,54 @@ function updateDashboardState(status, details = null, reason = null) {
 
     const userData = JSON.parse(localStorage.getItem('userData') || '{}');
 
-    // Update Account Quick View Badge
+    // 1. Update Account Quick View Badge
     const summaryStatus = document.getElementById('summaryStatus');
-    if (summaryStatus) summaryStatus.innerText = status ? String(status).toUpperCase() : 'NO APPLICATION';
+    if (summaryStatus) {
+        summaryStatus.innerText = status ? String(status).toUpperCase() : 'NO APPLICATION';
+    }
 
-    // Hide all view sections safely
+    // 2. Safe DOM cleanup: Hide all views and reset status classes
     const views = document.querySelectorAll('.view-register, .view-success, .view-fail, .view-pending, .view-appealed');
     views.forEach(v => v.style.display = 'none');
 
-    // Remove old status classes from main container
     mainContainer.classList.remove('status-none', 'status-pending', 'status-success', 'status-fail', 'status-appealed');
 
     const normalizedStatus = String(status || '').toLowerCase().trim();
 
-    // Check if application is active/approved
-    const isApproved = ['active', 'approved', 'success', 'lulus'].includes(normalizedStatus);
+    // 3. Define finalized statuses that MUST stop the countdown
+    const isFinalized = [
+        'active', 
+        'approved', 
+        'success', 
+        'lulus', 
+        'returned', 
+        'rejected', 
+        'fail', 
+        'disapproved', 
+        'gagal'
+    ].includes(normalizedStatus);
 
-    // --- COUNTDOWN LOGIC ---
-    if (isApproved) {
+    // 4. --- COUNTDOWN CONTROL LOGIC ---
+    if (isFinalized) {
+        // STOP and HIDE countdown when approved, active, or failed/rejected
         if (countdownInterval) clearInterval(countdownInterval);
         if (deadlineBanner) deadlineBanner.style.display = 'none';
     } else {
+        // KEEP/START countdown for 'pending' or 'none' (not finalized yet)
+        if (deadlineBanner) deadlineBanner.style.display = 'block';
+
         let deadlineStr = userData.registration_deadline;
         if (!deadlineStr && userData.created_at) {
             const createdDate = new Date(userData.created_at);
             const fallbackDeadline = new Date(createdDate.getTime() + (7 * 24 * 60 * 60 * 1000));
             deadlineStr = fallbackDeadline.toISOString();
         }
-        if (deadlineStr) startRegistrationCountdown(deadlineStr);
+        if (deadlineStr) {
+            startRegistrationCountdown(deadlineStr);
+        }
     }
 
-    // --- VIEW SWITCHING (SAFE DOM MANIPULATION) ---
+    // 5. --- VIEW SWITCHING LOGIC ---
     switch (normalizedStatus) {
         case 'pending':
             mainContainer.classList.add('status-pending');
@@ -127,121 +107,55 @@ function updateDashboardState(status, details = null, reason = null) {
     }
 }
 
-// Helper function to safely show view
+/**
+ * Starts the countdown timer given an ISO deadline string.
+ * @param {string} deadlineIsoString 
+ */
+function startRegistrationCountdown(deadlineIsoString) {
+    if (countdownInterval) clearInterval(countdownInterval);
+
+    const targetTime = new Date(deadlineIsoString).getTime();
+    const timerElement = document.getElementById('countdownTimer');
+
+    function updateTimer() {
+        const now = new Date().getTime();
+        const difference = targetTime - now;
+
+        if (difference <= 0) {
+            if (countdownInterval) clearInterval(countdownInterval);
+            if (timerElement) timerElement.innerText = "00d 00h 00m 00s (Masa Tamat)";
+            return;
+        }
+
+        const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+        if (timerElement) {
+            timerElement.innerText = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+        }
+    }
+
+    updateTimer();
+    countdownInterval = setInterval(updateTimer, 1000);
+}
+
+/**
+ * Helper to display specific views safely
+ * @param {string} selector 
+ */
 function showView(selector) {
     const el = document.querySelector(selector);
     if (el) el.style.display = 'block';
 }
 
-// Helper function to safely set innerText
+/**
+ * Helper to safely set inner text
+ * @param {string} id 
+ * @param {string} text 
+ */
 function setElementText(id, text) {
     const el = document.getElementById(id);
     if (el) el.innerText = text;
-}
-
-/* Modal and Navigation Handlers */
-function openAppealModal() { 
-    const modal = document.getElementById('appeal-modal');
-    if (modal) modal.style.display = 'flex'; 
-}
-
-function closeAppealModal() { 
-    const modal = document.getElementById('appeal-modal');
-    if (modal) modal.style.display = 'none'; 
-}
-
-function openDeleteModal() { 
-    const modal = document.getElementById('delete-modal');
-    if (modal) modal.style.display = 'flex'; 
-}
-
-function closeDeleteModal() { 
-    const modal = document.getElementById('delete-modal');
-    if (modal) modal.style.display = 'none'; 
-}
-
-document.getElementById('appealForm')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-    const reasonEl = document.getElementById('appealReason');
-    const reason = reasonEl ? reasonEl.value : '';
-
-    try {
-        const response = await fetch('/api/student/appeal', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: userData.id, appeal_reason: reason })
-        });
-
-        if (response.ok) {
-            alert('Rayuan anda telah berjaya dihantar!');
-            closeAppealModal();
-            updateDashboardState('appealed');
-        } else {
-            alert('Gagal menghantar rayuan. Sila cuba lagi.');
-        }
-    } catch (err) {
-        alert('Ralat pelayan. Sila cuba lagi kemudian.');
-    }
-});
-
-async function confirmDeleteAccount() {
-    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-
-    try {
-        const response = await fetch('/api/student/delete-account', {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: userData.id })
-        });
-
-        if (response.ok) {
-            alert('Akaun anda telah dipadamkan.');
-            localStorage.clear();
-            window.location.replace('/log_in.html');
-        } else {
-            alert('Gagal memadam akaun.');
-        }
-    } catch (err) {
-        alert('Ralat pelayan semasa memadam akaun.');
-    }
-}
-
-function toggleAccountView() {
-    const accountSection = document.getElementById('accountSection');
-    if (!accountSection) return;
-    isAccountViewOpen = !isAccountViewOpen;
-    accountSection.style.display = isAccountViewOpen ? 'block' : 'none';
-}
-
-function startRegistrationCountdown(deadlineStr) {
-    const deadline = new Date(deadlineStr).getTime();
-    const banner = document.getElementById('deadlineBanner');
-    const countdownEl = document.getElementById('registrationCountdown');
-
-    if (!banner || !countdownEl || isNaN(deadline)) return;
-    banner.style.display = 'flex';
-
-    if (countdownInterval) clearInterval(countdownInterval);
-
-    countdownInterval = setInterval(() => {
-        const now = new Date().getTime();
-        const diff = deadline - now;
-
-        if (diff <= 0) {
-            clearInterval(countdownInterval);
-            countdownEl.innerText = "EXPIRED";
-            alert("Registration window expired.");
-            localStorage.clear();
-            window.location.replace('/log_in.html');
-            return;
-        }
-
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const secs = Math.floor((diff % (1000 * 60)) / 1000);
-
-        countdownEl.innerText = `${days}d ${hours}h ${mins}m ${secs}s`;
-    }, 1000);
 }
