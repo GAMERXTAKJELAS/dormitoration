@@ -8,19 +8,21 @@ let countdownInterval = null;
 async function initStudentDashboard() {
     const userData = JSON.parse(localStorage.getItem('userData') || '{}');
 
-    // 1. Set Welcome Name & Account Info
-    if (userData.full_name || userData.username) {
-        const nameHeader = document.getElementById('welcomeUser');
-        if (nameHeader) nameHeader.innerText = `Welcome, ${userData.full_name || userData.username}`;
-    }
+    // 1. Set Welcome Name & Account Info safely
+    const nameHeader = document.getElementById('welcomeUser');
+    if (nameHeader) nameHeader.innerText = `Welcome, ${userData.full_name || userData.username || 'Student'}`;
 
-    if (document.getElementById('summaryName')) document.getElementById('summaryName').innerText = userData.full_name || '--';
-    if (document.getElementById('summaryEmail')) document.getElementById('summaryEmail').innerText = userData.email || '--';
-    if (document.getElementById('summaryPhone')) document.getElementById('summaryPhone').innerText = userData.phone || '--';
+    const sumName = document.getElementById('summaryName');
+    const sumEmail = document.getElementById('summaryEmail');
+    const sumPhone = document.getElementById('summaryPhone');
 
-    // 2. Fetch status from D1 Database (Countdown logic handles hiding/showing inside updateDashboardState)
+    if (sumName) sumName.innerText = userData.full_name || '--';
+    if (sumEmail) sumEmail.innerText = userData.email || '--';
+    if (sumPhone) sumPhone.innerText = userData.phone || '--';
+
+    // 2. Fetch live status from D1 Database
     if (userData.id) {
-        fetchLiveStatus(userData.id);
+        await fetchLiveStatus(userData.id);
     } else {
         updateDashboardState('none');
     }
@@ -31,8 +33,10 @@ async function fetchLiveStatus(userId) {
         const response = await fetch(`/api/student/status?user_id=${encodeURIComponent(userId)}`);
         if (response.ok) {
             const data = await response.json();
+            console.log("D1 Live Status Data:", data); // Debug log to see response in F12 Console
             updateDashboardState(data.status, data.roomDetails, data.reason);
         } else {
+            console.warn("Status fetch failed with status:", response.status);
             updateDashboardState('none');
         }
     } catch (err) {
@@ -50,27 +54,25 @@ function updateDashboardState(status, details = null, reason = null) {
 
     // Update Account Quick View Badge
     const summaryStatus = document.getElementById('summaryStatus');
-    if (summaryStatus) summaryStatus.innerText = status ? status.toUpperCase() : 'NO APPLICATION';
+    if (summaryStatus) summaryStatus.innerText = status ? String(status).toUpperCase() : 'NO APPLICATION';
 
-    // Reset view visibility
+    // Hide all view sections safely
     const views = document.querySelectorAll('.view-register, .view-success, .view-fail, .view-pending, .view-appealed');
     views.forEach(v => v.style.display = 'none');
 
     // Remove old status classes from main container
     mainContainer.classList.remove('status-none', 'status-pending', 'status-success', 'status-fail', 'status-appealed');
 
-    const normalizedStatus = (status || '').toLowerCase();
+    const normalizedStatus = String(status || '').toLowerCase().trim();
 
     // Check if application is active/approved
-    const isApproved = ['active', 'approved', 'success'].includes(normalizedStatus);
+    const isApproved = ['active', 'approved', 'success', 'lulus'].includes(normalizedStatus);
 
     // --- COUNTDOWN LOGIC ---
     if (isApproved) {
-        // Stop countdown and hide deadline banner if approved
         if (countdownInterval) clearInterval(countdownInterval);
         if (deadlineBanner) deadlineBanner.style.display = 'none';
     } else {
-        // Run countdown if still pending / registering
         let deadlineStr = userData.registration_deadline;
         if (!deadlineStr && userData.created_at) {
             const createdDate = new Date(userData.created_at);
@@ -80,22 +82,23 @@ function updateDashboardState(status, details = null, reason = null) {
         if (deadlineStr) startRegistrationCountdown(deadlineStr);
     }
 
-    // --- VIEW SWITCHING ---
+    // --- VIEW SWITCHING (SAFE DOM MANIPULATION) ---
     switch (normalizedStatus) {
         case 'pending':
             mainContainer.classList.add('status-pending');
-            document.querySelector('.view-pending').style.display = 'block';
+            showView('.view-pending');
             break;
 
         case 'active':
         case 'approved':
         case 'success':
+        case 'lulus':
             mainContainer.classList.add('status-success');
-            document.querySelector('.view-success').style.display = 'block';
+            showView('.view-success');
             if (details) {
-                document.getElementById('displayBlock').innerText = details.block || 'Block --';
-                document.getElementById('displayRoom').innerText = details.room_number ? `Room ${details.room_number}` : 'Room ---';
-                document.getElementById('displayPasscode').innerText = details.passcode || '#----';
+                setElementText('displayBlock', details.block ? `Block ${details.block}` : 'Block --');
+                setElementText('displayRoom', details.room_number ? `Room ${details.room_number}` : 'Room ---');
+                setElementText('displayPasscode', details.passcode || '#----');
             }
             break;
 
@@ -103,35 +106,65 @@ function updateDashboardState(status, details = null, reason = null) {
         case 'rejected':
         case 'fail':
         case 'disapproved':
+        case 'gagal':
             mainContainer.classList.add('status-fail');
-            document.querySelector('.view-fail').style.display = 'block';
+            showView('.view-fail');
             if (reason) {
-                document.getElementById('failReason').innerText = `Sebab: ${reason}`;
+                setElementText('failReason', `Sebab: ${reason}`);
             }
             break;
 
         case 'appealed':
+        case 'rayuan':
             mainContainer.classList.add('status-appealed');
-            document.querySelector('.view-appealed').style.display = 'block';
+            showView('.view-appealed');
             break;
 
         default:
             mainContainer.classList.add('status-none');
-            document.querySelector('.view-register').style.display = 'block';
+            showView('.view-register');
             break;
     }
 }
 
+// Helper function to safely show view
+function showView(selector) {
+    const el = document.querySelector(selector);
+    if (el) el.style.display = 'block';
+}
+
+// Helper function to safely set innerText
+function setElementText(id, text) {
+    const el = document.getElementById(id);
+    if (el) el.innerText = text;
+}
+
 /* Modal and Navigation Handlers */
-function openAppealModal() { document.getElementById('appeal-modal').style.display = 'flex'; }
-function closeAppealModal() { document.getElementById('appeal-modal').style.display = 'none'; }
-function openDeleteModal() { document.getElementById('delete-modal').style.display = 'flex'; }
-function closeDeleteModal() { document.getElementById('delete-modal').style.display = 'none'; }
+function openAppealModal() { 
+    const modal = document.getElementById('appeal-modal');
+    if (modal) modal.style.display = 'flex'; 
+}
+
+function closeAppealModal() { 
+    const modal = document.getElementById('appeal-modal');
+    if (modal) modal.style.display = 'none'; 
+}
+
+function openDeleteModal() { 
+    const modal = document.getElementById('delete-modal');
+    if (modal) modal.style.display = 'flex'; 
+}
+
+function closeDeleteModal() { 
+    const modal = document.getElementById('delete-modal');
+    if (modal) modal.style.display = 'none'; 
+}
 
 document.getElementById('appealForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-    const reason = document.getElementById('appealReason').value;
+    const reasonEl = document.getElementById('appealReason');
+    const reason = reasonEl ? reasonEl.value : '';
 
     try {
         const response = await fetch('/api/student/appeal', {
@@ -176,6 +209,7 @@ async function confirmDeleteAccount() {
 
 function toggleAccountView() {
     const accountSection = document.getElementById('accountSection');
+    if (!accountSection) return;
     isAccountViewOpen = !isAccountViewOpen;
     accountSection.style.display = isAccountViewOpen ? 'block' : 'none';
 }
