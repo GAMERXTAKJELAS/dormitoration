@@ -299,3 +299,13 @@ body {
     display: block !important;
     text-align: center;
 }
+
+/* --- STATUS INDICATORS --- */
+.status-header { display: flex; gap: 10px; margin-bottom: 30px; }
+.status-indicator { padding: 6px 15px; border-radius: 20px; font-size: 0.8rem; opacity: 0.2; border: 1px solid var(--text-muted); transition: opacity 0.3s ease; }
+
+/* Light up indicators based on state on #mainContainer */
+.status-pending .status-indicator.pending { opacity: 1; color: #ffa500; border-color: #ffa500; }
+.status-success .status-indicator.success { opacity: 1; color: var(--primary-color); border-color: var(--primary-color); }
+.status-fail .status-indicator.fail { opacity: 1; color: #ff6b6b; border-color: #ff6b6b; }
+.status-appealed .status-indicator.appealed { opacity: 1; color: #3498db; border-color: #3498db; }

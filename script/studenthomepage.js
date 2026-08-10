@@ -3,34 +3,22 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 let isAccountViewOpen = false;
+let countdownInterval = null;
 
 async function initStudentDashboard() {
     const userData = JSON.parse(localStorage.getItem('userData') || '{}');
 
-    // 1. Set Welcome Name
+    // 1. Set Welcome Name & Account Info
     if (userData.full_name || userData.username) {
         const nameHeader = document.getElementById('welcomeUser');
         if (nameHeader) nameHeader.innerText = `Welcome, ${userData.full_name || userData.username}`;
     }
 
-    // Populating Account Overview Card
     if (document.getElementById('summaryName')) document.getElementById('summaryName').innerText = userData.full_name || '--';
     if (document.getElementById('summaryEmail')) document.getElementById('summaryEmail').innerText = userData.email || '--';
     if (document.getElementById('summaryPhone')) document.getElementById('summaryPhone').innerText = userData.phone || '--';
 
-    // 2. Countdown Logic
-    let deadlineStr = userData.registration_deadline;
-    if (!deadlineStr && userData.created_at) {
-        const createdDate = new Date(userData.created_at);
-        const fallbackDeadline = new Date(createdDate.getTime() + (7 * 24 * 60 * 60 * 1000));
-        deadlineStr = fallbackDeadline.toISOString();
-    }
-
-    if (deadlineStr) {
-        startRegistrationCountdown(deadlineStr);
-    }
-
-    // 3. Fetch status from D1 Database
+    // 2. Fetch status from D1 Database (Countdown logic handles hiding/showing inside updateDashboardState)
     if (userData.id) {
         fetchLiveStatus(userData.id);
     } else {
@@ -55,21 +43,44 @@ async function fetchLiveStatus(userId) {
 
 function updateDashboardState(status, details = null, reason = null) {
     const mainContainer = document.getElementById('mainContainer');
+    const deadlineBanner = document.getElementById('deadlineBanner');
     if (!mainContainer) return;
+
+    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
 
     // Update Account Quick View Badge
     const summaryStatus = document.getElementById('summaryStatus');
     if (summaryStatus) summaryStatus.innerText = status ? status.toUpperCase() : 'NO APPLICATION';
 
-    // Reset visibility
+    // Reset view visibility
     const views = document.querySelectorAll('.view-register, .view-success, .view-fail, .view-pending, .view-appealed');
     views.forEach(v => v.style.display = 'none');
 
+    // Remove old status classes from main container
     mainContainer.classList.remove('status-none', 'status-pending', 'status-success', 'status-fail', 'status-appealed');
 
-    // Normalize state checks
     const normalizedStatus = (status || '').toLowerCase();
 
+    // Check if application is active/approved
+    const isApproved = ['active', 'approved', 'success'].includes(normalizedStatus);
+
+    // --- COUNTDOWN LOGIC ---
+    if (isApproved) {
+        // Stop countdown and hide deadline banner if approved
+        if (countdownInterval) clearInterval(countdownInterval);
+        if (deadlineBanner) deadlineBanner.style.display = 'none';
+    } else {
+        // Run countdown if still pending / registering
+        let deadlineStr = userData.registration_deadline;
+        if (!deadlineStr && userData.created_at) {
+            const createdDate = new Date(userData.created_at);
+            const fallbackDeadline = new Date(createdDate.getTime() + (7 * 24 * 60 * 60 * 1000));
+            deadlineStr = fallbackDeadline.toISOString();
+        }
+        if (deadlineStr) startRegistrationCountdown(deadlineStr);
+    }
+
+    // --- VIEW SWITCHING ---
     switch (normalizedStatus) {
         case 'pending':
             mainContainer.classList.add('status-pending');
@@ -177,12 +188,14 @@ function startRegistrationCountdown(deadlineStr) {
     if (!banner || !countdownEl || isNaN(deadline)) return;
     banner.style.display = 'flex';
 
-    const interval = setInterval(() => {
+    if (countdownInterval) clearInterval(countdownInterval);
+
+    countdownInterval = setInterval(() => {
         const now = new Date().getTime();
         const diff = deadline - now;
 
         if (diff <= 0) {
-            clearInterval(interval);
+            clearInterval(countdownInterval);
             countdownEl.innerText = "EXPIRED";
             alert("Registration window expired.");
             localStorage.clear();
