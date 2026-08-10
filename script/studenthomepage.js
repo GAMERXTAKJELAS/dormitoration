@@ -3,10 +3,9 @@
 let countdownInterval = null;
 
 // ==========================================
-// 1. PAGE INITIALIZATION (FETCH BACKEND STATUS)
+// 1. PAGE INITIALIZATION
 // ==========================================
-document.addEventListener('DOMContentLoaded', () => {
-    // Retrieve logged-in student user ID from localStorage
+document.addEventListener('DOMContentLoaded', async () => {
     const userData = JSON.parse(localStorage.getItem('userData') || '{}');
     const userId = userData.id || userData.user_id;
 
@@ -16,8 +15,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    // Call backend endpoint to retrieve status & room details
-    fetchStudentStatus(userId);
+    // Fetch all backend data FIRST before rendering
+    await fetchStudentStatus(userId);
 });
 
 /**
@@ -33,8 +32,9 @@ async function fetchStudentStatus(userId) {
         }
 
         const data = await response.json();
+        console.log('Fetched backend status data:', data);
 
-        // Pass response straight into dashboard state renderer
+        // Update state with fetched data
         updateDashboardState(
             data.status || 'none', 
             data.roomDetails || null, 
@@ -43,7 +43,7 @@ async function fetchStudentStatus(userId) {
 
     } catch (err) {
         console.error('Failed to load application status from backend:', err);
-        // Default to registration view on connection error
+        // Fallback to 'none' view if connection or server fails
         updateDashboardState('none');
     }
 }
@@ -53,8 +53,8 @@ async function fetchStudentStatus(userId) {
 // ==========================================
 /**
  * Updates the dashboard state purely by changing the CSS class on #mainContainer
- * @param {string} status - Current application status (none, pending, approved, fail, etc.)
- * @param {Object|null} details - Room/Block/Passcode details if approved
+ * @param {string} status - Current application status
+ * @param {Object|null} details - Room/Block/Passcode details
  * @param {string|null} reason - Rejection reason if failed
  */
 function updateDashboardState(status, details = null, reason = null) {
@@ -68,29 +68,22 @@ function updateDashboardState(status, details = null, reason = null) {
     // 1. Update Account Quick View Badge
     const summaryStatus = document.getElementById('summaryStatus');
     if (summaryStatus) {
-        summaryStatus.innerText = status ? String(status).toUpperCase() : 'NO APPLICATION';
+        summaryStatus.innerText = status ? String(status).toUpperCase() : 'N/A';
     }
 
-    // 2. Update Top Status Indicator Pills
+    // 2. Update Status Indicator Pills
     updateStatusPills(normalizedStatus);
 
     // 3. Reset mainContainer status classes
     mainContainer.classList.remove('status-none', 'status-pending', 'status-success', 'status-fail', 'status-appealed');
 
-    // 4. Determine status category
+    // 4. Check if application status is finalized
     const isFinalized = [
-        'active', 
-        'approved', 
-        'success', 
-        'lulus', 
-        'returned', 
-        'rejected', 
-        'fail', 
-        'disapproved', 
-        'gagal'
+        'active', 'approved', 'success', 'lulus', 
+        'returned', 'rejected', 'fail', 'disapproved', 'gagal'
     ].includes(normalizedStatus);
 
-    // 5. --- COUNTDOWN CONTROL LOGIC ---
+    // 5. Countdown logic
     if (isFinalized) {
         if (countdownInterval) clearInterval(countdownInterval);
         if (deadlineBanner) deadlineBanner.style.display = 'none';
@@ -108,7 +101,7 @@ function updateDashboardState(status, details = null, reason = null) {
         }
     }
 
-    // 6. --- CLASS SWITCHING LOGIC (Pure CSS Control) ---
+    // 6. Apply Status Class & Assign Data with "N/A" Fallbacks
     switch (normalizedStatus) {
         case 'pending':
             mainContainer.classList.add('status-pending');
@@ -119,11 +112,11 @@ function updateDashboardState(status, details = null, reason = null) {
         case 'success':
         case 'lulus':
             mainContainer.classList.add('status-success');
-            if (details) {
-                setElementText('displayBlock', details.block ? `Block ${details.block}` : 'Block --');
-                setElementText('displayRoom', details.room_number ? `Room ${details.room_number}` : 'Room ---');
-                setElementText('displayPasscode', details.passcode || '#----');
-            }
+            
+            // Populate fields with fallback to N/A
+            setElementText('displayBlock', details && details.block ? `Block ${details.block}` : 'Block: N/A');
+            setElementText('displayRoom', details && details.room_number ? `Room ${details.room_number}` : 'Room: N/A');
+            setElementText('displayPasscode', details && details.passcode ? details.passcode : 'N/A');
             break;
 
         case 'returned':
@@ -132,9 +125,9 @@ function updateDashboardState(status, details = null, reason = null) {
         case 'disapproved':
         case 'gagal':
             mainContainer.classList.add('status-fail');
-            if (reason) {
-                setElementText('failReason', `Sebab: ${reason}`);
-            }
+            
+            // Fallback rejection reason to N/A
+            setElementText('failReason', `Sebab: ${reason || 'N/A'}`);
             break;
 
         case 'appealed':
@@ -146,22 +139,21 @@ function updateDashboardState(status, details = null, reason = null) {
             mainContainer.classList.add('status-none');
             break;
     }
+
+    // 7. Make main container visible now that state is officially set
+    mainContainer.style.visibility = 'visible';
+    mainContainer.style.opacity = '1';
 }
 
 // ==========================================
 // 3. HELPER FUNCTIONS & COUNTDOWN
 // ==========================================
 
-/**
- * Highlights the active status pill at the top of the dashboard
- * @param {string} status 
- */
 function updateStatusPills(status) {
     const pills = document.querySelectorAll('.status-pill, .badge-status, [data-status]');
     
     pills.forEach(pill => {
         pill.classList.remove('active');
-        
         const pillStatus = (pill.getAttribute('data-status') || pill.innerText).toLowerCase().trim();
         
         if (
@@ -175,10 +167,6 @@ function updateStatusPills(status) {
     });
 }
 
-/**
- * Starts the countdown timer given an ISO deadline string.
- * @param {string} deadlineIsoString 
- */
 function startRegistrationCountdown(deadlineIsoString) {
     if (countdownInterval) clearInterval(countdownInterval);
 

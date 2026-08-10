@@ -226,3 +226,8 @@ body {
     font-size: 3.5rem;
     color: #ffa500;
 }
+#mainContainer {
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+}
