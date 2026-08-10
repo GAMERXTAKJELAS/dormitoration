@@ -2,6 +2,55 @@
 
 let countdownInterval = null;
 
+// ==========================================
+// 1. PAGE INITIALIZATION (FETCH BACKEND STATUS)
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+    // Retrieve logged-in student user ID from localStorage
+    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+    const userId = userData.id || userData.user_id;
+
+    if (!userId) {
+        console.warn('No User ID found in localStorage.');
+        updateDashboardState('none');
+        return;
+    }
+
+    // Call backend endpoint to retrieve status & room details
+    fetchStudentStatus(userId);
+});
+
+/**
+ * Calls backend API /api/student/status?user_id=...
+ * @param {string|number} userId 
+ */
+async function fetchStudentStatus(userId) {
+    try {
+        const response = await fetch(`/api/student/status?user_id=${encodeURIComponent(userId)}`);
+        
+        if (!response.ok) {
+            throw new Error(`Server status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // Pass response from D1 database straight into dashboard state renderer
+        updateDashboardState(
+            data.status || 'none', 
+            data.roomDetails || null, 
+            data.reason || null
+        );
+
+    } catch (err) {
+        console.error('Failed to load application status from backend:', err);
+        // Default to registration view on connection error
+        updateDashboardState('none');
+    }
+}
+
+// ==========================================
+// 2. DASHBOARD UI STATE RENDERER
+// ==========================================
 /**
  * Updates the dashboard state based on application status and details.
  * @param {string} status - Current application status (none, pending, approved, fail, etc.)
@@ -31,7 +80,7 @@ function updateDashboardState(status, details = null, reason = null) {
 
     mainContainer.classList.remove('status-none', 'status-pending', 'status-success', 'status-fail', 'status-appealed');
 
-    // 4. Finalized statuses that STOP the countdown
+    // 4. Finalized statuses that STOP the countdown (Approved / Active / Rejected / Fail)
     const isFinalized = [
         'active', 
         'approved', 
@@ -46,9 +95,11 @@ function updateDashboardState(status, details = null, reason = null) {
 
     // 5. --- COUNTDOWN CONTROL LOGIC ---
     if (isFinalized) {
+        // Clear & Hide timer when approved or failed
         if (countdownInterval) clearInterval(countdownInterval);
         if (deadlineBanner) deadlineBanner.style.display = 'none';
     } else {
+        // Keep timer running for 'pending' or 'none'
         if (deadlineBanner) deadlineBanner.style.display = 'block';
 
         let deadlineStr = userData.registration_deadline;
@@ -107,24 +158,26 @@ function updateDashboardState(status, details = null, reason = null) {
     }
 }
 
+// ==========================================
+// 3. HELPER FUNCTIONS & COUNTDOWN
+// ==========================================
+
 /**
  * Highlights the active status pill at the top of the dashboard
  * @param {string} status 
  */
 function updateStatusPills(status) {
-    // Select all status pill elements at top
     const pills = document.querySelectorAll('.status-pill, .badge-status, [data-status]');
     
     pills.forEach(pill => {
         pill.classList.remove('active');
         
-        // Match by dataset attribute if available (e.g. data-status="approved")
-        const pillStatus = pill.getAttribute('data-status') || pill.innerText.toLowerCase();
+        const pillStatus = (pill.getAttribute('data-status') || pill.innerText).toLowerCase().trim();
         
         if (
             (status === 'pending' && pillStatus.includes('pending')) ||
             (['approved', 'active', 'success', 'lulus'].includes(status) && pillStatus.includes('approve')) ||
-            (['returned', 'rejected', 'fail', 'disapproved', 'gagal'].includes(status) && (pillStatus.includes('return') || pillStatus.includes('disapprove'))) ||
+            (['returned', 'rejected', 'fail', 'disapproved', 'gagal'].includes(status) && (pillStatus.includes('return') || pillStatus.includes('disapprove') || pillStatus.includes('fail'))) ||
             (['appealed', 'rayuan'].includes(status) && pillStatus.includes('appeal'))
         ) {
             pill.classList.add('active');
