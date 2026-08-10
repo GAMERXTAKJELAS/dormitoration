@@ -34,7 +34,7 @@ async function fetchStudentStatus(userId) {
 
         const data = await response.json();
 
-        // Pass response from D1 database straight into dashboard state renderer
+        // Pass response straight into dashboard state renderer
         updateDashboardState(
             data.status || 'none', 
             data.roomDetails || null, 
@@ -52,7 +52,7 @@ async function fetchStudentStatus(userId) {
 // 2. DASHBOARD UI STATE RENDERER
 // ==========================================
 /**
- * Updates the dashboard state based on application status and details.
+ * Updates the dashboard state purely by changing the CSS class on #mainContainer
  * @param {string} status - Current application status (none, pending, approved, fail, etc.)
  * @param {Object|null} details - Room/Block/Passcode details if approved
  * @param {string|null} reason - Rejection reason if failed
@@ -71,16 +71,13 @@ function updateDashboardState(status, details = null, reason = null) {
         summaryStatus.innerText = status ? String(status).toUpperCase() : 'NO APPLICATION';
     }
 
-    // 2. Update Top Status Badges / Pills (.active class)
+    // 2. Update Top Status Indicator Pills
     updateStatusPills(normalizedStatus);
 
-    // 3. Safe DOM cleanup: Hide all view cards & remove status classes
-    const views = document.querySelectorAll('.view-register, .view-success, .view-fail, .view-pending, .view-appealed');
-    views.forEach(v => v.style.display = 'none');
-
+    // 3. Reset mainContainer status classes
     mainContainer.classList.remove('status-none', 'status-pending', 'status-success', 'status-fail', 'status-appealed');
 
-    // 4. Finalized statuses that STOP the countdown (Approved / Active / Rejected / Fail)
+    // 4. Determine status category
     const isFinalized = [
         'active', 
         'approved', 
@@ -95,11 +92,9 @@ function updateDashboardState(status, details = null, reason = null) {
 
     // 5. --- COUNTDOWN CONTROL LOGIC ---
     if (isFinalized) {
-        // Clear & Hide timer when approved or failed
         if (countdownInterval) clearInterval(countdownInterval);
         if (deadlineBanner) deadlineBanner.style.display = 'none';
     } else {
-        // Keep timer running for 'pending' or 'none'
         if (deadlineBanner) deadlineBanner.style.display = 'block';
 
         let deadlineStr = userData.registration_deadline;
@@ -113,11 +108,10 @@ function updateDashboardState(status, details = null, reason = null) {
         }
     }
 
-    // 6. --- VIEW SWITCHING LOGIC ---
+    // 6. --- CLASS SWITCHING LOGIC (Pure CSS Control) ---
     switch (normalizedStatus) {
         case 'pending':
             mainContainer.classList.add('status-pending');
-            showView('.view-pending');
             break;
 
         case 'active':
@@ -125,7 +119,6 @@ function updateDashboardState(status, details = null, reason = null) {
         case 'success':
         case 'lulus':
             mainContainer.classList.add('status-success');
-            showView('.view-success');
             if (details) {
                 setElementText('displayBlock', details.block ? `Block ${details.block}` : 'Block --');
                 setElementText('displayRoom', details.room_number ? `Room ${details.room_number}` : 'Room ---');
@@ -139,7 +132,6 @@ function updateDashboardState(status, details = null, reason = null) {
         case 'disapproved':
         case 'gagal':
             mainContainer.classList.add('status-fail');
-            showView('.view-fail');
             if (reason) {
                 setElementText('failReason', `Sebab: ${reason}`);
             }
@@ -148,12 +140,10 @@ function updateDashboardState(status, details = null, reason = null) {
         case 'appealed':
         case 'rayuan':
             mainContainer.classList.add('status-appealed');
-            showView('.view-appealed');
             break;
 
         default:
             mainContainer.classList.add('status-none');
-            showView('.view-register');
             break;
     }
 }
@@ -217,11 +207,6 @@ function startRegistrationCountdown(deadlineIsoString) {
 
     updateTimer();
     countdownInterval = setInterval(updateTimer, 1000);
-}
-
-function showView(selector) {
-    const el = document.querySelector(selector);
-    if (el) el.style.display = 'block';
 }
 
 function setElementText(id, text) {

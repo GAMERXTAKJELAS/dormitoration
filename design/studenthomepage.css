@@ -50,9 +50,6 @@ body {
 
 .theme-btn { background: none; border: none; color: var(--text-color); font-size: 1.4rem; cursor: pointer; }
 
-.admin-controls { display: none; gap: 15px; border-left: 1px solid var(--text-muted); padding-left: 15px; }
-.admin-user .admin-controls { display: flex; }
-
 /* --- MAIN CONTENT --- */
 .main-content {
     flex: 1;
@@ -65,18 +62,36 @@ body {
 
 /* --- STATUS INDICATORS --- */
 .status-header { display: flex; gap: 10px; margin-bottom: 30px; }
-.status-indicator { padding: 6px 15px; border-radius: 20px; font-size: 0.8rem; opacity: 0.2; border: 1px solid var(--text-muted); }
+.status-indicator { 
+    padding: 6px 15px; 
+    border-radius: 20px; 
+    font-size: 0.8rem; 
+    opacity: 0.3; 
+    border: 1px solid var(--text-muted); 
+    transition: opacity 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
 
-.status-pending .pending { opacity: 1; color: #ffa500; border-color: #ffa500; }
-.status-success .success { opacity: 1; color: var(--primary-color); border-color: var(--primary-color); }
-.status-fail .fail { opacity: 1; color: #ff6b6b; border-color: #ff6b6b; }
+/* Active Indicator States */
+.status-pending .status-indicator.pending { opacity: 1; color: #ffa500; border-color: #ffa500; }
+.status-success .status-indicator.success { opacity: 1; color: var(--primary-color); border-color: var(--primary-color); }
+.status-fail .status-indicator.fail { opacity: 1; color: #ff6b6b; border-color: #ff6b6b; }
+.status-appealed .status-indicator.appealed { opacity: 1; color: #3498db; border-color: #3498db; }
 
-/* --- LOGIC SHOW/HIDE --- */
-.view-register, .view-success, .view-fail, .view-pending { display: none; text-align: center; }
+/* --- LOGIC SHOW/HIDE VIEWS --- */
+.view-register, 
+.view-success, 
+.view-fail, 
+.view-pending, 
+.view-appealed { 
+    display: none; 
+    text-align: center; 
+}
+
 .status-none .view-register { display: block; }
 .status-pending .view-pending { display: block; }
 .status-success .view-success { display: block; }
 .status-fail .view-fail { display: block; }
+.status-appealed .view-appealed { display: block; }
 
 /* --- CARDS --- */
 .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
@@ -107,7 +122,7 @@ body {
     .passcode p { font-size: 1.8rem; }
 }
 
-/* --- LOGOUT MODAL STYLES --- */
+/* --- MODAL OVERLAYS --- */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -115,7 +130,7 @@ body {
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.85);
-    display: none; /* Hidden by default */
+    display: none;
     justify-content: center;
     align-items: center;
     z-index: 3000;
@@ -139,21 +154,9 @@ body {
     margin-bottom: 15px;
 }
 
-.modal-content h2 {
-    margin: 0 0 10px;
-    color: var(--text-color);
-}
-
-.modal-content p {
-    color: var(--text-muted);
-    margin-bottom: 25px;
-}
-
-.modal-btns {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-}
+.modal-content h2 { margin: 0 0 10px; color: var(--text-color); }
+.modal-content p { color: var(--text-muted); margin-bottom: 25px; }
+.modal-btns { display: flex; gap: 15px; justify-content: center; }
 
 .btn-danger {
     background: #ff6b6b;
@@ -176,7 +179,7 @@ body {
 .user-controls { display: flex; align-items: center; gap: 15px; }
 .user-controls a { text-decoration: none; color: var(--text-color); display: flex; align-items: center; gap: 5px; }
 
-/* 7-Day Countdown Banner */
+/* Countdown Banner */
 .deadline-banner {
     background: rgba(255, 165, 0, 0.15);
     border: 1px solid #ffa500;
@@ -203,24 +206,10 @@ body {
     margin: 0 auto;
 }
 .account-card h2 { margin-top: 0; color: var(--primary-color); display: flex; align-items: center; gap: 8px; }
-.account-card .sub-text { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 25px; }
 
 .form-group { margin-bottom: 18px; }
 .form-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px; }
-.form-group input {
-    width: 100%;
-    padding: 12px 15px;
-    border-radius: 8px;
-    border: 1px solid var(--sidebar-color);
-    background: var(--body-color);
-    color: var(--text-color);
-    box-sizing: border-box;
-}
 
-.form-actions { display: flex; gap: 15px; justify-content: flex-end; margin-top: 25px; }
-.form-message { margin-top: 15px; text-align: center; font-size: 0.9rem; }
-
-.detail-card { max-width: 750px !important; }
 .account-card-header { display: flex; justify-content: space-between; align-items: center; }
 .btn-icon { background: none; border: none; color: var(--text-color); font-size: 1.5rem; cursor: pointer; }
 
@@ -233,79 +222,7 @@ body {
 .account-card-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 25px; }
 .flex-btn { display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; }
 
-.form-section {
-    background: var(--body-color);
-    padding: 20px;
-    border-radius: 10px;
-    margin-bottom: 20px;
-    border: 1px solid var(--sidebar-color);
-}
-.form-section h3 {
-    margin-top: 0;
-    font-size: 1.05rem;
-    color: var(--primary-color);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 15px;
-}
-.form-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
-}
-
-/* Action Button Group in State Fail */
-.action-buttons-group {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    flex-wrap: wrap;
-    margin-top: 20px;
-}
-
-.btn-danger-outline {
-    border: 1px solid #ff6b6b;
-    color: #ff6b6b;
-    background: transparent;
-    padding: 10px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: var(--transition-smooth);
-}
-
-.btn-danger-outline:hover {
-    background: #ff6b6b;
-    color: #ffffff;
-}
-
 .warning-icon i {
     font-size: 3.5rem;
     color: #ffa500;
 }
-
-/* Status Indicator for Appealed */
-.status-appealed .appealed {
-    opacity: 1;
-    color: #3498db;
-    border-color: #3498db;
-}
-
-.status-appealed .view-appealed {
-    display: block !important;
-    text-align: center;
-}
-
-/* --- STATUS INDICATORS --- */
-.status-header { display: flex; gap: 10px; margin-bottom: 30px; }
-.status-indicator { padding: 6px 15px; border-radius: 20px; font-size: 0.8rem; opacity: 0.2; border: 1px solid var(--text-muted); transition: opacity 0.3s ease; }
-
-/* Light up indicators based on state on #mainContainer */
-.status-pending .status-indicator.pending { opacity: 1; color: #ffa500; border-color: #ffa500; }
-.status-success .status-indicator.success { opacity: 1; color: var(--primary-color); border-color: var(--primary-color); }
-.status-fail .status-indicator.fail { opacity: 1; color: #ff6b6b; border-color: #ff6b6b; }
-.status-appealed .status-indicator.appealed { opacity: 1; color: #3498db; border-color: #3498db; }

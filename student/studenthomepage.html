@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="/design/studenthomepage.css">
     <script src="/script/theme.js" defer></script>
     <script src="/script/logout_logic.js" defer></script>
-    <script src="/script/studenthomepage.js" defer></script>
+  
 </head>
 <body class="dark-mode"> 
 
@@ -91,20 +91,14 @@
     </header>
 
     <!-- Main Content Body -->
-    <main class="main-content status-none" id="mainContainer">
+    <main class="main-content status-success" id="mainContainer">
         
         <!-- Status Indicator Bar -->
         <div class="status-header">
-            <div class="status-indicator pending"><i class='bx bx-time-five'></i> Pending</div>
-            <div class="status-indicator success"><i class='bx bx-check-circle'></i> Approved</div>
-            <div class="status-indicator fail"><i class='bx bx-x-circle'></i> Returned / Disapproved</div>
-            <div class="status-indicator appealed"><i class='bx bx-refresh'></i> Appeal Under Review</div>
-        </div>
-
-        <!-- 7-Day Deadline Warning Banner -->
-        <div id="deadlineBanner" class="deadline-banner" style="display: none;">
-            <i class='bx bx-alarm-exclamation'></i>
-            <span>Countdown before account terminate: <strong id="registrationCountdown">Calculating...</strong></span>
+            <div class="status-indicator pending" data-status="pending"><i class='bx bx-time-five'></i> Pending</div>
+            <div class="status-indicator success" data-status="approved"><i class='bx bx-check-circle'></i> Approved</div>
+            <div class="status-indicator fail" data-status="fail"><i class='bx bx-x-circle'></i> Returned / Disapproved</div>
+            <div class="status-indicator appealed" data-status="appealed"><i class='bx bx-refresh'></i> Appeal Under Review</div>
         </div>
 
         <div class="content-wrapper">
@@ -138,29 +132,13 @@
                 </div>
             </div>
 
-            <!-- STATE 2: Application Returned / Disapproved / Failed -->
-            <div class="view-fail">
-                <div class="error-card">
-                    <i class='bx bxs-error-circle'></i>
-                    <h2>Permohonan Dikembalikan / Ditolak</h2>
-                    <p id="failReason">Sebab: Maklumat permohonan tidak lengkap atau tidak memenuhi syarat.</p>
-                    
-                    <div class="action-buttons-group">
-                        <button class="btn-primary" onclick="openAppealModal()">
-                            <i class='bx bx-paper-plane'></i> Hantar Rayuan (Appeal)
-                        </button>
-                        <a href="/student/detailinformation.html" class="btn-outline">
-                            <i class='bx bx-edit'></i> Kemaskini Borang
-                        </a>
-                        <button class="btn-danger-outline" onclick="openDeleteModal()">
-                            <i class='bx bx-user-x'></i> Padam Akaun Saya
-                        </button>
-                    </div>
-                </div>
-            </div>
-
             <!-- STATE 3: Application Under Review / Pending -->
             <div class="view-pending">
+                <div id="deadlineBanner" class="deadline-banner" style="margin-bottom: 20px;">
+                    <i class='bx bx-alarm-exclamation'></i>
+                    <span>Countdown before account terminate: <strong id="registrationCountdown">Calculating...</strong></span>
+                </div>
+
                 <div class="pending-card">
                     <div class="loader"></div>
                     <h2>Verifying Details...</h2>
@@ -169,7 +147,7 @@
             </div>
 
             <!-- STATE 4: Rayuan Under Review -->
-            <div class="view-appealed" style="display:none;">
+            <div class="view-appealed">
                 <div class="pending-card">
                     <i class='bx bx-refresh bx-spin' style="font-size:3rem; color:var(--primary-color);"></i>
                     <h2>Rayuan Dalam Semakan</h2>
@@ -219,6 +197,6 @@
     <footer class="main-footer">
         <p>&copy; 2026 Dormitoration System</p>
     </footer>
-
+      <script src="/script/studenthomepage.js" defer></script>
 </body>
 </html>
