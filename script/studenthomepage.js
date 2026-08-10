@@ -14,6 +14,7 @@ function updateDashboardState(status, details = null, reason = null) {
     if (!mainContainer) return;
 
     const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+    const normalizedStatus = String(status || '').toLowerCase().trim();
 
     // 1. Update Account Quick View Badge
     const summaryStatus = document.getElementById('summaryStatus');
@@ -21,15 +22,16 @@ function updateDashboardState(status, details = null, reason = null) {
         summaryStatus.innerText = status ? String(status).toUpperCase() : 'NO APPLICATION';
     }
 
-    // 2. Safe DOM cleanup: Hide all views and reset status classes
+    // 2. Update Top Status Badges / Pills (.active class)
+    updateStatusPills(normalizedStatus);
+
+    // 3. Safe DOM cleanup: Hide all view cards & remove status classes
     const views = document.querySelectorAll('.view-register, .view-success, .view-fail, .view-pending, .view-appealed');
     views.forEach(v => v.style.display = 'none');
 
     mainContainer.classList.remove('status-none', 'status-pending', 'status-success', 'status-fail', 'status-appealed');
 
-    const normalizedStatus = String(status || '').toLowerCase().trim();
-
-    // 3. Define finalized statuses that MUST stop the countdown
+    // 4. Finalized statuses that STOP the countdown
     const isFinalized = [
         'active', 
         'approved', 
@@ -42,13 +44,11 @@ function updateDashboardState(status, details = null, reason = null) {
         'gagal'
     ].includes(normalizedStatus);
 
-    // 4. --- COUNTDOWN CONTROL LOGIC ---
+    // 5. --- COUNTDOWN CONTROL LOGIC ---
     if (isFinalized) {
-        // STOP and HIDE countdown when approved, active, or failed/rejected
         if (countdownInterval) clearInterval(countdownInterval);
         if (deadlineBanner) deadlineBanner.style.display = 'none';
     } else {
-        // KEEP/START countdown for 'pending' or 'none' (not finalized yet)
         if (deadlineBanner) deadlineBanner.style.display = 'block';
 
         let deadlineStr = userData.registration_deadline;
@@ -62,7 +62,7 @@ function updateDashboardState(status, details = null, reason = null) {
         }
     }
 
-    // 5. --- VIEW SWITCHING LOGIC ---
+    // 6. --- VIEW SWITCHING LOGIC ---
     switch (normalizedStatus) {
         case 'pending':
             mainContainer.classList.add('status-pending');
@@ -108,6 +108,31 @@ function updateDashboardState(status, details = null, reason = null) {
 }
 
 /**
+ * Highlights the active status pill at the top of the dashboard
+ * @param {string} status 
+ */
+function updateStatusPills(status) {
+    // Select all status pill elements at top
+    const pills = document.querySelectorAll('.status-pill, .badge-status, [data-status]');
+    
+    pills.forEach(pill => {
+        pill.classList.remove('active');
+        
+        // Match by dataset attribute if available (e.g. data-status="approved")
+        const pillStatus = pill.getAttribute('data-status') || pill.innerText.toLowerCase();
+        
+        if (
+            (status === 'pending' && pillStatus.includes('pending')) ||
+            (['approved', 'active', 'success', 'lulus'].includes(status) && pillStatus.includes('approve')) ||
+            (['returned', 'rejected', 'fail', 'disapproved', 'gagal'].includes(status) && (pillStatus.includes('return') || pillStatus.includes('disapprove'))) ||
+            (['appealed', 'rayuan'].includes(status) && pillStatus.includes('appeal'))
+        ) {
+            pill.classList.add('active');
+        }
+    });
+}
+
+/**
  * Starts the countdown timer given an ISO deadline string.
  * @param {string} deadlineIsoString 
  */
@@ -141,20 +166,11 @@ function startRegistrationCountdown(deadlineIsoString) {
     countdownInterval = setInterval(updateTimer, 1000);
 }
 
-/**
- * Helper to display specific views safely
- * @param {string} selector 
- */
 function showView(selector) {
     const el = document.querySelector(selector);
     if (el) el.style.display = 'block';
 }
 
-/**
- * Helper to safely set inner text
- * @param {string} id 
- * @param {string} text 
- */
 function setElementText(id, text) {
     const el = document.getElementById(id);
     if (el) el.innerText = text;
