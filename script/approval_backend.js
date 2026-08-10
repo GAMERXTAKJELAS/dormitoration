@@ -7,7 +7,9 @@ export async function handleAdminApplications(request, env, headers) {
   const url = new URL(request.url);
   const method = request.method;
 
+  // -------------------------------------------------------------------------
   // 1. GET Request: Fetch applications linked directly by user ID
+  // -------------------------------------------------------------------------
   if (method === 'GET' && url.pathname === '/api/admin/applications') {
     try {
       const query = `
@@ -21,7 +23,8 @@ export async function handleAdminApplications(request, env, headers) {
           u.role AS role,
           COALESCE(h.program, 'Pending Fill') AS program,
           COALESCE(h.session_id, '-') AS session_id,
-          COALESCE(h.admin_approval, 'pending') AS status
+          COALESCE(h.admin_approval, 'pending') AS status,
+          u.account_status AS user_account_status
         FROM users u
         LEFT JOIN hostel_applications h ON u.id = h.user_id
         WHERE u.role != 'admin' OR u.role IS NULL
@@ -47,7 +50,9 @@ export async function handleAdminApplications(request, env, headers) {
     }
   }
 
-  // 2. PATCH Request: Update application status using user_id
+  // -------------------------------------------------------------------------
+  // 2. PATCH Request: Update application status and sync user account status
+  // -------------------------------------------------------------------------
   if (method === 'PATCH' && url.pathname === '/api/admin/applications/status') {
     try {
       const body = await request.json();
@@ -60,17 +65,47 @@ export async function handleAdminApplications(request, env, headers) {
         );
       }
 
-      // Updates existing record or creates a base application row if one doesn't exist yet
+      // Map application action status -> users.account_status
+      let targetAccountStatus = 'pending_details';
+      if (status === 'approved') {
+        targetAccountStatus = 'active';
+      } else if (status === 'returned' || status === 'rejected' || status === 'declined') {
+        targetAccountStatus = 'returned';
+      }
+
+      // A. Sync status in `users` table so user retains login with updated status
       await env.DB.prepare(`
-        INSERT INTO hostel_applications (user_id, admin_approval)
-        VALUES (?, ?)
-        ON CONFLICT(user_id) DO UPDATE SET
-          admin_approval = excluded.admin_approval,
-          updated_at = CURRENT_TIMESTAMP
-      `).bind(user_id, status).run();
+        UPDATE users 
+        SET account_status = ? 
+        WHERE id = ?
+      `).bind(targetAccountStatus, user_id).run();
+
+      // B. Update existing hostel application row if present
+      const existingApp = await env.DB.prepare(
+        `SELECT id FROM hostel_applications WHERE user_id = ? LIMIT 1`
+      ).bind(user_id).first();
+
+      if (existingApp) {
+        await env.DB.prepare(`
+          UPDATE hostel_applications 
+          SET admin_approval = ?,
+              submission_status = ?
+          WHERE user_id = ?
+        `).bind(status, status, user_id).run();
+      } else {
+        // C. Insert new base record if application row doesn't exist yet
+        await env.DB.prepare(`
+          INSERT INTO hostel_applications (user_id, admin_approval, submission_status)
+          VALUES (?, ?, ?)
+        `).bind(user_id, status, status).run();
+      }
 
       return new Response(
-        JSON.stringify({ success: true, message: 'Status updated successfully!' }),
+        JSON.stringify({ 
+          success: true, 
+          message: 'Status updated successfully!',
+          account_status: targetAccountStatus
+        }),
         { status: 200, headers: { ...headers, "Content-Type": "application/json" } }
       );
     } catch (err) {
