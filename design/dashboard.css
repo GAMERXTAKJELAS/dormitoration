@@ -126,29 +126,92 @@ body {
     border: 1px solid rgba(255, 107, 107, 0.3);
 }
 
+/* ==========================================
+   HOSTEL BLOCKS OVERVIEW (Gender Styled)
+   ========================================== */
+
 .blocks-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 20px;
 }
 
+/* Default / Normal Male Block Styling */
 .block-card {
     background: var(--card-bg);
     border-radius: 12px;
     padding: 20px;
     border: 1px solid var(--border-color);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .block-top {
-    display: flex; justify-content: space-between; align-items: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 10px;
 }
 
-.block-top h3 { margin: 0; font-size: 1.1rem; }
+.block-top h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--text-color);
+}
+
 .block-top .badge {
     background: rgba(255, 255, 255, 0.08);
-    padding: 4px 10px; border-radius: 12px; font-size: 0.8rem;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
     color: var(--text-muted);
+}
+
+.block-desc {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+/* ------------------------------------------
+   FEMALE BLOCK STYLING (Pink Theme)
+   ------------------------------------------ */
+.block-card.female-block {
+    border-color: rgba(255, 105, 180, 0.3);
+    background: linear-gradient(
+        135deg,
+        var(--card-bg) 70%,
+        rgba(255, 105, 180, 0.08) 100%
+    );
+}
+
+.block-card.female-block .block-top h3 {
+    color: #ff75b5; /* Vibrant pink visible in both dark & light mode */
+}
+
+.block-card.female-block .badge {
+    background: rgba(255, 105, 180, 0.15);
+    color: #ff60a8;
+    border: 1px solid rgba(255, 105, 180, 0.25);
+}
+
+/* Light mode adjustments for Female Block readability */
+.light-mode .block-card.female-block {
+    border-color: rgba(236, 72, 153, 0.3);
+    background: linear-gradient(
+        135deg,
+        #ffffff 70%,
+        rgba(252, 231, 243, 0.6) 100%
+    );
+}
+
+.light-mode .block-card.female-block .block-top h3 {
+    color: #db2777; /* Deeper pink for crisp contrast on light background */
+}
+
+.light-mode .block-card.female-block .badge {
+    background: #fce7f3;
+    color: #be185d;
+    border-color: #fbcfe8;
 }
 
 .block-desc {
