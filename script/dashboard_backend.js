@@ -47,23 +47,24 @@ export async function handleDashboardRoutes(request, env, headers) {
   // -------------------------------------------------------------------------
   if (method === 'GET' && url.pathname === '/api/admin/dashboard/active-students') {
     try {
-      const query = `
-        SELECT 
-          u.id AS user_id,
-          u.full_name,
-          u.email,
-          u.phone,
-          COALESCE(u.profile_picture, NULL) AS profile_picture,
-          COALESCE(u.matric_number, u.username, '-') AS matric_number,
-          COALESCE(h.ic_number, '-') AS ic_number,
-          COALESCE(h.program, 'Pending Fill') AS program,
-          COALESCE(h.session_id, '-') AS session_id,
-          h.id AS application_id
-        FROM users u
-        LEFT JOIN hostel_applications h ON u.id = h.user_id
-        WHERE u.role = 'student' AND u.account_status = 'active'
-        ORDER BY u.id DESC
-      `;
+// Replace the previous query in handleDashboardRoutes with this safely patched version:
+const query = `
+  SELECT 
+    u.id AS user_id,
+    u.full_name,
+    u.email,
+    u.phone,
+    COALESCE(u.profile_picture, NULL) AS profile_picture,
+    COALESCE(u.username, '-') AS matric_number,  -- Uses username as fallback instead of u.matric_number
+    COALESCE(h.ic_number, '-') AS ic_number,
+    COALESCE(h.program, 'Pending Fill') AS program,
+    COALESCE(h.session_id, '-') AS session_id,
+    h.id AS application_id
+  FROM users u
+  LEFT JOIN hostel_applications h ON u.id = h.user_id
+  WHERE u.role = 'student' AND u.account_status = 'active'
+  ORDER BY u.id DESC
+`;
 
       const { results } = await env.DB.prepare(query).all();
 
