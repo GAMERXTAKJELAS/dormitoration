@@ -119,7 +119,7 @@ export async function handleAdminApplications(request, env, headers) {
   }
 
 // -------------------------------------------------------------------------
-  // 3. POST Request: Import CSV Directly into `hostel_applications` ONLY
+  // 3. POST Request: Batch Import Students via CSV (Users + Hostel Applications)
   // -------------------------------------------------------------------------
   if (method === 'POST' && url.pathname === '/api/admin/applications/import-csv') {
     try {
@@ -133,54 +133,83 @@ export async function handleAdminApplications(request, env, headers) {
         );
       }
 
-      const appStatements = [];
+      const validStudents = students.filter(s => s && s.email);
 
-      for (const s of students) {
-        const fullName = s.full_name || s.name || '';
-        const email = s.email || '';
-        const phone = s.phone || '';
-        const program = s.program || 'Pending Fill';
-        const session = s.session || s.session_id || '-';
-        const userId = s.user_id ? Number(s.user_id) : null; // Keep null if no user_id supplied
-
-        appStatements.push(
-          env.DB.prepare(`
-            INSERT INTO hostel_applications (
-              user_id, 
-              full_name, 
-              email, 
-              phone, 
-              program, 
-              session_id, 
-              admin_approval, 
-              submission_status
-            )
-            VALUES (?, ?, ?, ?, ?, ?, 'pending', 'pending')
-          `).bind(userId, fullName, email, phone, program, session)
-        );
-      }
-
-      if (appStatements.length === 0) {
+      if (validStudents.length === 0) {
         return new Response(
-          JSON.stringify({ error: 'No valid rows found in CSV' }),
+          JSON.stringify({ error: 'No valid student rows with email addresses found' }),
           { status: 400, headers: { ...headers, "Content-Type": "application/json" } }
         );
       }
 
-      // Execute single batch insert into hostel_applications
-      await env.DB.batch(appStatements);
+      // Step 1: Upsert into `users` (full_name, email, phone, role) with NULL password & status
+      const userStatements = [];
+      for (const s of validStudents) {
+        const fullName = s.full_name || s.name || '';
+        const phone = s.phone || '';
+
+        userStatements.push(
+          env.DB.prepare(`
+            INSERT INTO users (full_name, email, phone, role, password, account_status)
+            VALUES (?, ?, ?, 'student', NULL, 'pending_details')
+            ON CONFLICT(email) DO UPDATE SET 
+              full_name = excluded.full_name,
+              phone = COALESCE(excluded.phone, users.phone)
+          `).bind(fullName, s.email, phone)
+        );
+      }
+
+      await env.DB.batch(userStatements);
+
+      // Step 2: Retrieve generated user IDs using emails
+      const emails = validStudents.map(s => s.email);
+      const placeholders = emails.map(() => '?').join(',');
+      const userRecords = await env.DB.prepare(
+        `SELECT id, email FROM users WHERE email IN (${placeholders})`
+      ).bind(...emails).all();
+
+      const emailToIdMap = {};
+      (userRecords.results || []).forEach(u => {
+        emailToIdMap[u.email] = u.id;
+      });
+
+      // Step 3: Insert into `hostel_applications` (user_id, ic_number, program, session_id)
+      const appStatements = [];
+      for (const s of validStudents) {
+        const userId = emailToIdMap[s.email];
+        if (!userId) continue;
+
+        const icNumber = s.ic_number || s.ic || s.mykad || '-';
+        const program = s.program || 'Pending Fill';
+        const session = s.session || s.session_id || '-';
+
+        appStatements.push(
+          env.DB.prepare(`
+            INSERT INTO hostel_applications (user_id, ic_number, program, session_id, admin_approval, submission_status)
+            VALUES (?, ?, ?, ?, 'pending', 'pending')
+            ON CONFLICT(user_id) DO UPDATE SET
+              ic_number = COALESCE(excluded.ic_number, hostel_applications.ic_number),
+              program = COALESCE(excluded.program, hostel_applications.program),
+              session_id = COALESCE(excluded.session_id, hostel_applications.session_id)
+          `).bind(userId, icNumber, program, session)
+        );
+      }
+
+      if (appStatements.length > 0) {
+        await env.DB.batch(appStatements);
+      }
 
       return new Response(
         JSON.stringify({ 
           success: true, 
-          insertedCount: appStatements.length 
+          insertedCount: validStudents.length 
         }),
         { status: 200, headers: { ...headers, "Content-Type": "application/json" } }
       );
     } catch (err) {
-      console.error("Hostel Applications CSV Import DB Error:", err);
+      console.error("CSV Import DB Error:", err);
       return new Response(
-        JSON.stringify({ error: 'Failed to import CSV into hostel_applications', details: err.message }),
+        JSON.stringify({ error: 'Failed to import CSV batch', details: err.message }),
         { status: 500, headers: { ...headers, "Content-Type": "application/json" } }
       );
     }
