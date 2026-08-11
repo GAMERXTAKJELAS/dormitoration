@@ -8,10 +8,11 @@ export async function handleAdminApplications(request, env, headers) {
   const method = request.method;
 
 // -------------------------------------------------------------------------
-  // 1. GET Request: Fetch all applications with Profile Picture fallback
+  // 1. GET Request: Safe Query with profile_picture Support
   // -------------------------------------------------------------------------
   if (method === 'GET' && url.pathname === '/api/admin/applications') {
     try {
+      // Query users and hostel_applications safely
       const query = `
         SELECT 
           u.id AS user_id,
@@ -19,7 +20,7 @@ export async function handleAdminApplications(request, env, headers) {
           u.full_name AS full_name,
           u.email AS email,
           u.phone AS phone,
-          COALESCE(u.profile_picture, NULL) AS profile_picture,
+          u.profile_picture AS profile_picture,
           COALESCE(h.ic_number, '-') AS ic_number,
           u.role AS role,
           COALESCE(h.program, 'Pending Fill') AS program,
@@ -34,11 +35,12 @@ export async function handleAdminApplications(request, env, headers) {
 
       const { results } = await env.DB.prepare(query).all();
 
-      return new Response(JSON.stringify(results || []), {
+      return new Response(JSON.stringify({ success: true, data: results || [] }), {
         status: 200,
         headers: { ...headers, "Content-Type": "application/json" }
       });
     } catch (err) {
+      console.error("GET Applications Error:", err);
       return new Response(JSON.stringify({ error: err.message }), {
         status: 500,
         headers: { ...headers, "Content-Type": "application/json" }
