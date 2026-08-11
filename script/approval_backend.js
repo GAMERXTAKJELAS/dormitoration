@@ -119,7 +119,7 @@ export async function handleAdminApplications(request, env, headers) {
   }
 
 // -------------------------------------------------------------------------
-  // 3. POST Request: Batch Import Students via CSV (Users + Hostel Applications)
+  // 3. POST Request: Batch Import Students with Random Temporary Passwords
   // -------------------------------------------------------------------------
   if (method === 'POST' && url.pathname === '/api/admin/applications/import-csv') {
     try {
@@ -142,20 +142,23 @@ export async function handleAdminApplications(request, env, headers) {
         );
       }
 
-      // Step 1: Upsert into `users` (full_name, email, phone, role) with NULL password & status
+      // Step 1: Upsert into `users` with a randomly generated temporary password
       const userStatements = [];
       for (const s of validStudents) {
         const fullName = s.full_name || s.name || '';
         const phone = s.phone || '';
+        
+        // Generate a random temporary password (e.g., "TVET-a8f3b29c")
+        const randomPass = 'TVET-' + crypto.randomUUID().slice(0, 8);
 
         userStatements.push(
           env.DB.prepare(`
             INSERT INTO users (full_name, email, phone, role, password_hash, account_status)
-            VALUES (?, ?, ?, 'student', NULL, 'pending_details')
+            VALUES (?, ?, ?, 'student', ?, 'pending_details')
             ON CONFLICT(email) DO UPDATE SET 
               full_name = excluded.full_name,
               phone = COALESCE(excluded.phone, users.phone)
-          `).bind(fullName, s.email, phone)
+          `).bind(fullName, s.email, phone, randomPass)
         );
       }
 
@@ -173,7 +176,7 @@ export async function handleAdminApplications(request, env, headers) {
         emailToIdMap[u.email] = u.id;
       });
 
-      // Step 3: Insert into `hostel_applications` (user_id, ic_number, program, session_id)
+      // Step 3: Insert into `hostel_applications` using retrieved user IDs
       const appStatements = [];
       for (const s of validStudents) {
         const userId = emailToIdMap[s.email];
