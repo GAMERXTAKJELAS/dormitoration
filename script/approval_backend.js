@@ -118,8 +118,8 @@ export async function handleAdminApplications(request, env, headers) {
     }
   }
 
-  // -------------------------------------------------------------------------
-  // 3. POST Request: Batch Import Students via CSV JSON
+// -------------------------------------------------------------------------
+  // 3. POST Request: Import CSV Directly into `hostel_applications` ONLY
   // -------------------------------------------------------------------------
   if (method === 'POST' && url.pathname === '/api/admin/applications/import-csv') {
     try {
@@ -133,61 +133,54 @@ export async function handleAdminApplications(request, env, headers) {
         );
       }
 
-      const statements = [];
+      const appStatements = [];
 
       for (const s of students) {
-        // Skip rows without an email address
-        if (!s.email) continue;
-
-        const fullName = s.full_name || s.name || 'Student';
+        const fullName = s.full_name || s.name || '';
+        const email = s.email || '';
         const phone = s.phone || '';
         const program = s.program || 'Pending Fill';
         const session = s.session || s.session_id || '-';
+        const userId = s.user_id ? Number(s.user_id) : null; // Keep null if no user_id supplied
 
-        // Statement 1: Insert or update user record
-        statements.push(
+        appStatements.push(
           env.DB.prepare(`
-            INSERT INTO users (full_name, email, phone, role, account_status)
-            VALUES (?, ?, ?, 'student', 'pending_details')
-            ON CONFLICT(email) DO UPDATE SET 
-              full_name = excluded.full_name,
-              phone = excluded.phone
-          `).bind(fullName, s.email, phone)
-        );
-
-        // Statement 2: Ensure base application entry exists for the user
-        statements.push(
-          env.DB.prepare(`
-            INSERT INTO hostel_applications (user_id, program, session_id, admin_approval, submission_status)
-            VALUES ((SELECT id FROM users WHERE email = ?), ?, ?, 'pending', 'pending')
-            ON CONFLICT(user_id) DO UPDATE SET
-              program = COALESCE(excluded.program, hostel_applications.program),
-              session_id = COALESCE(excluded.session_id, hostel_applications.session_id)
-          `).bind(s.email, program, session)
+            INSERT INTO hostel_applications (
+              user_id, 
+              full_name, 
+              email, 
+              phone, 
+              program, 
+              session_id, 
+              admin_approval, 
+              submission_status
+            )
+            VALUES (?, ?, ?, ?, ?, ?, 'pending', 'pending')
+          `).bind(userId, fullName, email, phone, program, session)
         );
       }
 
-      if (statements.length === 0) {
+      if (appStatements.length === 0) {
         return new Response(
-          JSON.stringify({ error: 'No valid student rows found in CSV' }),
+          JSON.stringify({ error: 'No valid rows found in CSV' }),
           { status: 400, headers: { ...headers, "Content-Type": "application/json" } }
         );
       }
 
-      // Execute as a single fast atomic batch transaction
-      await env.DB.batch(statements);
+      // Execute single batch insert into hostel_applications
+      await env.DB.batch(appStatements);
 
       return new Response(
         JSON.stringify({ 
           success: true, 
-          insertedCount: Math.ceil(statements.length / 2) 
+          insertedCount: appStatements.length 
         }),
         { status: 200, headers: { ...headers, "Content-Type": "application/json" } }
       );
     } catch (err) {
-      console.error("CSV Import DB Error:", err);
+      console.error("Hostel Applications CSV Import DB Error:", err);
       return new Response(
-        JSON.stringify({ error: 'Failed to import CSV batch', details: err.message }),
+        JSON.stringify({ error: 'Failed to import CSV into hostel_applications', details: err.message }),
         { status: 500, headers: { ...headers, "Content-Type": "application/json" } }
       );
     }
