@@ -4,12 +4,14 @@ import { handleAdminStats } from './script/adminpage_backend.js';
 import { handleAdminDeadlineSettings } from './script/settings_backend.js';
 import { handleAdminApplications } from './script/approval_backend.js';
 import { handleStudentRoutes } from './script/studenthomepage_backend.js';
+// ADDED: Import Dashboard Backend Handler
+import { handleDashboardRoutes } from './script/dashboard_backend.js';
 
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
-    // Standard CORS headers (ADDED 'DELETE' to Access-Control-Allow-Methods)
+    // Standard CORS headers
     const headers = {
       'Content-Type': 'application/json',
       'Access-Control-Allow-Origin': '*',
@@ -37,6 +39,13 @@ export default {
         return await handleAdminStats(env, headers);
       }
 
+      // -----------------------------------------------------------------
+      // ADDED: Route to Dashboard backend (/api/admin/dashboard/*)
+      // -----------------------------------------------------------------
+      if (url.pathname.startsWith('/api/admin/dashboard')) {
+        return await handleDashboardRoutes(request, env, headers);
+      }
+
       // Route to settings backend (Handles GET and POST)
       if (url.pathname === '/api/admin/settings/deadline') {
         return await handleAdminDeadlineSettings(request, env, headers);
@@ -47,9 +56,7 @@ export default {
         return await handleAdminApplications(request, env, headers);
       }
 
-      // -----------------------------------------------------------------
-      // ADDED: Route to Student Portal backend (/api/student/*)
-      // -----------------------------------------------------------------
+      // Route to Student Portal backend (/api/student/*)
       if (url.pathname.startsWith('/api/student')) {
         const studentResponse = await handleStudentRoutes(request, env, headers);
         if (studentResponse) return studentResponse;
