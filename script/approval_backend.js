@@ -15,7 +15,7 @@ function parseMalaysianIC(icRaw) {
   const pb = ic.substring(6, 8);
   const lastDigit = parseInt(ic.substring(11, 12), 10);
 
-  // 1. Determine Birth Year & Date
+  // 1. Determine Birth Year & Date (YYYY-MM-DD)
   const currentYearShort = new Date().getFullYear() % 100;
   const fullYear = parseInt(yy, 10) > currentYearShort ? `19${yy}` : `20${yy}`;
   const dob = `${fullYear}-${mm}-${dd}`;
@@ -29,32 +29,10 @@ function parseMalaysianIC(icRaw) {
     age--;
   }
 
-  // 3. Determine Gender (Odd = Male, Even = Female)
+  // 3. Determine Gender (Odd = Lelaki, Even = Perempuan)
   const gender = (lastDigit % 2 !== 0) ? 'Lelaki' : 'Perempuan';
 
-  // 4. Map State / Place of Birth (JPN Codes)
-  const stateCodes = {
-    '01': 'Johor', '21': 'Johor', '22': 'Johor', '23': 'Johor', '24': 'Johor',
-    '02': 'Kedah', '25': 'Kedah', '26': 'Kedah', '27': 'Kedah',
-    '03': 'Kelantan', '28': 'Kelantan', '29': 'Kelantan',
-    '04': 'Melaka', '30': 'Melaka',
-    '05': 'Negeri Sembilan', '31': 'Negeri Sembilan', '59': 'Negeri Sembilan',
-    '06': 'Pahang', '32': 'Pahang', '33': 'Pahang',
-    '07': 'Pulau Pinang', '34': 'Pulau Pinang', '35': 'Pulau Pinang',
-    '08': 'Perak', '36': 'Perak', '37': 'Perak', '38': 'Perak', '39': 'Perak',
-    '09': 'Perlis', '40': 'Perlis',
-    '10': 'Selangor', '41': 'Selangor', '42': 'Selangor', '43': 'Selangor', '44': 'Selangor',
-    '11': 'Terengganu', '45': 'Terengganu', '46': 'Terengganu',
-    '12': 'Sabah', '47': 'Sabah', '48': 'Sabah', '49': 'Sabah',
-    '13': 'Sarawak', '50': 'Sarawak', '51': 'Sarawak', '52': 'Sarawak', '53': 'Sarawak',
-    '14': 'Kuala Lumpur', '54': 'Kuala Lumpur', '55': 'Kuala Lumpur', '56': 'Kuala Lumpur', '57': 'Kuala Lumpur',
-    '15': 'Labuan', '58': 'Labuan',
-    '16': 'Putrajaya'
-  };
-
-  const stateOfBirth = stateCodes[pb] || 'Lain-Lain';
-
-  return { dob, age, gender, stateOfBirth, formattedIC: `${yy}${mm}${dd}-${pb}-${ic.substring(8)}` };
+  return { dob, age, gender, formattedIC: `${yy}${mm}${dd}-${pb}-${ic.substring(8)}` };
 }
 
 export async function handleAdminApplications(request, env, headers) {
@@ -62,7 +40,7 @@ export async function handleAdminApplications(request, env, headers) {
   const method = request.method;
 
   // -------------------------------------------------------------------------
-  // 1. GET Request: Query users and applications with IC details
+  // 1. GET Request: Query users and applications matching exact D1 schema
   // -------------------------------------------------------------------------
   if (method === 'GET' && url.pathname === '/api/admin/applications') {
     try {
@@ -78,7 +56,6 @@ export async function handleAdminApplications(request, env, headers) {
           COALESCE(h.gender, '-') AS gender,
           COALESCE(h.dob, '-') AS dob,
           COALESCE(h.age, '-') AS age,
-          COALESCE(h.place_of_birth, '-') AS place_of_birth,
           u.role AS role,
           COALESCE(h.program, 'Pending Fill') AS program,
           COALESCE(h.session_id, '-') AS session_id,
@@ -169,7 +146,7 @@ export async function handleAdminApplications(request, env, headers) {
   }
 
   // -------------------------------------------------------------------------
-  // 3. POST Request: Batch Import Students with Auto IC Calculations
+  // 3. POST Request: Import CSV & Auto Fill dob, age, gender, ic_number
   // -------------------------------------------------------------------------
   if (method === 'POST' && url.pathname === '/api/admin/applications/import-csv') {
     try {
@@ -197,7 +174,7 @@ export async function handleAdminApplications(request, env, headers) {
         const phone = s.phone || '';
         const randomPass = 'TVET-' + crypto.randomUUID().slice(0, 8);
 
-        // Process IC Number & calculate metadata
+        // Process IC Number & calculate dob, age, gender
         const rawIC = s.ic_number || s.ic || s.mykad || '';
         const icParsed = parseMalaysianIC(rawIC);
 
@@ -205,7 +182,6 @@ export async function handleAdminApplications(request, env, headers) {
         const dob = icParsed ? icParsed.dob : (s.dob || null);
         const age = icParsed ? icParsed.age : (s.age || null);
         const gender = icParsed ? icParsed.gender : (s.gender || null);
-        const placeOfBirth = icParsed ? icParsed.stateOfBirth : (s.place_of_birth || null);
 
         // Check if user already exists
         const existingUser = await env.DB.prepare(
@@ -233,7 +209,7 @@ export async function handleAdminApplications(request, env, headers) {
           userId = newRecord?.id;
         }
 
-        // Insert/Update hostel_applications with calculated IC info
+        // Insert or update hostel_applications
         if (userId) {
           const program = s.program || 'Pending Fill';
           const session = s.session || s.session_id || '-';
@@ -250,16 +226,15 @@ export async function handleAdminApplications(request, env, headers) {
                   session_id = ?,
                   gender = COALESCE(?, gender),
                   dob = COALESCE(?, dob),
-                  age = COALESCE(?, age),
-                  place_of_birth = COALESCE(?, place_of_birth)
+                  age = COALESCE(?, age)
               WHERE user_id = ?
-            `).bind(icNumber, program, session, gender, dob, age, placeOfBirth, userId).run();
+            `).bind(icNumber, program, session, gender, dob, age, userId).run();
           } else {
             await env.DB.prepare(`
               INSERT INTO hostel_applications 
-                (user_id, ic_number, program, session_id, gender, dob, age, place_of_birth, admin_approval, submission_status)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'pending')
-            `).bind(userId, icNumber, program, session, gender, dob, age, placeOfBirth).run();
+                (user_id, ic_number, program, session_id, gender, dob, age, admin_approval, submission_status)
+              VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', 'pending')
+            `).bind(userId, icNumber, program, session, gender, dob, age).run();
           }
         }
       }
