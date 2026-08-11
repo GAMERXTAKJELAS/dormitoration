@@ -1,6 +1,6 @@
 /**
  * Dormitoration - Admin Approval Table Frontend Controller
- * File: /script/approval_frontend.js
+ * File: /script/approval.js
  */
 
 let allStudents = [];
@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// Fetch data from Cloudflare Worker Endpoint
+// Fetch application data from Cloudflare Worker Endpoint
 async function loadApplications() {
     try {
         const res = await fetch("/api/admin/applications");
@@ -132,33 +132,65 @@ function showEmptyTable(message) {
     }
 }
 
-// CSV Upload Handler
+// Full Native Browser CSV Reader and Parser
 async function handleCSVUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append("file", file);
+    const reader = new FileReader();
 
-    try {
-        const res = await fetch("/api/admin/applications/import-csv", {
-            method: "POST",
-            body: formData
-        });
+    reader.onload = async (e) => {
+        try {
+            const text = e.target.result;
+            const lines = text.split(/\r\n|\n/).map(line => line.trim()).filter(line => line.length > 0);
+            
+            if (lines.length <= 1) {
+                alert("Fail CSV tidak mempunyai rekod data.");
+                return;
+            }
 
-        const result = await res.json();
-        if (res.ok) {
-            alert(`Muat naik CSV berjaya! ${result.insertedCount || 0} rekod pelajar telah ditambah/diselaraskan.`);
-            loadApplications();
-        } else {
-            alert(`Gagal memuat naik CSV: ${result.error || 'Server error'}`);
+            // Extract headers (e.g., full_name, email, phone, program, session)
+            const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/^["']|["']$/g, ''));
+            const studentData = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                // Split row respecting commas inside strings
+                const values = lines[i].split(',').map(v => v.trim().replace(/^["']|["']$/g, ''));
+                if (values.length < headers.length) continue;
+
+                let rowObj = {};
+                headers.forEach((header, idx) => {
+                    rowObj[header] = values[idx] || '';
+                });
+
+                studentData.push(rowObj);
+            }
+
+            // POST parsed array as clean JSON to Worker
+            const res = await fetch("/api/admin/applications/import-csv", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ students: studentData })
+            });
+
+            const result = await res.json();
+
+            if (res.ok) {
+                alert(`Muat naik CSV berjaya! ${result.insertedCount || 0} rekod pelajar telah ditambah/diselaraskan.`);
+                loadApplications();
+            } else {
+                alert(`Gagal memuat naik CSV: ${result.error || 'Server error'}`);
+            }
+
+        } catch (err) {
+            console.error("Error processing CSV:", err);
+            alert(`Ralat memproses fail CSV: ${err.message}`);
+        } finally {
+            event.target.value = '';
         }
-    } catch (err) {
-        console.error("Error uploading CSV:", err);
-        alert(`Ralat rangkaian semasa muat naik CSV: ${err.message}`);
-    } finally {
-        event.target.value = '';
-    }
+    };
+
+    reader.readAsText(file);
 }
 
 // Update Application Status Action
@@ -181,12 +213,15 @@ async function updateApplicationStatus(userId, appId, newStatus) {
 
         if (res.ok) {
             alert("Status permohonan berjaya dikemaskini!");
-            // Update local memory state
+            
+            // Update local memory state for seamless reactivity
             const target = allStudents.find(s => 
-                (userId !== 'null' && s.user_id === userId) || 
-                (appId !== 'null' && s.application_id === appId)
+                (userId !== 'null' && Number(s.user_id) === Number(userId)) || 
+                (appId !== 'null' && Number(s.application_id) === Number(appId))
             );
-            if (target) target.status = newStatus;
+            if (target) {
+                target.status = newStatus;
+            }
             renderTable();
         } else {
             alert(`Gagal mengemaskini: ${data.error || 'Server error'}`);

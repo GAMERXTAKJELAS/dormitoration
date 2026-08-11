@@ -65,12 +65,13 @@ export async function handleAdminApplications(request, env, headers) {
         );
       }
 
-      // Map application action status -> users.account_status
+      // Map application action status -> users.account_status (Satisfies CHECK constraint)
       let targetAccountStatus = 'pending_details';
       if (status === 'approved') {
         targetAccountStatus = 'active';
       } else if (status === 'returned' || status === 'rejected' || status === 'declined') {
-        targetAccountStatus = 'returned';
+        // Must match allowed CHECK constraint values: ('pending_details', 'active', 'terminated')
+        targetAccountStatus = 'pending_details';
       }
 
       // A. Sync status in `users` table so user retains login with updated status
@@ -112,6 +113,81 @@ export async function handleAdminApplications(request, env, headers) {
       console.error("Update Approval Status DB Error:", err);
       return new Response(
         JSON.stringify({ error: 'Database update failed', details: err.message }),
+        { status: 500, headers: { ...headers, "Content-Type": "application/json" } }
+      );
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // 3. POST Request: Batch Import Students via CSV JSON
+  // -------------------------------------------------------------------------
+  if (method === 'POST' && url.pathname === '/api/admin/applications/import-csv') {
+    try {
+      const body = await request.json();
+      const { students } = body;
+
+      if (!Array.isArray(students) || students.length === 0) {
+        return new Response(
+          JSON.stringify({ error: 'No student data provided in request' }),
+          { status: 400, headers: { ...headers, "Content-Type": "application/json" } }
+        );
+      }
+
+      const statements = [];
+
+      for (const s of students) {
+        // Skip rows without an email address
+        if (!s.email) continue;
+
+        const fullName = s.full_name || s.name || 'Student';
+        const phone = s.phone || '';
+        const program = s.program || 'Pending Fill';
+        const session = s.session || s.session_id || '-';
+
+        // Statement 1: Insert or update user record
+        statements.push(
+          env.DB.prepare(`
+            INSERT INTO users (full_name, email, phone, role, account_status)
+            VALUES (?, ?, ?, 'student', 'pending_details')
+            ON CONFLICT(email) DO UPDATE SET 
+              full_name = excluded.full_name,
+              phone = excluded.phone
+          `).bind(fullName, s.email, phone)
+        );
+
+        // Statement 2: Ensure base application entry exists for the user
+        statements.push(
+          env.DB.prepare(`
+            INSERT INTO hostel_applications (user_id, program, session_id, admin_approval, submission_status)
+            VALUES ((SELECT id FROM users WHERE email = ?), ?, ?, 'pending', 'pending')
+            ON CONFLICT(user_id) DO UPDATE SET
+              program = COALESCE(excluded.program, hostel_applications.program),
+              session_id = COALESCE(excluded.session_id, hostel_applications.session_id)
+          `).bind(s.email, program, session)
+        );
+      }
+
+      if (statements.length === 0) {
+        return new Response(
+          JSON.stringify({ error: 'No valid student rows found in CSV' }),
+          { status: 400, headers: { ...headers, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Execute as a single fast atomic batch transaction
+      await env.DB.batch(statements);
+
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          insertedCount: Math.ceil(statements.length / 2) 
+        }),
+        { status: 200, headers: { ...headers, "Content-Type": "application/json" } }
+      );
+    } catch (err) {
+      console.error("CSV Import DB Error:", err);
+      return new Response(
+        JSON.stringify({ error: 'Failed to import CSV batch', details: err.message }),
         { status: 500, headers: { ...headers, "Content-Type": "application/json" } }
       );
     }
