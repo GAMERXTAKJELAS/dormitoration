@@ -48,7 +48,7 @@ async function loadApplications() {
     }
 }
 
-// Render dynamic table rows
+// Render dynamic table rows with Profile Picture integration
 function renderTable() {
     const tbody = document.getElementById("approval-table-body");
     const searchVal = (document.getElementById("search-student")?.value || "").toLowerCase();
@@ -93,10 +93,25 @@ function renderTable() {
         const userIdVal = student.user_id ? student.user_id : 'null';
         const appIdVal = student.application_id ? student.application_id : 'null';
 
+        // Profile Picture Logic: Fallback to generated initials avatar if empty/null
+        const studentName = student.full_name || 'Student';
+        const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(studentName)}&background=10B981&color=fff&bold=true`;
+        const avatarUrl = student.profile_picture || defaultAvatar;
+
         tr.innerHTML = `
             <td>
-                <strong>${student.full_name || 'N/A'}</strong><br>
-                <small style="color: var(--text-muted);">${student.email || student.ic_number || student.phone || '-'}</small>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <img 
+                        src="${avatarUrl}" 
+                        alt="${studentName}" 
+                        style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(16, 185, 129, 0.3); background-color: #1f2937; flex-shrink: 0;"
+                        onerror="this.onerror=null; this.src='${defaultAvatar}';"
+                    />
+                    <div>
+                        <strong style="color: #ffffff;">${student.full_name || 'N/A'}</strong><br>
+                        <small style="color: var(--text-muted);">${student.email || student.ic_number || student.phone || '-'}</small>
+                    </div>
+                </div>
             </td>
             <td>${student.program || 'Pending Fill'}</td>
             <td>${student.session_id || '-'}</td>
@@ -149,12 +164,11 @@ async function handleCSVUpload(event) {
                 return;
             }
 
-            // Extract headers (e.g., full_name, email, phone, program, session)
+            // Extract headers
             const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/^["']|["']$/g, ''));
             const studentData = [];
 
             for (let i = 1; i < lines.length; i++) {
-                // Split row respecting commas inside strings
                 const values = lines[i].split(',').map(v => v.trim().replace(/^["']|["']$/g, ''));
                 if (values.length < headers.length) continue;
 
@@ -166,7 +180,7 @@ async function handleCSVUpload(event) {
                 studentData.push(rowObj);
             }
 
-            // POST parsed array as clean JSON to Worker
+            // POST parsed array as JSON to Worker
             const res = await fetch("/api/admin/applications/import-csv", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -214,7 +228,7 @@ async function updateApplicationStatus(userId, appId, newStatus) {
         if (res.ok) {
             alert("Status permohonan berjaya dikemaskini!");
             
-            // Update local memory state for seamless reactivity
+            // Update local state for immediate response
             const target = allStudents.find(s => 
                 (userId !== 'null' && Number(s.user_id) === Number(userId)) || 
                 (appId !== 'null' && Number(s.application_id) === Number(appId))
