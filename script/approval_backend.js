@@ -119,7 +119,7 @@ export async function handleAdminApplications(request, env, headers) {
   }
 
 // -------------------------------------------------------------------------
-  // 3. POST Request: Batch Import Students with Random Temporary Passwords
+  // 3. POST Request: Batch Import Students (No ON CONFLICT dependency)
   // -------------------------------------------------------------------------
   if (method === 'POST' && url.pathname === '/api/admin/applications/import-csv') {
     try {
@@ -142,64 +142,64 @@ export async function handleAdminApplications(request, env, headers) {
         );
       }
 
-      // Step 1: Upsert into `users` with a randomly generated temporary password
-      const userStatements = [];
+      // Step 1: Process Users one by one or via clean queries
       for (const s of validStudents) {
         const fullName = s.full_name || s.name || '';
         const phone = s.phone || '';
-        
-        // Generate a random temporary password (e.g., "TVET-a8f3b29c")
         const randomPass = 'TVET-' + crypto.randomUUID().slice(0, 8);
 
-        userStatements.push(
-          env.DB.prepare(`
+        // Check if user already exists by email
+        const existingUser = await env.DB.prepare(
+          `SELECT id FROM users WHERE email = ? LIMIT 1`
+        ).bind(s.email).first();
+
+        let userId;
+
+        if (existingUser) {
+          userId = existingUser.id;
+          // Update existing user details
+          await env.DB.prepare(`
+            UPDATE users 
+            SET full_name = ?, phone = COALESCE(?, phone) 
+            WHERE id = ?
+          `).bind(fullName, phone, userId).run();
+        } else {
+          // Insert new user
+          const insertRes = await env.DB.prepare(`
             INSERT INTO users (full_name, email, phone, role, password_hash, account_status)
             VALUES (?, ?, ?, 'student', ?, 'pending_details')
-            ON CONFLICT(email) DO UPDATE SET 
-              full_name = excluded.full_name,
-              phone = COALESCE(excluded.phone, users.phone)
-          `).bind(fullName, s.email, phone, randomPass)
-        );
-      }
+          `).bind(fullName, s.email, phone, randomPass).run();
 
-      await env.DB.batch(userStatements);
+          // Get inserted ID
+          const newRecord = await env.DB.prepare(
+            `SELECT id FROM users WHERE email = ? LIMIT 1`
+          ).bind(s.email).first();
+          userId = newRecord?.id;
+        }
 
-      // Step 2: Retrieve generated user IDs using emails
-      const emails = validStudents.map(s => s.email);
-      const placeholders = emails.map(() => '?').join(',');
-      const userRecords = await env.DB.prepare(
-        `SELECT id, email FROM users WHERE email IN (${placeholders})`
-      ).bind(...emails).all();
+        // Step 2: Insert or update hostel_applications for this user ID
+        if (userId) {
+          const icNumber = s.ic_number || s.ic || s.mykad || '-';
+          const program = s.program || 'Pending Fill';
+          const session = s.session || s.session_id || '-';
 
-      const emailToIdMap = {};
-      (userRecords.results || []).forEach(u => {
-        emailToIdMap[u.email] = u.id;
-      });
+          const existingApp = await env.DB.prepare(
+            `SELECT id FROM hostel_applications WHERE user_id = ? LIMIT 1`
+          ).bind(userId).first();
 
-      // Step 3: Insert into `hostel_applications` using retrieved user IDs
-      const appStatements = [];
-      for (const s of validStudents) {
-        const userId = emailToIdMap[s.email];
-        if (!userId) continue;
-
-        const icNumber = s.ic_number || s.ic || s.mykad || '-';
-        const program = s.program || 'Pending Fill';
-        const session = s.session || s.session_id || '-';
-
-        appStatements.push(
-          env.DB.prepare(`
-            INSERT INTO hostel_applications (user_id, ic_number, program, session_id, admin_approval, submission_status)
-            VALUES (?, ?, ?, ?, 'pending', 'pending')
-            ON CONFLICT(user_id) DO UPDATE SET
-              ic_number = COALESCE(excluded.ic_number, hostel_applications.ic_number),
-              program = COALESCE(excluded.program, hostel_applications.program),
-              session_id = COALESCE(excluded.session_id, hostel_applications.session_id)
-          `).bind(userId, icNumber, program, session)
-        );
-      }
-
-      if (appStatements.length > 0) {
-        await env.DB.batch(appStatements);
+          if (existingApp) {
+            await env.DB.prepare(`
+              UPDATE hostel_applications 
+              SET ic_number = ?, program = ?, session_id = ?
+              WHERE user_id = ?
+            `).bind(icNumber, program, session, userId).run();
+          } else {
+            await env.DB.prepare(`
+              INSERT INTO hostel_applications (user_id, ic_number, program, session_id, admin_approval, submission_status)
+              VALUES (?, ?, ?, ?, 'pending', 'pending')
+            `).bind(userId, icNumber, program, session).run();
+          }
+        }
       }
 
       return new Response(
