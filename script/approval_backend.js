@@ -150,7 +150,7 @@ export async function handleAdminApplications(request, env, headers) {
 
         userStatements.push(
           env.DB.prepare(`
-            INSERT INTO users (full_name, email, phone, role, password, account_status)
+            INSERT INTO users (full_name, email, phone, role, password_hash, account_status)
             VALUES (?, ?, ?, 'student', NULL, 'pending_details')
             ON CONFLICT(email) DO UPDATE SET 
               full_name = excluded.full_name,
