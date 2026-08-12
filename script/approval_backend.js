@@ -3,10 +3,18 @@
  * File: /script/approval_backend.js
  */
 
-// Helper to parse Malaysian IC Number (MyKad: YYMMDD-PB-###G)
+// Improved Helper to parse Malaysian IC Number (MyKad: YYMMDD-PB-###G)
 function parseMalaysianIC(icRaw) {
   if (!icRaw) return null;
-  const ic = String(icRaw).replace(/[^0-9]/g, ''); // Strip non-numeric characters
+  
+  // Clean non-numeric characters
+  let ic = String(icRaw).trim().replace(/[^0-9]/g, '');
+
+  // Handle Excel stripping leading zeros for birth years in 2000s (e.g., 060424 -> 60424 = 11 digits)
+  if (ic.length === 11) {
+    ic = '0' + ic;
+  }
+
   if (ic.length !== 12) return null;
 
   const yy = ic.substring(0, 2);
@@ -32,7 +40,13 @@ function parseMalaysianIC(icRaw) {
   // 3. Determine Gender (Odd = Lelaki, Even = Perempuan)
   const gender = (lastDigit % 2 !== 0) ? 'Lelaki' : 'Perempuan';
 
-  return { dob, age, gender, formattedIC: `${yy}${mm}${dd}-${pb}-${ic.substring(8)}` };
+  return { 
+    dob, 
+    age, 
+    gender, 
+    formattedIC: `${yy}${mm}${dd}-${pb}-${ic.substring(8)}`,
+    rawIC: ic
+  };
 }
 
 export async function handleAdminApplications(request, env, headers) {
@@ -170,15 +184,16 @@ export async function handleAdminApplications(request, env, headers) {
       }
 
       for (const s of validStudents) {
-        const fullName = s.full_name || s.name || '';
-        const phone = s.phone || '';
+        const fullName = s.full_name || s.name || s.nama || '';
+        const phone = s.phone || s.telefon || s.no_hp || '';
         const randomPass = 'TVET-' + crypto.randomUUID().slice(0, 8);
 
-        // Process IC Number & calculate dob, age, gender
-        const rawIC = s.ic_number || s.ic || s.mykad || '';
+        // Scan across popular CSV headers for IC Number
+        const rawIC = s.ic_number || s.ic || s.mykad || s.no_ic || s.ic_no || s.nokp || s.no_kp || s.kp || '';
         const icParsed = parseMalaysianIC(rawIC);
 
-        const icNumber = icParsed ? icParsed.formattedIC : (rawIC || '-');
+        // Fallbacks for direct fields if parsing fails or formatted input is used
+        const icNumber = icParsed ? icParsed.rawIC : (rawIC ? String(rawIC).replace(/[^0-9]/g, '') : '-');
         const dob = icParsed ? icParsed.dob : (s.dob || null);
         const age = icParsed ? icParsed.age : (s.age || null);
         const gender = icParsed ? icParsed.gender : (s.gender || null);
@@ -194,7 +209,8 @@ export async function handleAdminApplications(request, env, headers) {
           userId = existingUser.id;
           await env.DB.prepare(`
             UPDATE users 
-            SET full_name = ?, phone = COALESCE(?, phone) 
+            SET full_name = COALESCE(NULLIF(?, ''), full_name), 
+                phone = COALESCE(NULLIF(?, ''), phone) 
             WHERE id = ?
           `).bind(fullName, phone, userId).run();
         } else {
@@ -211,8 +227,8 @@ export async function handleAdminApplications(request, env, headers) {
 
         // Insert or update hostel_applications
         if (userId) {
-          const program = s.program || 'Pending Fill';
-          const session = s.session || s.session_id || '-';
+          const program = s.program || s.kursus || 'Pending Fill';
+          const session = s.session || s.session_id || s.sesi || '-';
 
           const existingApp = await env.DB.prepare(
             `SELECT id FROM hostel_applications WHERE user_id = ? LIMIT 1`
@@ -221,14 +237,14 @@ export async function handleAdminApplications(request, env, headers) {
           if (existingApp) {
             await env.DB.prepare(`
               UPDATE hostel_applications 
-              SET ic_number = ?, 
-                  program = ?, 
-                  session_id = ?,
+              SET ic_number = CASE WHEN ? != '-' THEN ? ELSE ic_number END, 
+                  program = COALESCE(NULLIF(?, 'Pending Fill'), program), 
+                  session_id = COALESCE(NULLIF(?, '-'), session_id),
                   gender = COALESCE(?, gender),
                   dob = COALESCE(?, dob),
                   age = COALESCE(?, age)
               WHERE user_id = ?
-            `).bind(icNumber, program, session, gender, dob, age, userId).run();
+            `).bind(icNumber, icNumber, program, session, gender, dob, age, userId).run();
           } else {
             await env.DB.prepare(`
               INSERT INTO hostel_applications 
