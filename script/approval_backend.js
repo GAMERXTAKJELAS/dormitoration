@@ -167,7 +167,7 @@ export async function handleAdminApplications(request, env, headers) {
     }
   }
 
-  // -------------------------------------------------------------------------
+// -------------------------------------------------------------------------
   // 3. POST Request: Import CSV & Auto Fill dob, age, gender, ic_number
   // -------------------------------------------------------------------------
   if (method === 'POST' && url.pathname === '/api/admin/applications/import-csv') {
@@ -196,27 +196,18 @@ export async function handleAdminApplications(request, env, headers) {
         const phone = s.phone || s.telefon || s.no_hp || '';
         const randomPass = 'TVET-' + crypto.randomUUID().slice(0, 8);
 
-        // Enhanced dynamic header fallback scanner for IC numbers
-        const findICKey = (obj) => {
-          if (!obj) return '';
-          const keys = Object.keys(obj);
-          for (const key of keys) {
-            const cleanKey = key.toLowerCase().replace(/[^a-z0-9]/g, '');
-            if (['ic', 'icnumber', 'icno', 'noic', 'mykad', 'nokp', 'nokadpengenalan', 'nokpbaru', 'nric', 'kp'].some(k => cleanKey.includes(k))) {
-              if (obj[key]) return obj[key];
-            }
-          }
-          return '';
-        };
-
-        const rawIC = findICKey(s) || s.ic_number || s.ic || s.mykad || s.no_kp || '';
+        // 1. Extract raw IC from payload
+        const rawIC = s.ic_number || s.ic || s.mykad || s.no_kp || s.nokp || '';
         const icParsed = parseMalaysianIC(rawIC);
 
-        // Extract values or keep parsed results
-        const icNumber = icParsed ? icParsed.rawIC : (rawIC ? String(rawIC).replace(/[^0-9]/g, '') : null);
-        const dob = icParsed ? icParsed.dob : (s.dob || null);
-        const age = icParsed ? icParsed.age : (s.age || null);
-        const gender = icParsed ? icParsed.gender : (s.gender || null);
+        // 2. Format IC Number (Keep cleaned 12 digits or raw)
+        const icNumber = icParsed ? icParsed.rawIC : (rawIC ? String(rawIC).replace(/[^0-9]/g, '') : '-');
+
+        // 3. Determine DOB, Age, Gender:
+        // Use backend IC parsed values FIRST; if IC was not parsed/missing, fallback to webpage/frontend pre-calculated values
+        const dob = (icParsed && icParsed.dob) ? icParsed.dob : (s.dob || null);
+        const age = (icParsed && icParsed.age) ? icParsed.age : (s.age || null);
+        const gender = (icParsed && icParsed.gender) ? icParsed.gender : (s.gender || null);
 
         // Check if user already exists
         const existingUser = await env.DB.prepare(
@@ -255,25 +246,26 @@ export async function handleAdminApplications(request, env, headers) {
           ).bind(userId).first();
 
           if (existingApp) {
+            // Force update fields even if previous DB value was '-' or NULL
             await env.DB.prepare(`
               UPDATE hostel_applications 
-              SET ic_number = COALESCE(?, ic_number), 
+              SET ic_number = CASE WHEN ? IS NOT NULL AND ? != '-' THEN ? ELSE ic_number END, 
                   program = COALESCE(NULLIF(?, 'Pending Fill'), program), 
                   session_id = COALESCE(NULLIF(?, '-'), session_id),
                   gender = COALESCE(?, gender),
                   dob = COALESCE(?, dob),
                   age = COALESCE(?, age)
               WHERE user_id = ?
-            `).bind(icNumber, program, session, gender, dob, age, userId).run();
+            `).bind(icNumber, icNumber, icNumber, program, session, gender, dob, age, userId).run();
           } else {
             await env.DB.prepare(`
               INSERT INTO hostel_applications 
                 (user_id, ic_number, program, session_id, gender, dob, age, admin_approval, submission_status)
               VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', 'pending')
-            `).bind(userId, icNumber || '-', program, session, gender, dob, age).run();
+            `).bind(userId, icNumber, program, session, gender, dob, age).run();
           }
         }
-      } // Correctly closing loop here!
+      }
 
       return new Response(
         JSON.stringify({ 
