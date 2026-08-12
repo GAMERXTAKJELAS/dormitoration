@@ -48,8 +48,25 @@ async function loadApplications() {
     }
 }
 
-// Render dynamic table rows with Profile Picture integration
+// Render dynamic table rows with local SVG avatar integration
 function renderTable() {
+
+    // Dynamic local SVG avatar selector based on gender
+    function getDynamicAvatar(student) {
+        if (student.profile_picture && student.profile_picture.trim() !== '') {
+            return student.profile_picture;
+    }
+
+    const gender = (student.gender || '').toLowerCase();
+    
+    if (gender === 'perempuan' || gender === 'female' || gender === 'p') {
+        return '/image/default_Female.svg';
+    }
+    
+        // Default fallback for Lelaki / Male or unspecified
+        return '/image/default_Male.svg';
+    }
+
     const tbody = document.getElementById("approval-table-body");
     const searchVal = (document.getElementById("search-student")?.value || "").toLowerCase();
 
@@ -93,22 +110,21 @@ function renderTable() {
         const userIdVal = student.user_id ? student.user_id : 'null';
         const appIdVal = student.application_id ? student.application_id : 'null';
 
-        // Profile Picture Logic: Fallback to generated initials avatar if empty/null
-        const studentName = student.full_name || 'Student';
-        const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(studentName)}&background=10B981&color=fff&bold=true`;
-        const avatarUrl = student.profile_picture || defaultAvatar;
+        // Select custom local SVG path based on gender or fallback
+        const avatarUrl = getDynamicAvatar(student);
+        const fallbackMaleAvatar = '/image/default_Male.svg';
 
         tr.innerHTML = `
             <td>
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <img 
                         src="${avatarUrl}" 
-                        alt="${studentName}" 
+                        alt="${student.full_name || 'Student'}" 
                         style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(16, 185, 129, 0.3); background-color: #1f2937; flex-shrink: 0;"
-                        onerror="this.onerror=null; this.src='${defaultAvatar}';"
+                        onerror="this.onerror=null; this.src='${fallbackMaleAvatar}';"
                     />
                     <div>
-                        <strong style="color: #ffffff;">${student.full_name || 'N/A'}</strong><br>
+                        <strong style="color: var(--text-color, #ffffff);">${student.full_name || 'N/A'}</strong><br>
                         <small style="color: var(--text-muted);">${student.email || student.ic_number || student.phone || '-'}</small>
                     </div>
                 </div>
