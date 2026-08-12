@@ -159,7 +159,7 @@ export async function handleAdminApplications(request, env, headers) {
     }
   }
 
-  // -------------------------------------------------------------------------
+// -------------------------------------------------------------------------
   // 3. POST Request: Import CSV & Auto Fill dob, age, gender, ic_number
   // -------------------------------------------------------------------------
   if (method === 'POST' && url.pathname === '/api/admin/applications/import-csv') {
@@ -188,26 +188,27 @@ export async function handleAdminApplications(request, env, headers) {
         const phone = s.phone || s.telefon || s.no_hp || '';
         const randomPass = 'TVET-' + crypto.randomUUID().slice(0, 8);
 
-// Dynamic header fallback scanner for IC numbers
-const findICKey = (obj) => {
-    if (!obj) return '';
-    for (const key of Object.keys(obj)) {
-        const cleanKey = key.toLowerCase().replace(/[^a-z0-9]/g, '');
-        if (['ic', 'icnumber', 'icno', 'noic', 'mykad', 'nokp', 'nokadpengenalan', 'nokpbaru'].some(k => cleanKey.includes(k))) {
-            if (obj[key]) return obj[key];
-        }
-    }
-    return '';
-};
+        // Dynamic header fallback scanner for IC numbers
+        const findICKey = (obj) => {
+            if (!obj) return '';
+            for (const key of Object.keys(obj)) {
+                const cleanKey = key.toLowerCase().replace(/[^a-z0-9]/g, '');
+                if (['ic', 'icnumber', 'icno', 'noic', 'mykad', 'nokp', 'nokadpengenalan', 'nokpbaru'].some(k => cleanKey.includes(k))) {
+                    if (obj[key]) return obj[key];
+                }
+            }
+            return '';
+        };
 
-// Retrieve raw IC from dynamic lookup or direct property
-const rawIC = findICKey(s) || s.ic_number || s.ic || s.mykad || '';
-const icParsed = parseMalaysianIC(rawIC);
+        // Retrieve raw IC from dynamic lookup or direct property
+        const rawIC = findICKey(s) || s.ic_number || s.ic || s.mykad || '';
+        const icParsed = parseMalaysianIC(rawIC);
 
-const icNumber = icParsed ? icParsed.formattedIC : (rawIC ? String(rawIC).replace(/[^0-9]/g, '') : '-');
-const dob = icParsed ? icParsed.dob : (s.dob || null);
-const age = icParsed ? icParsed.age : (s.age || null);
-const gender = icParsed ? icParsed.gender : (s.gender || null);
+        // Format IC for display/saving, extract DOB, Age, Gender
+        const icNumber = icParsed ? icParsed.rawIC : (rawIC ? String(rawIC).replace(/[^0-9]/g, '') : null);
+        const dob = icParsed ? icParsed.dob : (s.dob || null);
+        const age = icParsed ? icParsed.age : (s.age || null);
+        const gender = icParsed ? icParsed.gender : (s.gender || null);
 
         // Check if user already exists
         const existingUser = await env.DB.prepare(
@@ -246,22 +247,23 @@ const gender = icParsed ? icParsed.gender : (s.gender || null);
           ).bind(userId).first();
 
           if (existingApp) {
+            // FIX: Force update gender, dob, age, and ic_number if new values exist!
             await env.DB.prepare(`
               UPDATE hostel_applications 
-              SET ic_number = CASE WHEN ? != '-' THEN ? ELSE ic_number END, 
+              SET ic_number = COALESCE(?, ic_number), 
                   program = COALESCE(NULLIF(?, 'Pending Fill'), program), 
                   session_id = COALESCE(NULLIF(?, '-'), session_id),
                   gender = COALESCE(?, gender),
                   dob = COALESCE(?, dob),
                   age = COALESCE(?, age)
               WHERE user_id = ?
-            `).bind(icNumber, icNumber, program, session, gender, dob, age, userId).run();
+            `).bind(icNumber, program, session, gender, dob, age, userId).run();
           } else {
             await env.DB.prepare(`
               INSERT INTO hostel_applications 
                 (user_id, ic_number, program, session_id, gender, dob, age, admin_approval, submission_status)
               VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', 'pending')
-            `).bind(userId, icNumber, program, session, gender, dob, age).run();
+            `).bind(userId, icNumber || '-', program, session, gender, dob, age).run();
           }
         }
       }
