@@ -104,14 +104,14 @@
             </div>
         </div>
 
-        <!-- Section 1: Hostel Blocks Status & Auto Arrangement -->
+        <!-- Section 1: Hostel Blocks Status & Auto Arrangement Controls -->
         <section class="section-container" style="margin-bottom: 35px;">
             <div class="section-header block-controls-header">
                 <div>
                     <h2>Hostel Blocks Overview</h2>
                 </div>
 
-                <!-- Auto Arrangement Options (Greyed Out - Hardware Offline) -->
+                <!-- Auto Arrangement Options (Greyed Out) -->
                 <div class="auto-arrange-box disabled-feature" title="Hardware syncing required for room assignment">
                     <span class="arrange-label"><i class='bx bx-git-merge'></i> Auto-Arrange By:</span>
                     <label class="arrange-checkbox">
@@ -129,32 +129,14 @@
                 </div>
             </div>
             
-            <div class="blocks-grid">
-                <!-- Male Block A -->
-                <div class="block-card">
-                    <div class="block-top">
-                        <h3>Block A (Lelaki)</h3>
-                        <span class="badge">0 / 200 Occupied</span>
-                    </div>
-                    <p class="block-desc">Smart locks & RFID tracking offline.</p>
+            <!-- Replaced Block A, B, C cards with No Hardware Online box -->
+            <div class="hardware-offline-card">
+                <div class="offline-icon-wrapper">
+                    <i class='bx bx-wifi-off'></i>
                 </div>
-
-                <!-- Male Block B -->
-                <div class="block-card">
-                    <div class="block-top">
-                        <h3>Block B (Lelaki)</h3>
-                        <span class="badge">0 / 200 Occupied</span>
-                    </div>
-                    <p class="block-desc">Smart locks & RFID tracking offline.</p>
-                </div>
-
-                <!-- Female Block C (With Pink Accent) -->
-                <div class="block-card female-block">
-                    <div class="block-top">
-                        <h3>Block C (Wanita)</h3>
-                        <span class="badge">0 / 200 Occupied</span>
-                    </div>
-                    <p class="block-desc">Smart locks & RFID tracking offline.</p>
+                <div class="offline-content">
+                    <h3>No Hardware Online</h3>
+                    <p>Smart lock microcontrollers and RFID asset trackers are currently disconnected or unassigned.</p>
                 </div>
             </div>
         </section>
