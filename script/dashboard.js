@@ -78,10 +78,18 @@ function renderActiveStudentsTable() {
     filtered.forEach(student => {
         const tr = document.createElement("tr");
 
-        // Profile Picture & Initial Avatar Fallback
         const studentName = student.full_name || 'Student';
-        const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(studentName)}&background=10B981&color=fff&bold=true`;
-        const avatarUrl = student.profile_picture || defaultAvatar;
+        
+        // Match exact SVG path from your project structure
+        const gender = (student.gender || "").toLowerCase();
+        const defaultAvatarPath = (gender === 'female' || gender === 'wanita' || gender === 'p') 
+            ? "/image/default_Female.svg" 
+            : "/image/default_Male.svg";
+
+        // Check if student has custom photo, otherwise fallback to local SVG path
+        const avatarUrl = (student.profile_picture && student.profile_picture.trim() !== "") 
+            ? student.profile_picture 
+            : defaultAvatarPath;
 
         const userIdVal = student.user_id ? student.user_id : 'null';
         const appIdVal = student.application_id ? student.application_id : 'null';
@@ -93,7 +101,7 @@ function renderActiveStudentsTable() {
                         src="${avatarUrl}" 
                         alt="${studentName}" 
                         style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(16, 185, 129, 0.3); background-color: #1f2937; flex-shrink: 0;"
-                        onerror="this.onerror=null; this.src='${defaultAvatar}';"
+                        onerror="this.onerror=null; this.src='${defaultAvatarPath}';"
                     />
                     <div>
                         <strong style="color: var(--text-color);">${student.full_name || 'N/A'}</strong><br>
