@@ -38,6 +38,7 @@ async function loadApplications() {
         if (res.ok) {
             const data = await res.json();
             allStudents = data.data || [];
+            console.log("Loaded Students Data:", allStudents);
             renderTable();
         } else {
             showEmptyTable("Gagal memuatkan data permohonan.");
@@ -48,25 +49,26 @@ async function loadApplications() {
     }
 }
 
-// Render dynamic table rows with local SVG avatar integration
-function renderTable() {
-
-    // Dynamic local SVG avatar selector based on gender
-    function getDynamicAvatar(student) {
-        if (student.profile_picture && student.profile_picture.trim() !== '') {
-            return student.profile_picture;
+// Dynamic local SVG avatar selector based on gender or custom profile picture
+function getDynamicAvatar(student) {
+    if (student.profile_picture && 
+        student.profile_picture.trim() !== '' && 
+        !student.profile_picture.includes('ui-avatars.com')) {
+        return student.profile_picture;
     }
 
-    const gender = (student.gender || '').toLowerCase();
-    
+    const gender = (student.gender || '').toLowerCase().trim();
+
     if (gender === 'perempuan' || gender === 'female' || gender === 'p') {
         return '/image/default_Female.svg';
     }
-    
-        // Default fallback for Lelaki / Male or unspecified
-        return '/image/default_Male.svg';
-    }
 
+    // Default fallback for Lelaki / Male or unspecified
+    return '/image/default_Male.svg';
+}
+
+// Render dynamic table rows with local SVG avatar integration
+function renderTable() {
     const tbody = document.getElementById("approval-table-body");
     const searchVal = (document.getElementById("search-student")?.value || "").toLowerCase();
 
@@ -110,7 +112,7 @@ function renderTable() {
         const userIdVal = student.user_id ? student.user_id : 'null';
         const appIdVal = student.application_id ? student.application_id : 'null';
 
-        // Select custom local SVG path based on gender or fallback
+        // Get SVG image path based on gender or custom profile picture
         const avatarUrl = getDynamicAvatar(student);
         const fallbackMaleAvatar = '/image/default_Male.svg';
 
@@ -125,7 +127,7 @@ function renderTable() {
                     />
                     <div>
                         <strong style="color: var(--text-color, #ffffff);">${student.full_name || 'N/A'}</strong><br>
-                        <small style="color: var(--text-muted);">${student.email || student.ic_number || student.phone || '-'}</small>
+                        <small style="color: var(--text-muted, #94a3b8);">${student.email || student.ic_number || student.phone || '-'}</small>
                     </div>
                 </div>
             </td>
@@ -173,7 +175,6 @@ async function handleCSVUpload(event) {
     reader.onload = async (e) => {
         try {
             const text = e.target.result;
-            // Remove UTF-8 BOM if present and split lines
             const cleanedText = text.replace(/^\uFEFF/, '');
             const lines = cleanedText.split(/\r\n|\n/).map(line => line.trim()).filter(line => line.length > 0);
             
@@ -182,7 +183,6 @@ async function handleCSVUpload(event) {
                 return;
             }
 
-            // Regex-based CSV row splitter to support commas inside quotes
             const parseCSVRow = (rowStr) => {
                 const result = [];
                 let insideQuotes = false;
@@ -203,13 +203,12 @@ async function handleCSVUpload(event) {
                 return result;
             };
 
-            // Parse and normalize headers (e.g., "NO. IC / MYKAD" -> "no_ic_mykad")
             const rawHeaders = parseCSVRow(lines[0]);
             const normalizedHeaders = rawHeaders.map(h => 
                 h.toLowerCase()
-                 .replace(/[^a-z0-9]/g, '_') // Replace symbols/spaces with underscores
-                 .replace(/_+/g, '_')        // Collapse duplicate underscores
-                 .replace(/^_+|_+$/g, '')    // Trim leading/trailing underscores
+                 .replace(/[^a-z0-9]/g, '_')
+                 .replace(/_+/g, '_')
+                 .replace(/^_+|_+$/g, '')
             );
 
             const studentData = [];
@@ -226,9 +225,8 @@ async function handleCSVUpload(event) {
                 studentData.push(rowObj);
             }
 
-            console.log("Parsed CSV Batch:", studentData); // Debug log to inspect parsed payload
+            console.log("Parsed CSV Batch:", studentData);
 
-            // POST parsed array as JSON to Worker
             const res = await fetch("/api/admin/applications/import-csv", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
