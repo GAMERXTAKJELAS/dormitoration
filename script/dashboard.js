@@ -105,9 +105,15 @@ function renderActiveStudentsTable() {
             <td>${student.ic_number || '-'}</td>
             <td>${student.phone || '-'}</td>
             <td>${student.program || 'Pending Fill'}</td>
-            <td>
-                <button class="btn-icon" onclick="viewStudentDetails(${userIdVal}, ${appIdVal})" title="View Details">
-                    <i class='bx bx-info-circle'></i> Details
+            <td class="actions-cell">
+                <!-- View Details Icon Button -->
+                <button class="btn-action-icon" onclick="viewStudentDetails(${userIdVal}, ${appIdVal})" title="View Details">
+                    <i class='bx bx-info-circle'></i>
+                </button>
+                
+                <!-- Assign Room Block (Greyed Out / Offline) -->
+                <button class="btn-action-icon disabled" disabled title="Hardware Offline - Cannot Assign Room Block">
+                    <i class='bx bx-door-open'></i>
                 </button>
             </td>
         `;

@@ -241,12 +241,14 @@ body {
 .stat-card.success i { color: #10b981; }
 
 /* ==========================================================================
-   6. HOSTEL BLOCKS OVERVIEW
+   6. HOSTEL BLOCKS OVERVIEW & AUTO ARRANGE CONTROLS
    ========================================================================== */
-.section-header {
-    display: flex; 
-    justify-content: space-between; 
+.block-controls-header {
+    display: flex;
+    justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
     margin-bottom: 15px;
 }
 
@@ -256,17 +258,61 @@ body {
     color: var(--text-heading);
 }
 
-.status-tag.offline {
-    background: rgba(239, 68, 68, 0.12);
-    color: #ef4444;
-    padding: 6px 14px;
-    border-radius: 20px;
+/* Auto-Arrangement Toolbar (Greyed Out) */
+.auto-arrange-box {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    padding: 8px 16px;
+    border-radius: 10px;
     font-size: 0.85rem;
-    display: flex; 
-    align-items: center; 
-    gap: 6px;
-    border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.auto-arrange-box.disabled-feature {
+    opacity: 0.55;
+    cursor: not-allowed;
+    user-select: none;
+}
+
+.arrange-label {
     font-weight: 600;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.arrange-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-muted);
+    cursor: not-allowed;
+}
+
+.btn-commit {
+    background: var(--primary-color);
+    color: #ffffff;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.btn-commit.disabled,
+.btn-commit:disabled {
+    background: var(--input-border);
+    color: var(--text-muted);
+    cursor: not-allowed;
+    opacity: 0.7;
 }
 
 .blocks-grid {
@@ -326,7 +372,7 @@ body {
 }
 
 .block-card.female-block .block-top h3 {
-    color: #ff75b5;                 /* Pink accent visible in both dark & light */
+    color: #ff75b5;
 }
 
 .block-card.female-block .badge {
@@ -355,7 +401,7 @@ body {
 }
 
 /* ==========================================================================
-   7. ACTIVE STUDENTS DIRECTORY TABLE
+   7. ACTIVE STUDENTS DIRECTORY TABLE & ICON BUTTONS
    ========================================================================== */
 .table-header-bar {
     display: flex; 
@@ -449,23 +495,47 @@ body {
     padding: 40px !important;
 }
 
-.btn-icon {
-    background: rgba(255, 255, 255, 0.08);
-    border: none;
-    color: var(--text-color);
-    padding: 8px 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    display: inline-flex; 
-    align-items: center; 
-    gap: 6px;
-    font-size: 0.85rem;
-    transition: background 0.2s ease, color 0.2s ease;
+/* Action Icons Container */
+.actions-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 }
 
-.btn-icon:hover {
+/* Icon-only Action Buttons */
+.btn-action-icon {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    transition: all 0.2s ease;
+}
+
+.btn-action-icon:hover {
     background: var(--primary-color);
     color: #ffffff;
+    border-color: var(--primary-color);
+}
+
+.btn-action-icon.disabled,
+.btn-action-icon:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.btn-action-icon.disabled:hover {
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text-color);
+    border-color: var(--border-color);
 }
 
 /* ==========================================================================

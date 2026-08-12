@@ -69,7 +69,7 @@
         </div>
     </aside>
 
-    <!-- Main Content Area (Allows Natural Scroll) -->
+    <!-- Main Content Area -->
     <main class="main-box">
         <header class="dash-header">
             <h1>System Overview</h1>
@@ -104,11 +104,29 @@
             </div>
         </div>
 
-        <!-- Section 1: Hostel Blocks Status -->
+        <!-- Section 1: Hostel Blocks Status & Auto Arrangement -->
         <section class="section-container" style="margin-bottom: 35px;">
-            <div class="section-header">
-                <h2>Hostel Blocks Overview</h2>
-                <span class="status-tag offline"><i class='bx bx-wifi-off'></i> Hardware Sync Pending</span>
+            <div class="section-header block-controls-header">
+                <div>
+                    <h2>Hostel Blocks Overview</h2>
+                </div>
+
+                <!-- Auto Arrangement Options (Greyed Out - Hardware Offline) -->
+                <div class="auto-arrange-box disabled-feature" title="Hardware syncing required for room assignment">
+                    <span class="arrange-label"><i class='bx bx-git-merge'></i> Auto-Arrange By:</span>
+                    <label class="arrange-checkbox">
+                        <input type="checkbox" disabled> Name
+                    </label>
+                    <label class="arrange-checkbox">
+                        <input type="checkbox" disabled> Program
+                    </label>
+                    <label class="arrange-checkbox">
+                        <input type="checkbox" disabled> Semester
+                    </label>
+                    <button class="btn-commit disabled" disabled title="Hardware offline - Cannot commit room layout">
+                        <i class='bx bx-check-circle'></i> Commit
+                    </button>
+                </div>
             </div>
             
             <div class="blocks-grid">
@@ -163,7 +181,7 @@
                             <th>MyKad / IC</th>
                             <th>Phone Contact</th>
                             <th>Program</th>
-                            <th>Actions</th>
+                            <th style="text-align: center;">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="active-students-tbody">
@@ -175,7 +193,7 @@
             </div>
         </section>
 
-        <!-- Main Footer (Appears on Scroll Down) -->
+        <!-- Main Footer -->
         <footer class="main-footer">
             <div class="footer-container">
                 <p>&copy; 2026 Dormitoration System — All rights reserved.</p>
