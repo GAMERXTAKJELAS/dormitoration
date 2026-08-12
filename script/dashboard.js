@@ -82,7 +82,7 @@ function renderActiveStudentsTable() {
         
         // Match exact SVG path from your project structure
         const gender = (student.gender || "").toLowerCase();
-        const defaultAvatarPath = (gender === 'female' || gender === 'wanita' || gender === 'p') 
+        const defaultAvatarPath = (gender === 'female' || gender === 'wanita' || gender === 'perempuan') 
             ? "/image/default_Female.svg" 
             : "/image/default_Male.svg";
 
