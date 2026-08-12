@@ -1,50 +1,195 @@
-/* --- COLOR VARIABLES (Matching index.css) --- */
+/* --- COLOR VARIABLES --- */
 :root {
     --body-color: #121212;
     --sidebar-color: #1b251e;
     --primary-color: #47f59b;
+    --primary-hover: #34d399;
     --card-bg: #282828;
+    --card-border: #3d3d3d;
     --text-color: #bcfcd2;
-    --text-muted: #8b8b8b;
-    --transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    --text-heading: #ffffff;
+    --text-muted: #a0a0a0;
+    --input-bg: #1a1a1a;
+    --input-border: #333333;
+    --footer-bg: #0f172a;
+    --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* --- LIGHT MODE OVERRIDES --- */
+/* --- LIGHT MODE --- */
 .light-mode {
-    --body-color: #f5f6fa;
-    --text-color: #1a1a2e;
+    --body-color: #f8fafc;
+    --sidebar-color: #059669;
+    --primary-color: #059669;
+    --primary-hover: #047857;
     --card-bg: #ffffff;
-    --sidebar-color: #ffffff;
-    --text-muted: #636e72;
+    --card-border: #e2e8f0;
+    --text-color: #1e293b;
+    --text-heading: #0f172a;
+    --text-muted: #64748b;
+    --input-bg: #f1f5f9;
+    --input-border: #cbd5e1;
+    --footer-bg: #0f172a;
 }
 
-/* --- BASE STYLES --- */
+/* --- BASE RESET --- */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+/* --- 1. ENSURE HTML & BODY ALLOW SCROLLING --- */
+html, body {
+    width: 100%;
+    min-height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto; /* Forces browser vertical scrollbar when needed */
 }
 
 body {
-    min-height: 100vh;
     display: flex;
-    justify-content: center;
-    align-items: center;
+    flex-direction: column;
     background-color: var(--body-color);
     color: var(--text-color);
     transition: background-color var(--transition-smooth), color var(--transition-smooth);
+}
+/* --- TOP NAVIGATION HEADER --- */
+.top-nav {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    height: 70px;
+    background-color: var(--sidebar-color);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: background-color var(--transition-smooth);
+}
+
+.nav-container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.light-mode .brand {
+    color: #ffffff !important;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: var(--text-color);
+    font-weight: 500;
+    transition: var(--transition-smooth);
+}
+
+.light-mode .nav-links a {
+    color: #ffffff !important;
+}
+
+.light-mode .nav-links a:hover {
+    color: #a7f3d0 !important;
+}
+
+/* Header Sign Up Button */
+.nav-links .btn-primary {
+    background-color: var(--primary-color);
+    color: var(--body-color) !important;
+    padding: 7px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.light-mode .nav-links .btn-primary {
+    background-color: #ffffff !important;
+    color: #059669 !important;
+}
+
+.light-mode .nav-links .btn-primary:hover {
+    background-color: #f1f5f9 !important;
+}
+
+.theme-btn {
+    background: none;
+    border: none;
+    outline: none !important;
+    color: var(--text-color);
+    font-size: 1.4rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    transition: color 0.2s ease;
+}
+
+.light-mode .theme-btn {
+    color: #ffffff !important;
+}
+
+/* --- 2. MAIN LOGIN CONTAINER (Forces Height for Scroll) --- */
+.login-container {
+    flex: 1;
+    width: 100%;
+    /* Setting min-height to 100vh ensures the page is tall enough to scroll down to footer */
+    min-height: 100vh; 
+    padding-top: 120px; /* Space for fixed navbar */
+    padding-bottom: 80px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: radial-gradient(circle at center, rgba(5, 150, 105, 0.05) 0%, transparent 70%);
+}
+
+/* --- 3. FOOTER (Positioned below the container) --- */
+.main-footer {
+    width: 100%;
+    background-color: var(--footer-bg);
+    color: #94a3b8;
+    text-align: center;
+    padding: 24px 0;
+    font-size: 0.85rem;
+    border-top: 2px solid var(--primary-color);
+    position: relative; /* Sits naturally at the bottom of the page flow */
+    z-index: 10;
 }
 
 /* --- LOGIN CARD --- */
 .login-card {
     width: 90%;
-    max-width: 400px;
+    max-width: 420px;
     padding: 40px;
     background: var(--card-bg);
-    border: 1px solid var(--primary-color);
-    border-radius: 15px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    transition: background-color var(--transition-smooth), border-color var(--transition-smooth);
+}
+
+.dark-mode .login-card {
+    border-color: var(--primary-color);
 }
 
 .header {
@@ -55,14 +200,18 @@ body {
 .header h1 {
     font-size: 1.8rem;
     font-weight: 700;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
     color: var(--primary-color);
+}
+
+.light-mode .header h1 {
+    color: var(--text-heading);
 }
 
 .header p {
     font-size: 0.85rem;
     color: var(--text-muted);
-    margin-top: 5px;
+    margin-top: 6px;
 }
 
 /* --- FORM ELEMENTS --- */
@@ -81,36 +230,43 @@ body {
 .input-group input {
     width: 100%;
     padding: 12px 16px;
-    background: var(--body-color);
-    border: 1px solid var(--card-bg);
+    background: var(--input-bg);
+    border: 1.5px solid var(--input-border);
     border-radius: 8px;
     color: var(--text-color);
     font-size: 0.95rem;
     outline: none;
-    transition: border-color var(--transition-smooth);
+    transition: border-color var(--transition-smooth), box-shadow var(--transition-smooth);
 }
 
 .input-group input:focus {
     border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
 }
 
 .btn-submit {
     width: 100%;
     padding: 12px;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     background-color: var(--primary-color);
-    color: var(--body-color);
-    font-weight: 600;
+    color: #ffffff;
+    font-weight: 700;
     font-size: 1rem;
     cursor: pointer;
-    transition: transform 0.2s ease, opacity 0.2s ease;
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+    transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
     margin-top: 10px;
 }
 
+.dark-mode .btn-submit {
+    color: #121212;
+}
+
 .btn-submit:hover {
-    opacity: 0.9;
+    background-color: var(--primary-hover);
     transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(5, 150, 105, 0.35);
 }
 
 .btn-submit:active {
@@ -126,81 +282,13 @@ body {
     font-weight: 600;
 }
 
-/* --- TOP NAVIGATION HEADER --- */
-.top-nav {
-    position: fixed;
-    top: 0;
-    width: 100%;
-    height: 70px;
-    background-color: var(--sidebar-color);
-    border-bottom: 1px solid var(--card-bg);
-    z-index: 2000;
-    display: flex;
-    align-items: center;
-}
-
-.nav-container {
-    width: 90%;
-    max-width: 1200px;
-    margin: 0 auto;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.brand {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 1.4rem;
-    font-weight: bold;
-    color: var(--primary-color);
-}
-
-.nav-links {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-
-.nav-links a {
-    text-decoration: none;
-    color: var(--text-color);
-    font-weight: 500;
-    transition: var(--transition-smooth);
-}
-
-.nav-links a:hover {
-    color: var(--primary-color);
-}
-
-.theme-btn {
-    background: none;
-    border: none;
-    color: var(--text-color);
-    font-size: 1.5rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-}
-
-/* --- LOGIN CONTAINER LAYOUT --- */
-.login-container {
-    width: 100%;
-    min-height: 100vh;
-    padding-top: 80px; /* Space for fixed header */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
 /* --- SIGN UP LINK FOOTER --- */
 .auth-footer {
     margin-top: 25px;
     text-align: center;
     font-size: 0.9rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    padding-top: 15px;
+    border-top: 1px solid var(--input-border);
+    padding-top: 18px;
 }
 
 .auth-footer p {
@@ -218,6 +306,18 @@ body {
     text-decoration: underline;
 }
 
+/* --- MAIN FOOTER (Reveals on Scroll) --- */
+.main-footer {
+    width: 100%;
+    background-color: var(--footer-bg);
+    color: #94a3b8;
+    text-align: center;
+    padding: 24px 0;
+    font-size: 0.85rem;
+    border-top: 2px solid var(--primary-color);
+    margin-top: auto; /* Pushes footer to the bottom naturally */
+}
+
 .status-loading { color: var(--text-color); }
 .status-success { color: var(--primary-color); }
-.status-error   { color: #ff5d5d; }
+.status-error   { color: #ef4444; }

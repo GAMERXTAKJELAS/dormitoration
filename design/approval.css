@@ -1,176 +1,153 @@
-/* --- APPROVAL DASHBOARD STYLES --- */
+/* ==========================================================================
+   APPROVAL DASHBOARD STYLES
+   ========================================================================== */
 
-/* Stat Card Variant */
-.stat-card.danger i { 
-    color: #ff6b6b; 
+/* --- MAIN CONTAINER CARD --- */
+.content-card {
+    background: var(--card-bg, #ffffff);
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
 }
 
-/* Table Header Toolbar & Filters */
+/* --- TOOLBAR CONTROLS --- */
 .table-header-toolbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: 15px;
-    margin-bottom: 20px;
-}
-
-.filter-controls {
-    display: flex;
-    gap: 10px;
-}
-
-.input-field, 
-.select-field {
-    background: var(--body-color);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: var(--text-color);
-    padding: 8px 14px;
-    border-radius: 8px;
-    outline: none;
-    font-size: 0.9rem;
-}
-
-.light-mode .input-field, 
-.light-mode .select-field {
-    border: 1px solid rgba(0, 0, 0, 0.15);
-}
-
-/* Data Table Layout */
-.table-container {
+    gap: 16px;
+    padding: 20px;
     width: 100%;
-    overflow-x: auto;
+    border-bottom: 1px solid var(--border-color, #f1f5f9);
 }
 
-.data-table {
-    width: 100%;
-    border-collapse: collapse;
-    text-align: left;
-}
-
-.data-table th, 
-.data-table td {
-    padding: 14px 16px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.light-mode .data-table th, 
-.light-mode .data-table td {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.data-table th {
-    color: var(--text-muted);
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-/* Status Badges */
-.badge {
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    display: inline-block;
-}
-
-.badge.warning { background: rgba(255, 165, 0, 0.15); color: #ffa500; }
-.badge.success { background: rgba(46, 204, 113, 0.15); color: #2ecc71; }
-.badge.danger  { background: rgba(255, 107, 107, 0.15); color: #ff6b6b; }
-
-/* Table Action Buttons */
-.action-btns {
+.left-controls {
     display: flex;
-    gap: 8px;
-}
-
-.btn-icon {
-    background: var(--body-color);
-    border: none;
-    color: var(--text-color);
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: 0.2s;
-    font-size: 1.1rem;
-}
-
-.btn-icon.view:hover { background: #3498db; color: #fff; }
-.btn-icon.approve:hover { background: #2ecc71; color: #fff; }
-.btn-icon.reject:hover { background: #ff6b6b; color: #fff; }
-
-/* --- APPROVAL PAGE LAYOUT --- */
-
-/* Header Toolbar & Controls */
-.table-header-toolbar {
-    display: flex;
-    justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: 15px;
-    margin-bottom: 25px;
+    gap: 16px;
+    flex: 1;
 }
 
+.right-controls {
+    display: flex;
+    align-items: center;
+}
+
+/* --- SEARCH BOX --- */
 .search-box {
     position: relative;
+    min-width: 280px;
+    max-width: 380px;
     flex: 1;
-    min-width: 260px;
-    max-width: 400px;
 }
 
 .search-box .search-icon {
     position: absolute;
-    left: 12px;
+    left: 14px;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 1.2rem;
-    color: var(--text-muted);
+    font-size: 1.15rem;
+    color: var(--text-muted, #94a3b8);
+    pointer-events: none;
 }
 
 .search-box .input-field {
     width: 100%;
-    padding-left: 38px;
-    box-sizing: border-box;
+    height: 40px;
+    padding: 0 14px 0 40px;
+    background: var(--body-color, #f8fafc);
+    border: 1px solid var(--border-color, #cbd5e1);
+    border-radius: 8px;
+    color: var(--text-color, #0f172a);
+    font-size: 0.88rem;
+    outline: none;
+    transition: all 0.2s ease;
 }
 
-/* 4 Filter Sorting Buttons */
+.search-box .input-field:focus {
+    border-color: #059669;
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
+}
+
+/* --- FILTER SEGMENT GROUP --- */
 .filter-group {
-    display: flex;
-    gap: 8px;
-    background: var(--body-color);
-    padding: 4px;
-    border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    display: inline-flex;
+    align-items: center;
+    background: var(--body-color, #f8fafc);
+    padding: 3px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color, #cbd5e1);
+    height: 40px;
 }
 
 .filter-btn {
     background: transparent;
     border: none;
-    color: var(--text-muted);
-    padding: 8px 16px;
-    border-radius: 8px;
+    color: var(--text-muted, #64748b);
+    padding: 0 16px;
+    height: 100%;
+    border-radius: 6px;
     cursor: pointer;
     font-size: 0.85rem;
     font-weight: 600;
-    transition: 0.2s ease;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
 }
 
 .filter-btn:hover {
-    color: var(--text-color);
+    color: #059669;
 }
 
+/* Active filter state - Uses your main green */
 .filter-btn.active {
-    background: var(--card-bg);
-    color: var(--primary-color);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    background: #059669 !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25);
 }
 
-/* Data Table Layout */
+.dark-mode .filter-btn.active {
+    background: #47f59b !important;
+    color: #0f172a !important;
+}
+
+/* --- CSV UPLOAD BUTTON --- */
+.btn-csv-upload {
+    height: 40px;
+    background: #059669;
+    color: #ffffff !important;
+    padding: 0 18px;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(5, 150, 105, 0.2);
+}
+
+.dark-mode .btn-csv-upload {
+    background: #47f59b;
+    color: #0f172a !important;
+}
+
+.btn-csv-upload i {
+    font-size: 1.15rem;
+}
+
+.btn-csv-upload:hover {
+    opacity: 0.92;
+    transform: translateY(-1px);
+}
+
+/* --- DATA TABLE STYLES --- */
 .table-container {
     width: 100%;
     overflow-x: auto;
@@ -184,76 +161,93 @@
 
 .data-table th, 
 .data-table td {
-    padding: 14px 16px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.light-mode .data-table th, 
-.light-mode .data-table td {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border-color, #f1f5f9);
+    vertical-align: middle;
 }
 
 .data-table th {
-    color: var(--text-muted);
-    font-size: 0.8rem;
+    color: var(--text-muted, #64748b);
+    font-size: 0.75rem;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.8px;
+    font-weight: 700;
+    background: var(--body-color, #f8fafc);
 }
 
-/* Status Badges */
+/* Badges */
 .badge {
-    padding: 5px 12px;
+    padding: 4px 10px;
     border-radius: 20px;
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     font-weight: 600;
     display: inline-block;
 }
 
-.badge.warning { background: rgba(255, 165, 0, 0.15); color: #ffa500; }
-.badge.success { background: rgba(46, 204, 113, 0.15); color: #2ecc71; }
-.badge.danger  { background: rgba(255, 107, 107, 0.15); color: #ff6b6b; }
+.badge.warning { background: rgba(245, 158, 11, 0.15); color: #d97706; }
+.badge.success { background: rgba(16, 185, 129, 0.15); color: #059669; }
+.badge.danger  { background: rgba(239, 68, 68, 0.15); color: #dc2626; }
 
-/* Table Action Buttons */
+/* Table Actions */
 .action-btns {
     display: flex;
+    justify-content: flex-end;
     gap: 8px;
 }
 
 .btn-icon {
-    background: var(--body-color);
-    border: none;
-    color: var(--text-color);
-    width: 34px;
-    height: 34px;
-    border-radius: 8px;
+    background: var(--body-color, #f8fafc);
+    border: 1px solid var(--border-color, #cbd5e1);
+    color: var(--text-color, #334155);
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: 0.2s;
-    font-size: 1.2rem;
+    transition: all 0.2s ease;
+    font-size: 1.1rem;
 }
 
-.btn-icon.view:hover { background: #3498db; color: #fff; }
-.btn-icon.approve:hover { background: #2ecc71; color: #fff; }
-.btn-icon.reject:hover { background: #ff6b6b; color: #fff; }
+.btn-icon:hover { transform: translateY(-1px); }
+.btn-icon.view:hover { background: #0284c7; color: #ffffff; border-color: #0284c7; }
+.btn-icon.approve:hover { background: #10b981; color: #ffffff; border-color: #10b981; }
+.btn-icon.reject:hover { background: #ef4444; color: #ffffff; border-color: #ef4444; }
 
-/* CSV Upload Button */
-.btn-csv-upload {
-    background: var(--primary-color, #2ecc71);
-    color: #fff;
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    transition: 0.2s ease;
-}
+/* --- RESPONSIVE ADJUSTMENTS --- */
+@media screen and (max-width: 768px) {
+    .table-header-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
 
-.btn-csv-upload:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
+    .left-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .search-box {
+        max-width: 100%;
+        min-width: 100%;
+    }
+
+    .filter-group {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .filter-btn {
+        flex: 1;
+        text-align: center;
+    }
+
+    .right-controls {
+        width: 100%;
+    }
+
+    .btn-csv-upload {
+        width: 100%;
+        justify-content: center;
+    }
 }

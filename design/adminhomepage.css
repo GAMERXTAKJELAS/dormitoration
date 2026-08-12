@@ -1,42 +1,65 @@
-/* main */
+/* ==========================================================================
+   1. COLOR VARIABLES & THEMES
+   ========================================================================== */
 :root {
     --body-color: #121212;
     --sidebar-color: #1b251e;
-    --primary-color: #47f59b;
+    --primary-color: #47f59b;        /* Neon Green */
     --card-bg: #282828;
     --text-color: #bcfcd2;
-    --text-muted: #8b8b8b;
-    --transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    --text-heading: #ffffff;
+    --text-muted: #a0a0a0;
+    --border-color: rgba(255, 255, 255, 0.08);
+    --footer-bg: #0f172a;
+    --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* --- THEME OVERRIDES --- */
+/* --- LIGHT MODE OVERRIDES --- */
 .light-mode {
-    --body-color: #f5f6fa;
-    --text-color: #1a1a2e;
+    --body-color: #f8fafc;           /* Anti-glare background */
+    --sidebar-color: #059669;        /* Rich Emerald Header */
+    --primary-color: #059669;        /* Emerald Accent */
     --card-bg: #ffffff;
-    --sidebar-color: #ffffff;
-    --text-muted: #636e72;
+    --text-color: #1e293b;
+    --text-heading: #0f172a;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    --footer-bg: #0f172a;
+}
+
+/* ==========================================================================
+   2. BASE STYLES
+   ========================================================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 body {
     background-color: var(--body-color);
     color: var(--text-color);
-    margin: 0;
-    font-family: 'Segoe UI', sans-serif;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    transition: background-color var(--transition-smooth), color var(--transition-smooth);
+    overflow-x: hidden;
 }
-/* /main */
 
-/* --- NAVIGATION BAR --- */
+/* ==========================================================================
+   3. NAVIGATION BAR
+   ========================================================================== */
 .top-nav {
     position: fixed;
     top: 0;
+    left: 0;
     width: 100%;
     height: 70px;
     background-color: var(--sidebar-color);
-    border-bottom: 1px solid var(--card-bg);
+    border-bottom: 1px solid var(--border-color);
     z-index: 2000;
     display: flex;
     align-items: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: background-color var(--transition-smooth);
 }
 
 .nav-container {
@@ -44,7 +67,7 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     display: flex;
-    justify-content: space-between; /* Brand Left, Links Right */
+    justify-content: space-between;
     align-items: center;
 }
 
@@ -53,8 +76,12 @@ body {
     align-items: center;
     gap: 10px;
     font-size: 1.4rem;
-    font-weight: bold;
+    font-weight: 700;
     color: var(--primary-color);
+}
+
+.light-mode .brand {
+    color: #ffffff;
 }
 
 .nav-links {
@@ -65,190 +92,83 @@ body {
 
 .nav-links a {
     text-decoration: none;
-    color: var(--text-color);
+    color: rgba(255, 255, 255, 0.85); /* Default nav text for dark sidebar */
     font-weight: 500;
-    transition: var(--transition-smooth);
+    transition: color 0.2s ease;
+    cursor: pointer;
 }
 
-.nav-links a:hover { color: var(--primary-color); }
+.light-mode .nav-links a {
+    color: rgba(255, 255, 255, 0.9);
+}
 
-/* Buttons */
-.btn-primary {
-    background-color: var(--primary-color);
-    color: var(--body-color) !important;
-    padding: 8px 18px;
-    border-radius: 6px;
+.nav-links a:hover {
+    color: var(--primary-color);
+}
+.light-mode .nav-links a:hover {
+    color: #a7f3d0;
 }
 
 .theme-btn {
     background: none;
     border: none;
-    color: var(--text-color);
+    color: rgba(255, 255, 255, 0.85);
     font-size: 1.5rem;
     cursor: pointer;
     display: flex;
     align-items: center;
+    transition: transform 0.2s;
 }
 
-/* --- SCROLL SECTIONS --- */
-.scroll-container {
-    height: 100vh;
-    overflow-y: scroll;
-    scroll-snap-type: y mandatory; /* Makes sections "snap" into place */
-}
-
-.home-section {
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    scroll-snap-align: start; /* Alignment for snapping */
-    padding: 0 10%;
-}
-
-/* Hero Content */
-.hero-content { text-align: center; }
-.hero-content h1 { font-size: 3.5rem; margin-bottom: 10px; }
-.hero-content span { color: var(--primary-color); }
-
-/* About Grid (Auto-arranging) */
-.about-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Auto arrange boxes */
-    gap: 40px;
-    align-items: center;
-    width: 100%;
-}
-
-.stat-card {
-    background: var(--card-bg);
-    padding: 30px;
-    border-radius: 15px;
-    text-align: center;
-    border: 1px solid var(--primary-color);
-}
-
-.stat-card i { font-size: 3rem; color: var(--primary-color); }
-
-/* --- FOOTER --- */
-.main-footer {
-    height: 60px;
-    background: var(--sidebar-color);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 0.9rem;
-    color: var(--text-muted);
+.theme-btn:hover {
+    transform: scale(1.1);
 }
 
 /* --- ADMIN VISIBILITY LOGIC --- */
-
-/* 1. Hide Admin controls by default */
 .admin-controls {
     display: none; 
     gap: 20px;
     align-items: center;
-    border-left: 1px solid var(--text-muted);
+    border-left: 1px solid rgba(255, 255, 255, 0.2);
     padding-left: 20px;
     margin-right: 10px;
 }
 
-/* 2. Only show them if the body has the 'admin-user' class */
 .admin-user .admin-controls {
     display: flex;
 }
 
-/* Styling for the admin icons */
 .admin-controls a {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
     font-size: 0.95rem;
-    color: var(--primary-color) !important; /* Make admin links stand out */
+    color: var(--primary-color) !important;
 }
 
-/* --- ABOUT US LINK --- */
-/* Simple fix to ensure it looks like a standard link */
-.nav-links a[href="about.html"] {
-    cursor: pointer;
+.light-mode .admin-controls a {
+    color: #ffffff !important;
+    font-weight: 600;
 }
 
-/* --- RE-AUTO ARRANGE NAV --- */
-.nav-links {
+/* ==========================================================================
+   4. SCROLL CONTAINER & HERO
+   ========================================================================== */
+.scroll-container {
+    width: 100%;
+    min-height: 100vh;
     display: flex;
+    flex-direction: column;
+}
+
+.home-section {
+    flex: 1;
+    display: flex;
+    justify-content: center;
     align-items: center;
-    gap: 20px; /* Space will auto-adjust when admin-controls appear */
+    padding: 120px 5% 60px; /* Top padding clears navbar */
 }
 
-/* --- [REMAINDER OF YOUR CSS ABOVE REMAINS THE SAME] --- */
-
-/* --- RESPONSIVE ADJUSTMENTS --- */
-
-@media screen and (max-width: 992px) {
-    .hero-content h1 { font-size: 2.5rem; }
-    .nav-container { width: 95%; }
-}
-
-@media screen and (max-width: 600px) {
-    .hide-mobile { display: none; } /* Hides text labels on small phones */
-    
-    .top-nav { height: 60px; }
-    
-    .brand span { font-size: 1.1rem; }
-
-    .nav-links { gap: 12px; }
-    
-    .admin-controls {
-        padding-left: 12px;
-        gap: 12px;
-    }
-
-    .admin-controls i {
-        font-size: 1.3rem; /* Keep icons large enough to tap */
-    }
-
-    .hero-content h1 {
-        font-size: 2rem;
-        line-height: 1.2;
-    }
-
-    .home-section {
-        padding-top: 80px;
-        height: auto;
-        min-height: 100vh;
-    }
-}
-
-/* Modal Overlay */
-.modal-overlay {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    display: none; /* Hidden by default */
-    justify-content: center; align-items: center;
-    z-index: 3000;
-    backdrop-filter: blur(5px);
-}
-
-/* Modal Box */
-.modal-content {
-    background: var(--card-bg);
-    padding: 30px;
-    border-radius: 15px;
-    text-align: center;
-    border: 1px solid var(--primary-color);
-    max-width: 400px;
-    width: 90%;
-}
-
-.modal-btns {
-    display: flex; gap: 15px; justify-content: center; margin-top: 20px;
-}
-
-.btn-secondary { background: var(--sidebar-color); color: var(--text-color); border: 1px solid var(--text-muted); padding: 10px 20px; border-radius: 6px; cursor: pointer; }
-.btn-danger { background: #ff6b6b; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-
-/* --- ADMIN LANDING LAYOUT --- */
 .dashboard-landing {
     width: 100%;
     max-width: 1100px;
@@ -256,17 +176,32 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 35px;
+    gap: 40px;
 }
 
-/* Adjust section padding for scroll snap container */
-.home-section {
-    padding-top: 90px !important;
-    height: auto !important;
-    min-height: calc(100vh - 60px);
+.hero-content {
+    text-align: center;
 }
 
-/* --- STATS STRIP --- */
+.hero-content h1 {
+    font-size: 3.2rem;
+    line-height: 1.2;
+    margin-bottom: 15px;
+    color: var(--text-heading);
+}
+
+.hero-content span {
+    color: var(--primary-color);
+}
+
+.hero-content p {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+}
+
+/* ==========================================================================
+   5. REAL-TIME STATS STRIP
+   ========================================================================== */
 .stats-strip {
     display: flex;
     justify-content: center;
@@ -277,18 +212,23 @@ body {
 
 .stat-badge {
     background: var(--card-bg);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    padding: 15px 25px;
+    border: 1px solid var(--border-color);
+    padding: 16px 25px;
     border-radius: 12px;
     display: flex;
     align-items: center;
     gap: 15px;
-    min-width: 200px;
-    transition: var(--transition-smooth);
+    min-width: 220px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    transition: transform var(--transition-smooth), border-color 0.2s;
+}
+
+.stat-badge:hover {
+    transform: translateY(-2px);
 }
 
 .stat-badge i {
-    font-size: 2rem;
+    font-size: 2.2rem;
     color: var(--primary-color);
 }
 
@@ -300,19 +240,41 @@ body {
 .badge-num {
     font-size: 1.4rem;
     font-weight: bold;
-    color: var(--text-color);
+    color: var(--text-heading);
 }
 
 .badge-label {
     font-size: 0.85rem;
     color: var(--text-muted);
+    margin-top: 2px;
 }
 
-.status-online {
-    color: var(--primary-color);
+/* Specific Badge States */
+.badge-warning i { color: #f59e0b; }
+.badge-success i { color: #10b981; }
+
+.badge-inactive {
+    background: rgba(239, 68, 68, 0.04);
+    border: 1px dashed rgba(239, 68, 68, 0.4);
+    opacity: 0.8;
 }
 
-/* --- SHORTCUT CARDS GRID --- */
+.badge-inactive i {
+    color: #ef4444;
+}
+
+.badge-inactive .badge-num, 
+.badge-inactive .badge-label {
+    color: #ef4444;
+}
+
+.light-mode .badge-inactive {
+    background: #fef2f2;
+}
+
+/* ==========================================================================
+   6. SHORTCUT CARDS GRID
+   ========================================================================== */
 .shortcuts-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -322,31 +284,42 @@ body {
 
 .shortcut-card {
     background: var(--card-bg);
-    border: 1px solid transparent;
+    border: 1px solid var(--border-color);
     border-radius: 14px;
     padding: 25px;
     text-decoration: none;
-    color: var(--text-color);
     display: flex;
     flex-direction: column;
     gap: 12px;
-    transition: var(--transition-smooth);
-    text-align: left;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    transition: transform var(--transition-smooth), border-color var(--transition-smooth), box-shadow 0.3s;
 }
 
 .shortcut-card:hover {
     border-color: var(--primary-color);
-    transform: translateY(-4px);
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
 }
 
 .card-icon {
-    width: 48px;
-    height: 48px;
+    width: 50px;
+    height: 50px;
     background: rgba(71, 245, 155, 0.1);
-    border-radius: 10px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.light-mode .card-icon {
+    background: rgba(5, 150, 105, 0.1);
 }
 
 .card-icon i {
@@ -354,27 +327,147 @@ body {
     color: var(--primary-color);
 }
 
+.action-icon {
+    font-size: 1.5rem;
+    color: var(--text-muted);
+    transition: color 0.2s, transform 0.2s;
+}
+
+.shortcut-card:hover .action-icon {
+    color: var(--primary-color);
+    transform: translateX(4px);
+}
+
 .shortcut-card h3 {
-    margin: 0;
-    font-size: 1.15rem;
+    margin: 4px 0 0;
+    font-size: 1.2rem;
+    color: var(--text-heading);
 }
 
 .shortcut-card p {
     margin: 0;
-    font-size: 0.88rem;
+    font-size: 0.9rem;
     color: var(--text-muted);
-    line-height: 1.4;
+    line-height: 1.5;
 }
 
-.card-link {
-    font-size: 0.88rem;
+/* ==========================================================================
+   7. MODALS
+   ========================================================================== */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: none; /* Controlled via JS */
+    justify-content: center; 
+    align-items: center;
+    z-index: 3000;
+}
+
+.modal-content {
+    background: var(--card-bg);
+    padding: 30px;
+    border-radius: 16px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.modal-content h2 {
+    margin: 15px 0 10px;
+    color: var(--text-heading);
+}
+
+.modal-content p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 25px;
+}
+
+.modal-btns {
+    display: flex; 
+    gap: 12px; 
+    justify-content: center;
+}
+
+.btn-secondary { 
+    background: var(--body-color); 
+    color: var(--text-color); 
+    border: 1px solid var(--border-color); 
+    padding: 10px 20px; 
+    border-radius: 8px; 
+    cursor: pointer; 
     font-weight: 600;
-    color: var(--primary-color);
-    margin-top: 5px;
+    transition: background 0.2s;
 }
 
-/* Responsive tweaks for mobile view */
+.btn-secondary:hover {
+    background: var(--border-color);
+}
+
+.btn-danger { 
+    background: #ef4444; 
+    color: #ffffff; 
+    border: none; 
+    padding: 10px 20px; 
+    border-radius: 8px; 
+    cursor: pointer; 
+    font-weight: 600; 
+    transition: background 0.2s;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+}
+
+/* ==========================================================================
+   8. FOOTER
+   ========================================================================== */
+.main-footer {
+    width: 100%;
+    background-color: var(--footer-bg);
+    color: #94a3b8;
+    text-align: center;
+    padding: 20px 0;
+    font-size: 0.85rem;
+    border-top: 2px solid var(--primary-color);
+    margin-top: auto;
+}
+
+/* ==========================================================================
+   9. RESPONSIVE DESIGN
+   ========================================================================== */
+@media screen and (max-width: 992px) {
+    .hero-content h1 { font-size: 2.8rem; }
+    .nav-container { width: 95%; }
+}
+
 @media screen and (max-width: 600px) {
+    .hide-mobile { display: none; }
+    
+    .top-nav { height: 60px; }
+    .brand { font-size: 1.2rem; }
+    .brand span { font-size: 1.1rem; }
+    
+    .nav-links { gap: 12px; }
+    .admin-controls {
+        padding-left: 12px;
+        gap: 12px;
+    }
+    .admin-controls i { font-size: 1.4rem; }
+    
+    .home-section {
+        padding-top: 90px;
+    }
+    
+    .hero-content h1 {
+        font-size: 2.2rem;
+    }
+
     .stats-strip {
         flex-direction: column;
         align-items: stretch;
@@ -387,34 +480,4 @@ body {
     .shortcuts-grid {
         grid-template-columns: 1fr;
     }
-}
-
-/* Inactive Badge Styling */
-.badge-inactive {
-    opacity: 0.55;
-    border-style: dashed !important;
-    cursor: not-allowed;
-}
-
-.badge-inactive .badge-num {
-    color: var(--text-muted) !important;
-}
-
-/* Card Header with Top-Right Chevron */
-.card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-}
-
-.action-icon {
-    font-size: 1.4rem;
-    color: var(--text-muted);
-    transition: var(--transition-smooth);
-}
-
-.shortcut-card:hover .action-icon {
-    color: var(--primary-color);
-    transform: translateX(4px);
 }

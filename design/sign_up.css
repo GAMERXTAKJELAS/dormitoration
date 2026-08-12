@@ -4,34 +4,55 @@
 :root {
     --body-color: #121212;
     --sidebar-color: #1b251e;
-    --primary-color: #47f59b;
+    --primary-color: #47f59b;        /* Neon Green for Dark Mode */
+    --primary-hover: #34d399;
     --card-bg: #282828;
+    --card-border: #3d3d3d;
     --text-color: #bcfcd2;
-    --text-muted: #8b8b8b;
-    --transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    --text-heading: #ffffff;
+    --text-muted: #a0a0a0;
+    --input-bg: #1a1a1a;
+    --input-border: #333333;
+    --footer-bg: #0f172a;
+    --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Light Mode Overrides */
+/* Light Mode Overrides (iFixit Framed Style) */
 .light-mode {
-    --body-color: #f5f6fa;
-    --text-color: #1a1a2e;
+    --body-color: #f8fafc;           /* Anti-glare soft off-white background */
+    --sidebar-color: #059669;        /* Rich Emerald Green Header Bar */
+    --primary-color: #059669;        /* Accessible Emerald Green */
+    --primary-hover: #047857;
     --card-bg: #ffffff;
-    --sidebar-color: #ffffff;
-    --text-muted: #636e72;
+    --card-border: #e2e8f0;
+    --text-color: #1e293b;           /* High-contrast dark slate body text */
+    --text-heading: #0f172a;        /* Deep navy for headings */
+    --text-muted: #64748b;
+    --input-bg: #f1f5f9;
+    --input-border: #cbd5e1;
+    --footer-bg: #0f172a;            /* Dark Slate Footer Bar */
 }
 
 /* ==========================================================================
-   2. BASE & RESET STYLES
+   2. BASE & RESET STYLES (Enables Smooth Page Scroll)
    ========================================================================== */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+html, body {
+    width: 100%;
+    min-height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 body {
-    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
     background-color: var(--body-color);
     color: var(--text-color);
     transition: background-color var(--transition-smooth), color var(--transition-smooth);
@@ -46,10 +67,12 @@ body {
     width: 100%;
     height: 70px;
     background-color: var(--sidebar-color);
-    border-bottom: 1px solid var(--card-bg);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
     z-index: 2000;
     display: flex;
     align-items: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: background-color var(--transition-smooth);
 }
 
 .nav-container {
@@ -66,8 +89,12 @@ body {
     align-items: center;
     gap: 10px;
     font-size: 1.4rem;
-    font-weight: bold;
+    font-weight: 700;
     color: var(--primary-color);
+}
+
+.light-mode .brand {
+    color: #ffffff !important;      /* White logo on Green Header in Light Mode */
 }
 
 .nav-links {
@@ -83,58 +110,83 @@ body {
     transition: var(--transition-smooth);
 }
 
-.nav-links a:hover {
-    color: var(--primary-color);
+.light-mode .nav-links a {
+    color: #ffffff !important;      /* White navigation links in Light Mode */
 }
 
-.btn-outline {
-    border: 1px solid var(--primary-color);
-    padding: 6px 14px;
-    border-radius: 6px;
-    color: var(--primary-color) !important;
-    transition: var(--transition-smooth);
+.light-mode .nav-links a:hover {
+    color: #a7f3d0 !important;
 }
 
-.btn-outline:hover {
+/* Nav Button Styling */
+.nav-links .btn-primary {
     background-color: var(--primary-color);
     color: var(--body-color) !important;
+    padding: 7px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.light-mode .nav-links .btn-primary {
+    background-color: #ffffff !important;
+    color: #059669 !important;      /* Emerald text inside white header button */
+}
+
+.light-mode .nav-links .btn-primary:hover {
+    background-color: #f1f5f9 !important;
 }
 
 .theme-btn {
     background: none;
     border: none;
+    outline: none !important;
     color: var(--text-color);
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     cursor: pointer;
     display: flex;
     align-items: center;
+    justify-content: center;
+    padding: 6px;
+    transition: color 0.2s ease;
+}
+
+.light-mode .theme-btn {
+    color: #ffffff !important;
 }
 
 /* ==========================================================================
-   4. AUTHENTICATION (LOGIN & SIGN UP) LAYOUT
+   4. AUTHENTICATION CONTAINER & CARDS
    ========================================================================== */
 .login-container {
+    flex: 1;
     width: 100%;
     min-height: 100vh;
-    padding-top: 80px; /* Offset for fixed navbar */
-    padding-bottom: 40px;
+    padding-top: 120px;            /* Space for fixed top bar */
+    padding-bottom: 80px;          /* Space above footer */
     display: flex;
     justify-content: center;
     align-items: center;
+    background: radial-gradient(circle at center, rgba(5, 150, 105, 0.05) 0%, transparent 70%);
 }
 
 .login-card {
     width: 90%;
-    max-width: 400px;
+    max-width: 420px;
     padding: 40px;
     background: var(--card-bg);
-    border: 1px solid var(--primary-color);
-    border-radius: 15px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    transition: background-color var(--transition-smooth), border-color var(--transition-smooth);
+}
+
+.dark-mode .login-card {
+    border-color: var(--primary-color);
 }
 
 .signup-card {
-    max-width: 440px; /* Slightly broader card for multi-input signup */
+    max-width: 460px;               /* Slightly wider card for longer registration form */
 }
 
 .header {
@@ -145,18 +197,22 @@ body {
 .header h1 {
     font-size: 1.8rem;
     font-weight: 700;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
     color: var(--primary-color);
+}
+
+.light-mode .header h1 {
+    color: var(--text-heading);
 }
 
 .header p {
     font-size: 0.85rem;
     color: var(--text-muted);
-    margin-top: 5px;
+    margin-top: 6px;
 }
 
 /* ==========================================================================
-   5. FORM INPUTS & BUTTONS (Supports both .input-group and .form-group)
+   5. FORM INPUTS & BUTTONS
    ========================================================================== */
 .input-group,
 .form-group {
@@ -178,20 +234,20 @@ body {
 .form-group select {
     width: 100%;
     padding: 12px 16px;
-    background: var(--body-color);
-    border: 1px solid var(--card-bg);
+    background: var(--input-bg);
+    border: 1.5px solid var(--input-border);
     border-radius: 8px;
     color: var(--text-color);
     font-size: 0.95rem;
     outline: none;
-    transition: border-color var(--transition-smooth), background-color var(--transition-smooth);
-    appearance: none; /* Custom arrow look across browsers */
+    transition: border-color var(--transition-smooth), box-shadow var(--transition-smooth);
+    appearance: none;
 }
 
 .input-group select,
 .form-group select {
     cursor: pointer;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2347f59b'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23059669'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
     background-repeat: no-repeat;
     background-position: right 14px center;
     background-size: 20px;
@@ -202,38 +258,42 @@ body {
 .form-group input:focus,
 .form-group select:focus {
     border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
 }
 
-/* Style options inside dropdown menu */
+/* Options inside dropdown */
 .input-group select option,
 .form-group select option {
     background-color: var(--card-bg);
     color: var(--text-color);
 }
 
-.btn-submit,
-.btn-primary {
+.btn-submit {
     width: 100%;
     padding: 12px;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     background-color: var(--primary-color);
-    color: var(--body-color);
-    font-weight: 600;
+    color: #ffffff;
+    font-weight: 700;
     font-size: 1rem;
     cursor: pointer;
-    transition: transform 0.2s ease, opacity 0.2s ease;
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+    transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
     margin-top: 10px;
 }
 
-.btn-submit:hover,
-.btn-primary:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
+.dark-mode .btn-submit {
+    color: #121212;                 /* Dark text on primary button in Dark Mode */
 }
 
-.btn-submit:active,
-.btn-primary:active {
+.btn-submit:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(5, 150, 105, 0.35);
+}
+
+.btn-submit:active {
     transform: translateY(0);
 }
 
@@ -250,14 +310,14 @@ body {
 
 .status-loading { color: var(--text-color); }
 .status-success { color: var(--primary-color); }
-.status-error   { color: #ff5d5d; }
+.status-error   { color: #ef4444; }
 
 .auth-footer {
     margin-top: 25px;
     text-align: center;
     font-size: 0.9rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    padding-top: 15px;
+    border-top: 1px solid var(--input-border);
+    padding-top: 18px;
 }
 
 .auth-footer p {
@@ -276,7 +336,22 @@ body {
 }
 
 /* ==========================================================================
-   7. RESPONSIVE BREAKPOINTS
+   7. MAIN FOOTER (Reveals on Scroll)
+   ========================================================================== */
+.main-footer {
+    width: 100%;
+    background-color: var(--footer-bg);
+    color: #94a3b8;
+    text-align: center;
+    padding: 24px 0;
+    font-size: 0.85rem;
+    border-top: 2px solid var(--primary-color);
+    position: relative;
+    z-index: 10;
+}
+
+/* ==========================================================================
+   8. RESPONSIVE BREAKPOINTS
    ========================================================================== */
 @media screen and (max-width: 600px) {
     .top-nav {
@@ -293,5 +368,10 @@ body {
 
     .login-card {
         padding: 25px 20px;
+    }
+
+    .login-container {
+        padding-top: 90px;
+        padding-bottom: 50px;
     }
 }

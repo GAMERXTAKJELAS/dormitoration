@@ -21,7 +21,8 @@
             <nav class="nav-links">
                 <a href="/index.html">Home</a>
                 <a href="/index.html#about">About Us</a>
-                <button id="theme-toggle" class="theme-btn">
+                <a href="log_in.html" class="btn-primary">Sign In</a>
+                <button id="theme-toggle" class="theme-btn" aria-label="Toggle Theme">
                     <i class='bx bx-moon' id="theme-icon"></i>
                 </button>
             </nav>
@@ -46,26 +47,17 @@
                     <label for="email">Email Address</label>
                     <input type="email" id="email" placeholder="e.g. example@gmail.com" required autocomplete="email">
                 </div>
+
                 <div class="form-group">
                     <label for="regIC">No. Kad Pengenalan (IC Number)</label>
                     <input type="text" id="regIC" maxlength="14" required placeholder="030515081234 or 030515-08-1234">
                 </div>
+
                 <div class="input-group">
                     <label for="phone">Phone Number</label>
                     <input type="tel" id="phone" placeholder="e.g. 0123456789" required autocomplete="tel">
                 </div>
-<!--                 <div class="input-group">
-                    <label for="semester">Semester</label>
-                    <select id="semester" required>
-                        <option value="" disabled selected>-- Pilih Semester --</option>
-                        <option value="1">Semester 1</option>
-                        <option value="2">Semester 2</option>
-                        <option value="3">Semester 3</option>
-                        <option value="4">Semester 4</option>
-                        <option value="5">Semester 5</option>
-                        <option value="6">Semester 6</option>
-                    </select>
-                </div> -->
+
                 <div class="input-group">
                     <label for="password">Create Password</label>
                     <input type="password" id="password" placeholder="Create a password" required>
@@ -87,6 +79,13 @@
         </div>
     </main>
 
-    <script src="/script/signup.js"></script>
+    <!-- Scrollable Main Footer -->
+    <footer class="main-footer">
+        <div class="footer-container">
+            <p>&copy; 2026 Dormitoration System — All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="/script/signup.js" defer></script>
 </body>
 </html>

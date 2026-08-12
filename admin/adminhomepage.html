@@ -7,15 +7,16 @@
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="/design/adminhomepage.css">
     <script src="/script/theme.js" defer></script>
-    <script src="/script/logout_logic.js"></script>
+    <script src="/script/logout_logic.js" defer></script>
 </head>
 <body class="dark-mode admin-user">
 
+    <!-- Logout Modal -->
     <div id="logout-modal" class="modal-overlay">
         <div class="modal-content">
-            <i class='bx bx-help-circle' style="font-size: 3rem; color: #ff6b6b;"></i>
+            <i class='bx bx-log-out-circle' style="font-size: 3.5rem; color: #ef4444;"></i>
             <h2>Confirm Logout</h2>
-            <p>Are you sure you want to leave the system?</p>
+            <p>Are you sure you want to leave the admin system?</p>
             <div class="modal-btns">
                 <button class="btn-secondary" onclick="closeLogoutModal()">Cancel</button>
                 <button class="btn-danger" onclick="executeLogout()">Yes, Log Out</button>
@@ -23,6 +24,7 @@
         </div>
     </div>
 
+    <!-- Top Navigation -->
     <header class="top-nav">
         <div class="nav-container">
             <div class="brand">
@@ -33,12 +35,13 @@
             <nav class="nav-links">
                 <a href="about.html" class="hide-mobile">About Us</a>
 
+                <!-- Admin Controls -->
                 <div class="admin-controls">
                     <a href="/admin/dashboard.html" class="nav-item">
                         <i class='bx bxs-dashboard'></i> <span class="hide-mobile">Dashboard</span>
                     </a>
                     <a href="/admin/approval.html" class="nav-item">
-                        <i class='bx bxs-user-check'></i> <span class="hide-mobile">Approval</span>
+                        <i class='bx bxs-check-shield'></i> <span class="hide-mobile">Approval</span>
                     </a>
                     <a href="/admin/report.html" class="nav-item">
                         <i class='bx bxs-report'></i> <span class="hide-mobile">Report</span>
@@ -49,92 +52,93 @@
                     <i class='bx bx-log-out'></i> <span class="hide-mobile">Log Out</span>
                 </a>
                 
-                <button id="theme-toggle" class="theme-btn">
+                <button id="theme-toggle" class="theme-btn" aria-label="Toggle Theme">
                     <i class='bx bx-moon' id="theme-icon"></i>
                 </button>
             </nav>
         </div>
     </header>
 
+    <!-- Main Content Area -->
     <main class="scroll-container">
         <section class="home-section">
             <div class="dashboard-landing">
-    
-    <!-- Hero Header -->
-    <div class="hero-content">
-        <h1>Dormitory Monitor <br><span>Operation System</span></h1>
-        <p>Advanced oversight for modern student living.</p>
-    </div>
+                
+                <!-- Hero Header -->
+                <div class="hero-content">
+                    <h1>Dormitory Monitor <br><span>Operation System</span></h1>
+                    <p>Advanced oversight for modern student living.</p>
+                </div>
 
-    <!-- 1. Real-Time Stats Strip -->
-    <div class="stats-strip">
-        <!-- Live Pending Count -->
-        <div class="stat-badge">
-            <i class='bx bx-time-five'></i>
-            <div class="badge-info">
-                <span class="badge-num" id="pending-count">0</span>
-                <span class="badge-label">Pending Applications</span>
+                <!-- 1. Real-Time Stats Strip -->
+                <div class="stats-strip">
+                    <!-- Live Pending Count -->
+                    <div class="stat-badge badge-warning" onclick="window.location.href='/admin/approval.html'" style="cursor: pointer;">
+                        <i class='bx bx-time-five'></i>
+                        <div class="badge-info">
+                            <span class="badge-num" id="pending-count">0</span>
+                            <span class="badge-label">Pending Apps</span>
+                        </div>
+                    </div>
+
+                    <!-- Live Room Occupancy -->
+                    <div class="stat-badge badge-success">
+                        <i class='bx bx-pie-chart-alt-2'></i>
+                        <div class="badge-info">
+                            <span class="badge-num" id="occupancy-count">0 / 600 (0%)</span>
+                            <span class="badge-label">Room Occupancy</span>
+                        </div>
+                    </div>
+
+                    <!-- Hardware Status -->
+                    <div class="stat-badge badge-inactive" title="Hardware integration pending setup">
+                        <i class='bx bx-wifi-off'></i>
+                        <div class="badge-info">
+                            <span class="badge-num" id="locks-status">Offline</span>
+                            <span class="badge-label">Smart Locks</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Professional Action Cards -->
+                <div class="shortcuts-grid">
+                    <!-- Goes to Approval Page -->
+                    <a href="/admin/approval.html" class="shortcut-card">
+                        <div class="card-header">
+                            <div class="card-icon"><i class='bx bxs-user-check'></i></div>
+                            <i class='bx bx-chevron-right action-icon'></i>
+                        </div>
+                        <h3>Application Review</h3>
+                        <p>Verify student details, inspect MyKad, and approve applications.</p>
+                    </a>
+
+                    <!-- Goes to Dashboard Page -->
+                    <a href="/admin/dashboard.html" class="shortcut-card">
+                        <div class="card-header">
+                            <div class="card-icon"><i class='bx bxs-door-open'></i></div>
+                            <i class='bx bx-chevron-right action-icon'></i>
+                        </div>
+                        <h3>Room Allocation</h3>
+                        <p>Assign approved students to hostel blocks and manage capacity.</p>
+                    </a>
+
+                    <!-- Goes to Report Page -->
+                    <a href="/admin/report.html" class="shortcut-card">
+                        <div class="card-header">
+                            <div class="card-icon"><i class='bx bxs-bar-chart-alt-2'></i></div>
+                            <i class='bx bx-chevron-right action-icon'></i>
+                        </div>
+                        <h3>System Reports</h3>
+                        <p>Generate CSV exports, monitor activity, and view logs.</p>
+                    </a>
+                </div>
+
             </div>
-        </div>
-
-        <!-- Live Room Occupancy -->
-        <div class="stat-badge">
-            <i class='bx bx-pie-chart-alt-2'></i>
-            <div class="badge-info">
-                <span class="badge-num" id="occupancy-count">0 / 600 (0%)</span>
-                <span class="badge-label">Room Occupancy</span>
-            </div>
-        </div>
-
-        <!-- Hardware Status (Offline for now) -->
-        <div class="stat-badge badge-inactive" title="Hardware integration pending setup">
-            <i class='bx bx-chip'></i>
-            <div class="badge-info">
-                <span class="badge-num" id="locks-status">Offline</span>
-                <span class="badge-label">Locks Active</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- 2. Professional Action Cards -->
-    <div class="shortcuts-grid">
-        <!-- Goes to Approval Page -->
-        <a href="/admin/approval.html" class="shortcut-card">
-            <div class="card-header">
-                <div class="card-icon"><i class='bx bxs-user-check'></i></div>
-                <i class='bx bx-chevron-right action-icon'></i>
-            </div>
-            <h3>Application Review</h3>
-            <p>Verify student details, MyKad, and approve room applications.</p>
-        </a>
-
-        <!-- Goes to Dashboard Page -->
-        <a href="/admin/dashboard.html" class="shortcut-card">
-            <div class="card-header">
-                <div class="card-icon"><i class='bx bxs-door-open'></i></div>
-                <i class='bx bx-chevron-right action-icon'></i>
-            </div>
-            <h3>Room Allocation</h3>
-            <p>Assign approved students to hostel blocks and manage room capacity.</p>
-        </a>
-
-        <!-- Goes to Report Page -->
-        <a href="/admin/report.html" class="shortcut-card">
-            <div class="card-header">
-                <div class="card-icon"><i class='bx bxs-bar-chart-alt-2'></i></div>
-                <i class='bx bx-chevron-right action-icon'></i>
-            </div>
-            <h3>Report</h3>
-            <p>Generate CSV exports, monitor system activity, and view logs.</p>
-        </a>
-    </div>
-
-</div>
         </section>
     </main>
     
     <footer class="main-footer">
-        <p>&copy; 2026 Dormitoration System</p>
+        <p>&copy; 2026 Dormitoration System — All rights reserved.</p>
     </footer>
     
     <script src="/script/adminpage.js"></script>

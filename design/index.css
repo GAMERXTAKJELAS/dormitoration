@@ -31,6 +31,112 @@
     --text-outline-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
 }
 
+/* --- FIXED IFIXIT GREEN HEADER (LIGHT MODE) --- */
+
+/* 1. Navbar Container */
+.light-mode .top-nav {
+    background-color: #059669 !important; /* Deep Emerald Green */
+    border-bottom: 1px solid #047857 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+/* 2. Logo & Plain Links */
+.light-mode .top-nav .brand span,
+.light-mode .top-nav .brand i,
+.light-mode .nav-links a {
+    color: #ffffff !important;
+    text-decoration: none;
+}
+
+.light-mode .nav-links a:hover {
+    color: #a7f3d0 !important; /* Soft mint on hover */
+}
+
+/* 3. "Sign In" Button (Outline Style) */
+/* --- BASE BUTTON STYLES (Applies to both Dark & Light) --- */
+
+.btn-outline {
+    text-decoration: none;
+    font-weight: 500;
+    padding: 7px 16px;
+    border-radius: 6px;
+    transition: var(--transition-smooth);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    outline: none !important;
+}
+
+/* --- 1. DARK MODE SIGN IN BUTTON --- */
+.dark-mode .nav-links a.btn-outline {
+    color: var(--text-color) !important;
+    border: 1.5px solid rgba(188, 252, 210, 0.4) !important; /* Soft green outline */
+    background: transparent !important;
+}
+
+.dark-mode .nav-links a.btn-outline:hover {
+    background-color: rgba(71, 245, 155, 0.12) !important;
+    border-color: var(--primary-color) !important;
+    color: var(--primary-color) !important;
+}
+
+/* --- 2. LIGHT MODE SIGN IN BUTTON (iFixit Style Navbar) --- */
+.light-mode .nav-links a.btn-outline {
+    color: #ffffff !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.7) !important; /* Crisp white outline */
+    background: transparent !important;
+}
+
+.light-mode .nav-links a.btn-outline:hover {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    border-color: #ffffff !important;
+}
+
+/* 4. "Sign Up" Button (Primary Solid Style) */
+.light-mode .nav-links a.btn-primary {
+    background-color: #ffffff !important;
+    color: #059669 !important; /* CRITICAL FIX: Dark green text on white button */
+    font-weight: 700 !important;
+    padding: 8px 18px;
+    border-radius: 6px;
+    border: none !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.light-mode .nav-links a.btn-primary:hover {
+    background-color: #f1f5f9 !important;
+    color: #047857 !important;
+    transform: translateY(-1px);
+}
+
+/* 5. Theme Toggle Button Fix */
+.light-mode .theme-btn {
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    color: #ffffff !important;
+    font-size: 1.4rem;
+    cursor: pointer;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.light-mode .theme-btn:hover {
+    color: #a7f3d0 !important;
+}
+
+/* 2. Deep Slate/Dark Green Footer (Like iFixit) */
+.light-mode .main-footer {
+    background-color: #0f172a !important; /* Dark slate (or use #064e3b for dark forest green) */
+    color: #94a3b8 !important;
+    border-top: 2px solid #059669; /* Accent line on top of footer */
+}
+
 /* Base Body Styles */
 body {
     background-color: var(--body-color);
