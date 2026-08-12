@@ -15,6 +15,24 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+// Dynamic local SVG avatar selector based on gender or custom profile picture
+function getDynamicAvatar(student) {
+    if (student.profile_picture && 
+        student.profile_picture.trim() !== '' && 
+        !student.profile_picture.includes('ui-avatars.com')) {
+        return student.profile_picture;
+    }
+
+    const gender = (student.gender || '').toLowerCase().trim();
+
+    if (gender === 'perempuan' || gender === 'female' || gender === 'p') {
+        return '/image/default_Female.svg';
+    }
+
+    // Default fallback for Lelaki / Male or unspecified
+    return '/image/default_Male.svg';
+}
+
 // Fetch Top Summary Metrics
 async function loadDashboardStats() {
     try {
@@ -102,7 +120,7 @@ function renderActiveStudentsTable() {
 
         const studentName = student.full_name || 'Student';
         
-        // Pick exact avatar using the helper function
+        // Exact same dynamic function as approval.js
         const avatarUrl = getDynamicAvatar(student);
         const fallbackMaleAvatar = '/image/default_Male.svg';
 
