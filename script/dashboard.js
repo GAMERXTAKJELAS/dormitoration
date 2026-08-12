@@ -114,7 +114,6 @@ function renderActiveStudentsTable() {
             <td>${student.phone || '-'}</td>
             <td>${student.program || 'Pending Fill'}</td>
             <td class="actions-cell">
-                <!-- View Details Icon Button -->
                 <button class="btn-action-icon" onclick="viewStudentDetails(${userIdVal}, ${appIdVal})" title="View Details">
                     <i class='bx bx-info-circle'></i>
                 </button>
