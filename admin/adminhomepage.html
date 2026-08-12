@@ -37,6 +37,9 @@
                     <a href="/admin/dashboard.html" class="nav-item">
                         <i class='bx bxs-dashboard'></i> <span class="hide-mobile">Dashboard</span>
                     </a>
+                    <a href="/admin/approval.html" class="nav-item">
+                        <i class='bx bxs-user-check'></i> <span class="hide-mobile">Approval</span>
+                    </a>
                     <a href="/admin/report.html" class="nav-item">
                         <i class='bx bxs-report'></i> <span class="hide-mobile">Report</span>
                     </a>
@@ -65,7 +68,7 @@
 
     <!-- 1. Real-Time Stats Strip -->
     <div class="stats-strip">
-        <!-- Live Data from D1 -->
+        <!-- Live Pending Count -->
         <div class="stat-badge">
             <i class='bx bx-time-five'></i>
             <div class="badge-info">
@@ -74,20 +77,20 @@
             </div>
         </div>
 
-        <!-- Inactive Badge (No rooms configured yet) -->
-        <div class="stat-badge badge-inactive" title="Room setup pending">
+        <!-- Live Room Occupancy -->
+        <div class="stat-badge">
             <i class='bx bx-pie-chart-alt-2'></i>
             <div class="badge-info">
-                <span class="badge-num">N/A</span>
+                <span class="badge-num" id="occupancy-count">0 / 600 (0%)</span>
                 <span class="badge-label">Room Occupancy</span>
             </div>
         </div>
 
-        <!-- Inactive Badge (Hardware not connected yet) -->
-        <div class="stat-badge badge-inactive" title="Hardware integration offline">
+        <!-- Hardware Status (Offline for now) -->
+        <div class="stat-badge badge-inactive" title="Hardware integration pending setup">
             <i class='bx bx-chip'></i>
             <div class="badge-info">
-                <span class="badge-num">Offline</span>
+                <span class="badge-num" id="locks-status">Offline</span>
                 <span class="badge-label">Locks Active</span>
             </div>
         </div>
@@ -95,31 +98,34 @@
 
     <!-- 2. Professional Action Cards -->
     <div class="shortcuts-grid">
-        <a href="/admin/dashboard.html#applications" class="shortcut-card">
+        <!-- Goes to Approval Page -->
+        <a href="/admin/approval.html" class="shortcut-card">
             <div class="card-header">
                 <div class="card-icon"><i class='bx bxs-user-check'></i></div>
                 <i class='bx bx-chevron-right action-icon'></i>
             </div>
             <h3>Application Review</h3>
-            <p>Verify student details and approve intake applications.</p>
+            <p>Verify student details, MyKad, and approve room applications.</p>
         </a>
 
-        <a href="/admin/dashboard.html#rooms" class="shortcut-card">
+        <!-- Goes to Dashboard Page -->
+        <a href="/admin/dashboard.html" class="shortcut-card">
             <div class="card-header">
                 <div class="card-icon"><i class='bx bxs-door-open'></i></div>
                 <i class='bx bx-chevron-right action-icon'></i>
             </div>
             <h3>Room Allocation</h3>
-            <p>Assign approved students to blocks and manage beds.</p>
+            <p>Assign approved students to hostel blocks and manage room capacity.</p>
         </a>
 
+        <!-- Goes to Report Page -->
         <a href="/admin/report.html" class="shortcut-card">
             <div class="card-header">
                 <div class="card-icon"><i class='bx bxs-bar-chart-alt-2'></i></div>
                 <i class='bx bx-chevron-right action-icon'></i>
             </div>
-            <h3>Reports & Logs</h3>
-            <p>Generate CSV exports, monitor system activity and logs.</p>
+            <h3>Report</h3>
+            <p>Generate CSV exports, monitor system activity, and view logs.</p>
         </a>
     </div>
 
@@ -130,6 +136,7 @@
     <footer class="main-footer">
         <p>&copy; 2026 Dormitoration System</p>
     </footer>
-    <script src="/script/admin_stats.js"></script>
+    
+    <script src="/script/adminpage.js"></script>
 </body>
 </html>
