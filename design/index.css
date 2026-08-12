@@ -1,28 +1,43 @@
-/* main */
+/* --- BASE DARK MODE (Default) --- */
 :root {
     --body-color: #121212;
     --sidebar-color: #1b251e;
-    --primary-color: #47f59b;
+    --primary-color: #47f59b;        /* Bright neon green for dark background */
+    --primary-hover: #34d399;
     --card-bg: #282828;
     --text-color: #bcfcd2;
-    --text-muted: #8b8b8b;
+    --text-heading: #ffffff;
+    --text-muted: #a0a0a0;
+    --nav-border: #2d3748;
+    --btn-text: #121212;             /* Dark text on primary buttons */
+    --text-outline-shadow: none;
     --transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* --- THEME OVERRIDES --- */
+/* --- LIGHT MODE ACCESSIBILITY ENHANCEMENTS --- */
 .light-mode {
-    --body-color: #f5f6fa;
-    --text-color: #1a1a2e;
+    --body-color: #f8fafc;            /* Clean light grey background */
+    --sidebar-color: #ffffff;        /* Crisp white navbar/cards */
+    --primary-color: #059669;        /* Deep, readable Emerald Green (Passes AAA Contrast) */
+    --primary-hover: #047857;
     --card-bg: #ffffff;
-    --sidebar-color: #ffffff;
-    --text-muted: #636e72;
+    --text-color: #1e293b;           /* Very readable dark slate for body text */
+    --text-heading: #0f172a;         /* Bold near-black for headings */
+    --text-muted: #64748b;           /* Distinct muted text */
+    --nav-border: #e2e8f0;           /* Subtle crisp light border */
+    --btn-text: #ffffff;             /* White text inside primary buttons */
+    
+    /* Subtle sharp outline effect for light mode text elements */
+    --text-outline-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
 }
 
+/* Base Body Styles */
 body {
     background-color: var(--body-color);
     color: var(--text-color);
     margin: 0;
-    font-family: 'Segoe UI', sans-serif;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    transition: background-color var(--transition-smooth), color var(--transition-smooth);
 }
 /* /main */
 
@@ -203,4 +218,63 @@ body {
         padding-top: 80px; /* Space for fixed header */
         padding-bottom: 40px;
     }
+}
+
+/* --- ACCESSIBILITY & TEXT CONTRAST IMPROVEMENTS --- */
+
+/* Ensure key green text/spans stand out sharply */
+.hero-content span,
+.brand span,
+.shortcut-card h3,
+.stat-card i {
+    color: var(--primary-color);
+    text-shadow: var(--text-outline-shadow);
+}
+
+/* Hero Title High Contrast Fix */
+.hero-content h1 {
+    color: var(--text-heading);
+    font-weight: 800;
+}
+
+/* Button Styling Fix for Light Mode */
+.btn-primary {
+    background-color: var(--primary-color) !important;
+    color: var(--btn-text) !important;
+    font-weight: 600;
+    padding: 8px 18px;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: var(--transition-smooth);
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover) !important;
+}
+
+/* Card Borders & Shadows for Light Mode Definition */
+.light-mode .stat-card,
+.light-mode .shortcut-card,
+.light-mode .stat-badge {
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.light-mode .shortcut-card:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 6px 16px rgba(5, 150, 105, 0.15);
+}
+
+/* Navbar Border Definition in Light Mode */
+.top-nav {
+    border-bottom: 1px solid var(--nav-border);
+}
+
+/* Quick CSS Fix for Explore Features Link */
+.explore-btn {
+    color: var(--text-heading) !important;
+    font-weight: 600;
+}
+.explore-btn i {
+    color: var(--primary-color);
 }
