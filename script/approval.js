@@ -147,7 +147,7 @@ function showEmptyTable(message) {
     }
 }
 
-// Full Native Browser CSV Reader and Parser
+// Robust CSV Reader with Header Normalization & Quotes Handling
 async function handleCSVUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -157,28 +157,60 @@ async function handleCSVUpload(event) {
     reader.onload = async (e) => {
         try {
             const text = e.target.result;
-            const lines = text.split(/\r\n|\n/).map(line => line.trim()).filter(line => line.length > 0);
+            // Remove UTF-8 BOM if present and split lines
+            const cleanedText = text.replace(/^\uFEFF/, '');
+            const lines = cleanedText.split(/\r\n|\n/).map(line => line.trim()).filter(line => line.length > 0);
             
             if (lines.length <= 1) {
                 alert("Fail CSV tidak mempunyai rekod data.");
                 return;
             }
 
-            // Extract headers
-            const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/^["']|["']$/g, ''));
+            // Regex-based CSV row splitter to support commas inside quotes
+            const parseCSVRow = (rowStr) => {
+                const result = [];
+                let insideQuotes = false;
+                let currentValue = '';
+
+                for (let i = 0; i < rowStr.length; i++) {
+                    const char = rowStr[i];
+                    if (char === '"' || char === "'") {
+                        insideQuotes = !insideQuotes;
+                    } else if (char === ',' && !insideQuotes) {
+                        result.push(currentValue.trim().replace(/^["']|["']$/g, ''));
+                        currentValue = '';
+                    } else {
+                        currentValue += char;
+                    }
+                }
+                result.push(currentValue.trim().replace(/^["']|["']$/g, ''));
+                return result;
+            };
+
+            // Parse and normalize headers (e.g., "NO. IC / MYKAD" -> "no_ic_mykad")
+            const rawHeaders = parseCSVRow(lines[0]);
+            const normalizedHeaders = rawHeaders.map(h => 
+                h.toLowerCase()
+                 .replace(/[^a-z0-9]/g, '_') // Replace symbols/spaces with underscores
+                 .replace(/_+/g, '_')        // Collapse duplicate underscores
+                 .replace(/^_+|_+$/g, '')    // Trim leading/trailing underscores
+            );
+
             const studentData = [];
 
             for (let i = 1; i < lines.length; i++) {
-                const values = lines[i].split(',').map(v => v.trim().replace(/^["']|["']$/g, ''));
-                if (values.length < headers.length) continue;
+                const values = parseCSVRow(lines[i]);
+                if (values.length === 0 || (values.length === 1 && !values[0])) continue;
 
                 let rowObj = {};
-                headers.forEach((header, idx) => {
-                    rowObj[header] = values[idx] || '';
+                normalizedHeaders.forEach((header, idx) => {
+                    rowObj[header] = values[idx] !== undefined ? values[idx] : '';
                 });
 
                 studentData.push(rowObj);
             }
+
+            console.log("Parsed CSV Batch:", studentData); // Debug log to inspect parsed payload
 
             // POST parsed array as JSON to Worker
             const res = await fetch("/api/admin/applications/import-csv", {

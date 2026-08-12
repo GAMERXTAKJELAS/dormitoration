@@ -188,15 +188,26 @@ export async function handleAdminApplications(request, env, headers) {
         const phone = s.phone || s.telefon || s.no_hp || '';
         const randomPass = 'TVET-' + crypto.randomUUID().slice(0, 8);
 
-        // Scan across popular CSV headers for IC Number
-        const rawIC = s.ic_number || s.ic || s.mykad || s.no_ic || s.ic_no || s.nokp || s.no_kp || s.kp || '';
-        const icParsed = parseMalaysianIC(rawIC);
+// Dynamic header fallback scanner for IC numbers
+const findICKey = (obj) => {
+    if (!obj) return '';
+    for (const key of Object.keys(obj)) {
+        const cleanKey = key.toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (['ic', 'icnumber', 'icno', 'noic', 'mykad', 'nokp', 'nokadpengenalan', 'nokpbaru'].some(k => cleanKey.includes(k))) {
+            if (obj[key]) return obj[key];
+        }
+    }
+    return '';
+};
 
-        // Fallbacks for direct fields if parsing fails or formatted input is used
-        const icNumber = icParsed ? icParsed.rawIC : (rawIC ? String(rawIC).replace(/[^0-9]/g, '') : '-');
-        const dob = icParsed ? icParsed.dob : (s.dob || null);
-        const age = icParsed ? icParsed.age : (s.age || null);
-        const gender = icParsed ? icParsed.gender : (s.gender || null);
+// Retrieve raw IC from dynamic lookup or direct property
+const rawIC = findICKey(s) || s.ic_number || s.ic || s.mykad || '';
+const icParsed = parseMalaysianIC(rawIC);
+
+const icNumber = icParsed ? icParsed.formattedIC : (rawIC ? String(rawIC).replace(/[^0-9]/g, '') : '-');
+const dob = icParsed ? icParsed.dob : (s.dob || null);
+const age = icParsed ? icParsed.age : (s.age || null);
+const gender = icParsed ? icParsed.gender : (s.gender || null);
 
         // Check if user already exists
         const existingUser = await env.DB.prepare(
