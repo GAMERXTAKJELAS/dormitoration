@@ -3,18 +3,26 @@
  * File: /script/approval_backend.js
  */
 
-// Improved Helper to parse Malaysian IC Number (MyKad: YYMMDD-PB-###G)
+// Robust Malaysian IC Parser
 function parseMalaysianIC(icRaw) {
   if (!icRaw) return null;
   
-  // Clean non-numeric characters
-  let ic = String(icRaw).trim().replace(/[^0-9]/g, '');
+  let icStr = String(icRaw).trim();
 
-  // Handle Excel stripping leading zeros for birth years in 2000s (e.g., 060424 -> 60424 = 11 digits)
+  // Handle scientific notation from Excel (e.g. 6.0424E+11)
+  if (/e\+/i.test(icStr)) {
+    icStr = Number(icStr).toFixed(0);
+  }
+
+  // Strip non-numeric characters (hyphens, spaces, letters)
+  let ic = icStr.replace(/[^0-9]/g, '');
+
+  // Handle Excel stripping leading zeros for birth years 2000+ (e.g. 060424... -> 60424...)
   if (ic.length === 11) {
     ic = '0' + ic;
   }
 
+  // Must be exactly 12 digits after cleaning
   if (ic.length !== 12) return null;
 
   const yy = ic.substring(0, 2);
@@ -23,12 +31,12 @@ function parseMalaysianIC(icRaw) {
   const pb = ic.substring(6, 8);
   const lastDigit = parseInt(ic.substring(11, 12), 10);
 
-  // 1. Determine Birth Year & Date (YYYY-MM-DD)
+  // Determine full birth year (Cutoff based on short year)
   const currentYearShort = new Date().getFullYear() % 100;
   const fullYear = parseInt(yy, 10) > currentYearShort ? `19${yy}` : `20${yy}`;
   const dob = `${fullYear}-${mm}-${dd}`;
 
-  // 2. Calculate Age
+  // Calculate age accurately
   const birthDate = new Date(`${fullYear}-${mm}-${dd}`);
   const today = new Date();
   let age = today.getFullYear() - birthDate.getFullYear();
@@ -37,7 +45,7 @@ function parseMalaysianIC(icRaw) {
     age--;
   }
 
-  // 3. Determine Gender (Odd = Lelaki, Even = Perempuan)
+  // Gender calculation: Odd = Lelaki, Even = Perempuan
   const gender = (lastDigit % 2 !== 0) ? 'Lelaki' : 'Perempuan';
 
   return { 
@@ -66,14 +74,14 @@ export async function handleAdminApplications(request, env, headers) {
           u.email AS email,
           u.phone AS phone,
           u.profile_picture AS profile_picture,
-          COALESCE(h.ic_number, '-') AS ic_number,
-          COALESCE(h.gender, '-') AS gender,
-          COALESCE(h.dob, '-') AS dob,
-          COALESCE(h.age, '-') AS age,
+          COALESCE(NULLIF(h.ic_number, ''), '-') AS ic_number,
+          COALESCE(NULLIF(h.gender, ''), '-') AS gender,
+          COALESCE(NULLIF(h.dob, ''), '-') AS dob,
+          COALESCE(NULLIF(h.age, ''), '-') AS age,
           u.role AS role,
-          COALESCE(h.program, 'Pending Fill') AS program,
-          COALESCE(h.session_id, '-') AS session_id,
-          COALESCE(h.admin_approval, 'pending') AS status,
+          COALESCE(NULLIF(h.program, ''), 'Pending Fill') AS program,
+          COALESCE(NULLIF(h.session_id, ''), '-') AS session_id,
+          COALESCE(NULLIF(h.admin_approval, ''), 'pending') AS status,
           u.account_status AS user_account_status
         FROM users u
         LEFT JOIN hostel_applications h ON u.id = h.user_id
@@ -159,7 +167,7 @@ export async function handleAdminApplications(request, env, headers) {
     }
   }
 
-// -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
   // 3. POST Request: Import CSV & Auto Fill dob, age, gender, ic_number
   // -------------------------------------------------------------------------
   if (method === 'POST' && url.pathname === '/api/admin/applications/import-csv') {
@@ -188,23 +196,23 @@ export async function handleAdminApplications(request, env, headers) {
         const phone = s.phone || s.telefon || s.no_hp || '';
         const randomPass = 'TVET-' + crypto.randomUUID().slice(0, 8);
 
-        // Dynamic header fallback scanner for IC numbers
+        // Enhanced dynamic header fallback scanner for IC numbers
         const findICKey = (obj) => {
-            if (!obj) return '';
-            for (const key of Object.keys(obj)) {
-                const cleanKey = key.toLowerCase().replace(/[^a-z0-9]/g, '');
-                if (['ic', 'icnumber', 'icno', 'noic', 'mykad', 'nokp', 'nokadpengenalan', 'nokpbaru'].some(k => cleanKey.includes(k))) {
-                    if (obj[key]) return obj[key];
-                }
+          if (!obj) return '';
+          const keys = Object.keys(obj);
+          for (const key of keys) {
+            const cleanKey = key.toLowerCase().replace(/[^a-z0-9]/g, '');
+            if (['ic', 'icnumber', 'icno', 'noic', 'mykad', 'nokp', 'nokadpengenalan', 'nokpbaru', 'nric', 'kp'].some(k => cleanKey.includes(k))) {
+              if (obj[key]) return obj[key];
             }
-            return '';
+          }
+          return '';
         };
 
-        // Retrieve raw IC from dynamic lookup or direct property
-        const rawIC = findICKey(s) || s.ic_number || s.ic || s.mykad || '';
+        const rawIC = findICKey(s) || s.ic_number || s.ic || s.mykad || s.no_kp || '';
         const icParsed = parseMalaysianIC(rawIC);
 
-        // Format IC for display/saving, extract DOB, Age, Gender
+        // Extract values or keep parsed results
         const icNumber = icParsed ? icParsed.rawIC : (rawIC ? String(rawIC).replace(/[^0-9]/g, '') : null);
         const dob = icParsed ? icParsed.dob : (s.dob || null);
         const age = icParsed ? icParsed.age : (s.age || null);
@@ -247,7 +255,6 @@ export async function handleAdminApplications(request, env, headers) {
           ).bind(userId).first();
 
           if (existingApp) {
-            // FIX: Force update gender, dob, age, and ic_number if new values exist!
             await env.DB.prepare(`
               UPDATE hostel_applications 
               SET ic_number = COALESCE(?, ic_number), 
@@ -266,7 +273,7 @@ export async function handleAdminApplications(request, env, headers) {
             `).bind(userId, icNumber || '-', program, session, gender, dob, age).run();
           }
         }
-      }
+      } // Correctly closing loop here!
 
       return new Response(
         JSON.stringify({ 

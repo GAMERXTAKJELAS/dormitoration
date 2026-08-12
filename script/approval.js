@@ -165,7 +165,7 @@ function showEmptyTable(message) {
     }
 }
 
-// Robust CSV Reader with Header Normalization & Quotes Handling
+// Robust CSV Reader with Auto-Delimiter Detection & Quotes Handling
 async function handleCSVUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -183,6 +183,10 @@ async function handleCSVUpload(event) {
                 return;
             }
 
+            // Detect delimiter (, or ;)
+            const firstLine = lines[0];
+            const delimiter = (firstLine.match(/;/g) || []).length > (firstLine.match(/,/g) || []).length ? ';' : ',';
+
             const parseCSVRow = (rowStr) => {
                 const result = [];
                 let insideQuotes = false;
@@ -192,7 +196,7 @@ async function handleCSVUpload(event) {
                     const char = rowStr[i];
                     if (char === '"' || char === "'") {
                         insideQuotes = !insideQuotes;
-                    } else if (char === ',' && !insideQuotes) {
+                    } else if (char === delimiter && !insideQuotes) {
                         result.push(currentValue.trim().replace(/^["']|["']$/g, ''));
                         currentValue = '';
                     } else {
