@@ -67,24 +67,27 @@ function getDynamicAvatar(student) {
     return '/image/default_Male.svg';
 }
 
-// Render dynamic table rows with local SVG avatar integration
+// Render dynamic table rows with local SVG avatar integration & deep search
 function renderTable() {
     const tbody = document.getElementById("approval-table-body");
-    const searchVal = (document.getElementById("search-student")?.value || "").toLowerCase();
+    const searchVal = (document.getElementById("search-student")?.value || "").toLowerCase().trim();
 
     if (!tbody) return;
     tbody.innerHTML = "";
 
     const filtered = allStudents.filter(item => {
+        // 1. Status Filter (All, Pending, Approved, Returned)
         const status = (item.status || "pending").toLowerCase();
         const statusMatch = currentFilter === "all" || status === currentFilter.toLowerCase();
 
-        const name = (item.full_name || "").toLowerCase();
-        const email = (item.email || "").toLowerCase();
-        const phone = (item.phone || "").toLowerCase();
-        const ic = (item.ic_number || "").toLowerCase();
-        
-        const searchMatch = name.includes(searchVal) || email.includes(searchVal) || phone.includes(searchVal) || ic.includes(searchVal);
+        // 2. Multi-field Search Filter across ALL properties from users & hostel_applications tables
+        let searchMatch = true;
+        if (searchVal) {
+            searchMatch = Object.values(item).some(value => {
+                if (value === null || value === undefined) return false;
+                return String(value).toLowerCase().includes(searchVal);
+            });
+        }
 
         return statusMatch && searchMatch;
     });
