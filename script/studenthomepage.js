@@ -24,6 +24,26 @@ function getDynamicAvatar(student) {
 }
 
 // ==========================================
+// EXPIRED MODAL CONTROLLERS
+// ==========================================
+function showExpiredModal() {
+    const expiredModal = document.getElementById('expired-modal');
+    if (expiredModal) {
+        expiredModal.style.display = 'flex';
+        expiredModal.classList.add('active');
+    }
+}
+
+// Fallback logout handler
+if (typeof window.executeLogout !== 'function') {
+    window.executeLogout = function() {
+        localStorage.removeItem('userData');
+        sessionStorage.clear();
+        window.location.href = '/login.html'; // Adjust to your login page route
+    };
+}
+
+// ==========================================
 // 1. INITIALIZATION & STATUS FETCH
 // ==========================================
 window.addEventListener('load', async () => {
@@ -74,7 +94,7 @@ async function fetchStudentStatus(userId) {
             populateAccountModal(mergedUser);
         }
 
-        // Trigger UI status transition and countdown
+        // Trigger UI status transition and timer calculation
         updateDashboardState(
             data.status || 'pending', 
             data.roomDetails || null, 
@@ -125,7 +145,7 @@ function updateDashboardState(status, details = null, reason = null, allowExpira
             setElementText('failReason', `Reason: ${reason || 'No Data'}`);
 
         } else {
-            // PENDING STATE: Show banner and start timer
+            // PENDING STATE: Show banner and start timer/check expiration
             mainContainer.classList.add('status-pending');
             
             if (allowExpirationCheck && user) {
@@ -172,20 +192,30 @@ function startCountdownTimer(user) {
             || document.querySelector('#deadlineBanner span') 
             || document.querySelector('#deadlineBanner');
 
+        // IF EXPIRED
         if (diff <= 0) {
             if (countdownInterval) clearInterval(countdownInterval);
+            
             if (countdownElement) {
-                countdownElement.innerText = "Account Termination Countdown: Expired";
+                const timerSpan = document.getElementById('timerDisplay');
+                if (timerSpan) {
+                    timerSpan.innerText = "Expired";
+                } else {
+                    countdownElement.innerText = "Account Termination Countdown: Expired";
+                }
             }
+
+            // Trigger the modal display immediately
+            showExpiredModal();
             return;
         }
 
+        // IF NOT EXPIRED YET:
         const days = Math.floor(diff / (1000 * 60 * 60 * 24));
         const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
-        // Format as Days, Hours, Minutes, Seconds
         let formattedTime = '';
         if (days > 0) {
             formattedTime = `${days}d ${String(hours).padStart(2, '0')}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`;
@@ -205,8 +235,13 @@ function startCountdownTimer(user) {
         }
     }
 
+    // Run check immediately on load
     updateTimer();
-    countdownInterval = setInterval(updateTimer, 1000);
+    
+    // Continue interval if not expired
+    if (targetTime - Date.now() > 0) {
+        countdownInterval = setInterval(updateTimer, 1000);
+    }
 }
 
 function updateStatusPills(status) {
