@@ -3,6 +3,25 @@
 let countdownInterval = null;
 let currentProfileImage = null;
 
+function getDynamicAvatar(student) {
+    if (!student) return '/image/default_Male.svg';
+
+    if (student.profile_picture && 
+        student.profile_picture.trim() !== '' && 
+        !student.profile_picture.includes('ui-avatars.com')) {
+        return student.profile_picture;
+    }
+
+    const gender = (student.gender || '').toLowerCase().trim();
+
+    if (gender === 'perempuan' || gender === 'female' || gender === 'p') {
+        return '/image/default_Female.svg';
+    }
+
+    // Default fallback for Lelaki / Male or unspecified
+    return '/image/default_Male.svg';
+}
+
 // ==========================================
 // 1. INITIALIZATION
 // ==========================================
@@ -172,8 +191,6 @@ function startRegistrationCountdown(deadlineIsoString) {
     countdownInterval = setInterval(updateTimer, 1000);
 }
 
-
-
 // ==========================================
 // 3. ACCOUNT MODAL HANDLERS
 // ==========================================
@@ -193,7 +210,7 @@ function populateAccountModal(user) {
     document.getElementById('accEmail').value = user.email || '';
     document.getElementById('accPhone').value = user.phone || '';
 
-    const avatarSrc = user.profile_picture || '/image/default_avatar.png';
+    const avatarSrc = getDynamicAvatar(user);
     
     // Update both modal avatar and nav header avatar
     const modalAvatar = document.getElementById('profileAvatar');
