@@ -3,7 +3,6 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
   const url = new URL(request.url);
   const method = request.method;
 
-  // 1. GET Account Status & Room Details
   if (method === 'GET' && url.pathname === '/api/student/status') {
     const userId = url.searchParams.get('user_id');
 
@@ -15,7 +14,6 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
     }
 
     try {
-      // Fetch user account details + hostel application data
       const data = await env.DB.prepare(`
         SELECT 
           u.id AS user_id,
@@ -27,6 +25,7 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
           u.registration_deadline,
           u.created_at,
           ha.id AS application_id,
+          ha.gender, -- Select gender from hostel_applications table
           ha.reject_reason,
           r.block,
           r.room_number,
@@ -46,13 +45,18 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
         });
       }
 
+      // Map 'active' or 'approved' to 'approved'
+      let normalizedStatus = (data.account_status || 'pending').toLowerCase();
+      if (normalizedStatus === 'active') normalizedStatus = 'approved';
+
       return new Response(JSON.stringify({
-        status: data.account_status || 'pending',
+        status: normalizedStatus,
         user: {
           id: data.user_id,
           username: data.username || 'N/A',
           email: data.email || 'N/A',
           phone: data.phone || 'N/A',
+          gender: data.gender || '', // Include gender in user object
           profile_picture: data.profile_picture || null,
           registration_deadline: data.registration_deadline,
           created_at: data.created_at
@@ -74,66 +78,6 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
         error: 'Failed to query student status', 
         details: err.message 
       }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
-  }
-
-  // 2. UPDATE Profile Data
-  if (method === 'PUT' && url.pathname === '/api/student/update-profile') {
-    try {
-      const { user_id, username, email, phone, profile_picture } = await request.json();
-
-      if (!user_id) {
-        return new Response(JSON.stringify({ error: 'User ID is required' }), {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
-      }
-
-      await env.DB.prepare(`
-        UPDATE users 
-        SET username = COALESCE(?, username),
-            email = COALESCE(?, email),
-            phone = COALESCE(?, phone),
-            profile_picture = COALESCE(?, profile_picture)
-        WHERE id = ?
-      `).bind(username, email, phone, profile_picture, user_id).run();
-
-      return new Response(JSON.stringify({ success: true }), { 
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      });
-    } catch (err) {
-      return new Response(JSON.stringify({ error: 'Failed to update profile', details: err.message }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
-  }
-
-  // 3. DELETE Account
-  if (method === 'DELETE' && url.pathname === '/api/student/delete-account') {
-    try {
-      const { user_id } = await request.json();
-
-      if (!user_id) {
-        return new Response(JSON.stringify({ error: 'User ID is required' }), {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
-      }
-
-      await env.DB.prepare(`UPDATE hostel_applications SET user_id = NULL WHERE user_id = ?`).bind(user_id).run();
-      await env.DB.prepare(`DELETE FROM users WHERE id = ?`).bind(user_id).run();
-
-      return new Response(JSON.stringify({ success: true }), { 
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      });
-    } catch (err) {
-      return new Response(JSON.stringify({ error: 'Failed to delete account', details: err.message }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
