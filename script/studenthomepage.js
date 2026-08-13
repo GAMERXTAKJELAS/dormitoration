@@ -14,25 +14,28 @@ function getDynamicAvatar(student) {
 
     const gender = (student.gender || '').toLowerCase().trim();
 
-    // Correctly matches 'perempuan' from your hostel_applications table
-    if (gender === 'Perempuan' || gender === 'female' || gender === 'p') {
+    if (gender === 'perempuan' || gender === 'female' || gender === 'p') {
         return '/image/default_Female.svg';
     }
 
+    // Explicit fallback using underscore, avoid spaces in URLs
     return '/image/default_Male.svg';
 }
 
 // ==========================================
 // 1. INITIALIZATION
 // ==========================================
-document.addEventListener('DOMContentLoaded', async () => {
-    // 1. Get stored user data (handles both 'id' or 'user_id' keys)
+window.addEventListener('load', async () => {
     const userData = JSON.parse(localStorage.getItem('userData') || '{}');
     const userId = userData.id || userData.user_id;
 
+    // Fast-set initial avatar preview
+    const headerAvatar = document.getElementById('navHeaderAvatar');
+    if (headerAvatar && userData) {
+        headerAvatar.src = getDynamicAvatar(userData);
+    }
+
     if (!userId) {
-        console.warn('No valid User ID found in localStorage.');
-        // Show pending view without triggering instant expiration modal
         updateDashboardState('pending', null, null, false); 
         return;
     }
