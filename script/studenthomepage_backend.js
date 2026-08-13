@@ -14,39 +14,30 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
     }
 
     try {
-      // Query fetching directly from hostel_applications for submission_status and gender
+      // Query ONLY existing columns in users and hostel_applications
       const data = await env.DB.prepare(`
         SELECT 
           u.id AS user_id,
           u.username,
           u.email,
           u.phone,
-          u.profile_picture,
-          u.registration_deadline,
-          u.created_at,
           ha.gender AS gender,
-          ha.id AS application_id,
-          ha.submission_status,
-          ha.reject_reason,
-          r.block_name,
-          r.room_number,
-          r.keycode AS passcode
+          ha.submission_status
         FROM users u
         LEFT JOIN hostel_applications ha ON u.id = ha.user_id
-        LEFT JOIN rooms r ON ha.room_id = r.id
         WHERE u.id = ?
         ORDER BY ha.id DESC 
         LIMIT 1
       `).bind(userId).first();
 
       if (!data) {
-        return new Response(JSON.stringify({ status: 'pending', user: null, roomDetails: null }), {
+        return new Response(JSON.stringify({ status: 'pending', user: null }), {
           status: 200,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
       }
 
-      // Read directly from submission_status
+      // Check submission_status
       let rawStatus = (data.submission_status || 'pending').toLowerCase().trim();
       let normalizedStatus = 'pending';
 
@@ -55,8 +46,7 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
       } else if (['returned', 'rejected', 'fail'].includes(rawStatus)) {
         normalizedStatus = 'returned';
       } else {
-        // Covers 'pending', 'draft', or null
-        normalizedStatus = 'pending';
+        normalizedStatus = 'pending'; // Handles 'pending', 'draft', or null
       }
 
       return new Response(JSON.stringify({
@@ -67,16 +57,8 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
           email: data.email || 'N/A',
           phone: data.phone || 'N/A',
           gender: data.gender || '',
-          profile_picture: data.profile_picture || null,
-          registration_deadline: data.registration_deadline,
-          created_at: data.created_at
-        },
-        reason: data.reject_reason || null,
-        roomDetails: data.block_name ? {
-          block: data.block_name,
-          room_number: data.room_number,
-          passcode: data.passcode
-        } : null
+          profile_picture: null // Skipped until R2 is integrated
+        }
       }), { 
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
