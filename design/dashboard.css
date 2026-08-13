@@ -411,12 +411,24 @@ body {
     font-size: 0.9rem;
 }
 
+/* --- UPDATED: Limit box height to 5 students & enable scroll --- */
 .content-card {
     background: var(--card-bg);
     border-radius: 15px;
     border: 1px solid var(--border-color);
-    overflow-x: auto;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    max-height: 385px; /* Fits header + exactly ~5 student rows */
+    overflow-y: auto;  /* Enables vertical scrolling for 6+ students */
+    overflow-x: auto;
+}
+
+/* Sticky Header so column titles stay pinned while scrolling rows */
+.dashboard-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--card-bg);
+    box-shadow: 0 1px 0 var(--border-color);
 }
 
 .dashboard-table {
@@ -427,12 +439,10 @@ body {
 
 .dashboard-table th {
     padding: 16px 20px;
-    background: rgba(0, 0, 0, 0.05);
     color: var(--text-muted);
     font-size: 0.85rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    border-bottom: 1px solid var(--border-color);
 }
 
 .dashboard-table td {
@@ -450,49 +460,6 @@ body {
     text-align: center; 
     color: var(--text-muted); 
     padding: 40px !important;
-}
-
-/* Action Icons Container */
-.actions-cell {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-/* Icon-only Action Buttons */
-.btn-action-icon {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid var(--border-color);
-    color: var(--text-color);
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-    transition: all 0.2s ease;
-}
-
-.btn-action-icon:hover {
-    background: var(--primary-color);
-    color: #ffffff;
-    border-color: var(--primary-color);
-}
-
-.btn-action-icon.disabled,
-.btn-action-icon:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-    background: rgba(255, 255, 255, 0.03);
-}
-
-.btn-action-icon.disabled:hover {
-    background: rgba(255, 255, 255, 0.03);
-    color: var(--text-color);
-    border-color: var(--border-color);
 }
 
 /* ==========================================================================

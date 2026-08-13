@@ -66,28 +66,6 @@ async function loadActiveStudents() {
     }
 }
 
-/**
- * Dynamic local SVG avatar selector
- */
-function getDynamicAvatar(student) {
-    // 1. If student uploaded a custom profile picture, use it
-    if (student.profile_picture && 
-        student.profile_picture.trim() !== '' && 
-        !student.profile_picture.includes('ui-avatars.com')) {
-        return student.profile_picture;
-    }
-
-    // 2. Normalize DB gender string ('Perempuan', 'Lelaki', etc.)
-    const gender = (student.gender || '').toLowerCase().trim();
-
-    if (gender === 'perempuan' || gender === 'female' || gender === 'p') {
-        return '/image/default_Female.svg';
-    }
-
-    // 3. Default fallback for 'Lelaki', 'Male', or missing values
-    return '/image/default_Male.svg';
-}
-
 // Render Filtered Active Students Table
 function renderActiveStudentsTable() {
     const tbody = document.getElementById("active-students-tbody");
@@ -119,8 +97,6 @@ function renderActiveStudentsTable() {
         const tr = document.createElement("tr");
 
         const studentName = student.full_name || 'Student';
-        
-        // Exact same dynamic function as approval.js
         const avatarUrl = getDynamicAvatar(student);
         const fallbackMaleAvatar = '/image/default_Male.svg';
 
