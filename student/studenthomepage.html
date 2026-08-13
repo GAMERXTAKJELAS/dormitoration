@@ -50,13 +50,13 @@
                 <button class="btn-icon" onclick="closeAccountModal()"><i class='bx bx-x'></i></button>
             </div>
 
-            <div class="profile-avatar-container">
-                <img id="profileAvatar" src="https://via.placeholder.com/100" alt="Profile Picture" class="avatar-img">
-                <label for="avatarUpload" class="avatar-upload-btn" title="Upload New Picture">
-                    <i class='bx bx-camera'></i>
-                </label>
-                <input type="file" id="avatarUpload" accept="image/*" style="display: none;" onchange="handleAvatarUpload(event)">
-            </div>
+<div class="profile-avatar-container">
+    <img id="profileAvatar" src="/image/default_Male.svg" alt="Profile Picture" class="avatar-img">
+    <label for="avatarUpload" class="avatar-upload-btn" title="Upload New Picture">
+        <i class='bx bx-camera'></i>
+    </label>
+    <input type="file" id="avatarUpload" accept="image/*" style="display: none;" onchange="handleAvatarUpload(event)">
+</div>
 
             <form id="accountForm" onsubmit="handleAccountSave(event)">
                 <div class="form-group">
@@ -91,7 +91,7 @@
         </div>
     </div>
 
-    <!-- Top Navigation Header -->
+<!-- Top Navigation Header -->
 <header class="top-nav">
     <div class="nav-container">
         <div class="brand">
@@ -102,7 +102,7 @@
         <nav class="nav-links">
             <div class="user-controls">
                 <a href="javascript:void(0)" onclick="openAccountModal()" class="nav-item nav-account">
-                    <img id="navHeaderAvatar" src="/image/default_avatar.png" alt="Account" class="nav-avatar-img" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=User&background=47f59b&color=121212';">
+                    <img id="navHeaderAvatar" src="/image/default_Male.svg" alt="Profile" class="nav-avatar-img">
                     <span class="hide-mobile">Account</span>
                 </a>
                 <a href="javascript:void(0)" onclick="openLogoutModal()" class="nav-item">
