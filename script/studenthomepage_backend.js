@@ -1,4 +1,5 @@
 // studenthomepage_backend.js
+
 export async function handleStudentRoutes(request, env, corsHeaders) {
   const url = new URL(request.url);
   const method = request.method;
@@ -14,13 +15,15 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
     }
 
     try {
-      // Query ONLY existing columns in users and hostel_applications
-      const data = await env.DB.prepare(`
+      // 1. Fetch user & hostel application status
+      const userQuery = env.DB.prepare(`
         SELECT 
           u.id AS user_id,
           u.username,
           u.email,
           u.phone,
+          u.created_at,
+          u.registration_deadline,
           ha.gender AS gender,
           ha.submission_status
         FROM users u
@@ -28,7 +31,20 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
         WHERE u.id = ?
         ORDER BY ha.id DESC 
         LIMIT 1
-      `).bind(userId).first();
+      `).bind(userId);
+
+      // 2. Query admin duration settings from system_settings table
+      const settingsQuery = env.DB.prepare(`
+        SELECT setting_key, setting_value 
+        FROM system_settings 
+        WHERE setting_key IN ('temp_account_deadline_value', 'temp_account_deadline_unit')
+      `);
+
+      // Run database operations concurrently
+      const [data, settingsResult] = await Promise.all([
+        userQuery.first(),
+        settingsQuery.all()
+      ]);
 
       if (!data) {
         return new Response(JSON.stringify({ status: 'pending', user: null }), {
@@ -37,7 +53,35 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
         });
       }
 
-      // Check submission_status
+      // Map system settings values
+      const settings = {};
+      if (settingsResult && settingsResult.results) {
+        settingsResult.results.forEach(row => {
+          settings[row.setting_key] = row.setting_value;
+        });
+      }
+
+      const durationValue = parseFloat(settings['temp_account_deadline_value']) || 24;
+      const durationUnit = String(settings['temp_account_deadline_unit'] || 'hours').toLowerCase().trim();
+
+      // Calculate deadline dynamically based on created_at and admin settings
+      let calculatedDeadline = data.registration_deadline;
+
+      if (!calculatedDeadline && data.created_at) {
+        const createdMs = new Date(data.created_at.replace(' ', 'T')).getTime();
+        if (!isNaN(createdMs)) {
+          let multiplier = 60 * 60 * 1000; // default to hours
+          if (durationUnit.startsWith('day')) {
+            multiplier = 24 * 60 * 60 * 1000;
+          } else if (durationUnit.startsWith('min')) {
+            multiplier = 60 * 1000;
+          }
+
+          const calculatedTime = new Date(createdMs + (durationValue * multiplier));
+          calculatedDeadline = calculatedTime.toISOString();
+        }
+      }
+
       let rawStatus = (data.submission_status || 'pending').toLowerCase().trim();
       let normalizedStatus = 'pending';
 
@@ -46,7 +90,7 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
       } else if (['returned', 'rejected', 'fail'].includes(rawStatus)) {
         normalizedStatus = 'returned';
       } else {
-        normalizedStatus = 'pending'; // Handles 'pending', 'draft', or null
+        normalizedStatus = 'pending';
       }
 
       return new Response(JSON.stringify({
@@ -57,7 +101,8 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
           email: data.email || 'N/A',
           phone: data.phone || 'N/A',
           gender: data.gender || '',
-          profile_picture: null // Skipped until R2 is integrated
+          created_at: data.created_at || null,
+          registration_deadline: calculatedDeadline || null
         }
       }), { 
         status: 200,
@@ -65,11 +110,8 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
       });
 
     } catch (err) {
-      console.error('D1 Query Error in handleStudentRoutes:', err.message);
-      return new Response(JSON.stringify({ 
-        error: 'Failed to query student status', 
-        details: err.message 
-      }), {
+      console.error('D1 Query Error:', err.message);
+      return new Response(JSON.stringify({ error: 'Failed to query status', details: err.message }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });

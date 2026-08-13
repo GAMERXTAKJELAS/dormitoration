@@ -64,7 +64,7 @@ async function fetchStudentStatus(userId) {
 
             localStorage.setItem('userData', JSON.stringify(mergedUser));
             
-            // Re-render header avatar once DB returns gender from hostel_applications
+            // Re-render header avatar once DB returns gender
             const headerAvatar = document.getElementById('navHeaderAvatar');
             if (headerAvatar) {
                 headerAvatar.src = getDynamicAvatar(mergedUser);
@@ -74,25 +74,26 @@ async function fetchStudentStatus(userId) {
             populateAccountModal(mergedUser);
         }
 
-        // Trigger UI status transition
+        // Trigger UI status transition and countdown
         updateDashboardState(
             data.status || 'pending', 
             data.roomDetails || null, 
             data.reason || null,
-            true 
+            true,
+            data.user
         );
 
     } catch (err) {
         console.error('Failed to fetch status from server:', err);
         const localData = JSON.parse(localStorage.getItem('userData') || '{}');
-        updateDashboardState(localData.status || 'pending', null, null, false);
+        updateDashboardState(localData.status || 'pending', null, null, false, localData);
     }
 }
 
 // ==========================================
-// 2. DASHBOARD RENDERER
+// 2. DASHBOARD RENDERER & TIMER
 // ==========================================
-function updateDashboardState(status, details = null, reason = null, allowExpirationCheck = true) {
+function updateDashboardState(status, details = null, reason = null, allowExpirationCheck = true, user = null) {
     const mainContainer = document.getElementById('mainContainer');
     const deadlineBanner = document.getElementById('deadlineBanner');
     if (!mainContainer) return;
@@ -105,7 +106,7 @@ function updateDashboardState(status, details = null, reason = null, allowExpira
         updateStatusPills(normalizedStatus);
 
         if (['active', 'approved', 'success'].includes(normalizedStatus)) {
-            // STOP COUNTDOWN
+            // STOP COUNTDOWN & HIDE BANNER FOR APPROVED STATUS
             if (countdownInterval) clearInterval(countdownInterval);
             if (deadlineBanner) deadlineBanner.style.display = 'none';
 
@@ -116,7 +117,7 @@ function updateDashboardState(status, details = null, reason = null, allowExpira
             setElementText('displayPasscode', details && details.passcode ? details.passcode : 'No Data');
 
         } else if (['returned', 'rejected', 'fail'].includes(normalizedStatus)) {
-            // STOP COUNTDOWN
+            // STOP COUNTDOWN & HIDE BANNER FOR REJECTED STATUS
             if (countdownInterval) clearInterval(countdownInterval);
             if (deadlineBanner) deadlineBanner.style.display = 'none';
 
@@ -124,9 +125,13 @@ function updateDashboardState(status, details = null, reason = null, allowExpira
             setElementText('failReason', `Reason: ${reason || 'No Data'}`);
 
         } else {
-            // PENDING STATE
+            // PENDING STATE: Show banner and start timer
             mainContainer.classList.add('status-pending');
-            if (!allowExpirationCheck && deadlineBanner) {
+            
+            if (allowExpirationCheck && user) {
+                if (deadlineBanner) deadlineBanner.style.display = 'block';
+                startCountdownTimer(user);
+            } else if (deadlineBanner) {
                 deadlineBanner.style.display = 'none';
             }
         }
@@ -134,6 +139,74 @@ function updateDashboardState(status, details = null, reason = null, allowExpira
         mainContainer.style.visibility = 'visible';
         mainContainer.style.opacity = '1';
     });
+}
+
+function startCountdownTimer(user) {
+    if (countdownInterval) clearInterval(countdownInterval);
+
+    let targetTime = null;
+
+    // 1. Check calculated registration deadline from backend
+    if (user && user.registration_deadline) {
+        targetTime = new Date(user.registration_deadline.replace(' ', 'T')).getTime();
+    }
+    
+    // 2. Fallback: Default to created_at + 24 hours
+    if ((!targetTime || isNaN(targetTime)) && user && user.created_at) {
+        const createdMs = new Date(user.created_at.replace(' ', 'T')).getTime();
+        if (!isNaN(createdMs)) {
+            targetTime = createdMs + (24 * 60 * 60 * 1000);
+        }
+    }
+
+    // 3. Ultimate Fallback: 24 hours from right now
+    if (!targetTime || isNaN(targetTime)) {
+        targetTime = Date.now() + (24 * 60 * 60 * 1000);
+    }
+
+    function updateTimer() {
+        const now = Date.now();
+        const diff = targetTime - now;
+
+        const countdownElement = document.getElementById('accountCountdown') 
+            || document.querySelector('#deadlineBanner span') 
+            || document.querySelector('#deadlineBanner');
+
+        if (diff <= 0) {
+            if (countdownInterval) clearInterval(countdownInterval);
+            if (countdownElement) {
+                countdownElement.innerText = "Account Termination Countdown: Expired";
+            }
+            return;
+        }
+
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+        // Format as Days, Hours, Minutes, Seconds
+        let formattedTime = '';
+        if (days > 0) {
+            formattedTime = `${days}d ${String(hours).padStart(2, '0')}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`;
+        } else {
+            formattedTime = `${String(hours).padStart(2, '0')}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`;
+        }
+
+        const formattedText = `Account Termination Countdown: ${formattedTime}`;
+
+        if (countdownElement) {
+            const timerSpan = document.getElementById('timerDisplay');
+            if (timerSpan) {
+                timerSpan.innerText = formattedTime;
+            } else {
+                countdownElement.innerText = formattedText;
+            }
+        }
+    }
+
+    updateTimer();
+    countdownInterval = setInterval(updateTimer, 1000);
 }
 
 function updateStatusPills(status) {
@@ -157,7 +230,6 @@ function setElementText(id, text) {
 // 3. ACCOUNT PROFILE MODAL CONTROLLERS
 // ==========================================
 
-// Populates form inputs and profile image in the modal
 function populateAccountModal(user) {
     if (!user) return;
 
@@ -175,7 +247,6 @@ function populateAccountModal(user) {
     }
 }
 
-// Open Account Modal
 function openAccountModal() {
     const modal = document.getElementById('account-modal');
     if (!modal) return;
@@ -183,14 +254,12 @@ function openAccountModal() {
     const storedUser = JSON.parse(localStorage.getItem('userData') || '{}');
     populateAccountModal(storedUser);
 
-    // Reset inputs back to disabled view-only mode on open
     setEditState(false);
 
     modal.style.display = 'flex';
     modal.classList.add('active');
 }
 
-// Close Account Modal
 function closeAccountModal() {
     const modal = document.getElementById('account-modal');
     if (modal) {
@@ -199,7 +268,6 @@ function closeAccountModal() {
     }
 }
 
-// Toggle between View and Edit states inside the modal
 function toggleAccountEditMode() {
     const usernameInput = document.getElementById('accUsername');
     const isCurrentlyDisabled = usernameInput ? usernameInput.disabled : true;
@@ -228,7 +296,6 @@ function setEditState(enableEdit) {
     }
 }
 
-// Save profile changes to Worker backend
 async function handleAccountSave(e) {
     e.preventDefault();
 
@@ -264,7 +331,6 @@ async function handleAccountSave(e) {
             throw new Error(result.error || 'Failed to update account.');
         }
 
-        // Update local session
         const mergedUser = { 
             ...storedUser, 
             username: updatedUsername, 
@@ -275,10 +341,7 @@ async function handleAccountSave(e) {
 
         alert('Account details updated successfully!');
         
-        // Return back to disabled view mode
         setEditState(false);
-
-        // Refresh status & sync avatar/UI
         await fetchStudentStatus(userId);
 
     } catch (err) {
@@ -287,7 +350,6 @@ async function handleAccountSave(e) {
     }
 }
 
-// Avatar file upload placeholder until R2 is integrated
 function handleAvatarUpload(e) {
     alert('Avatar upload feature will be available once R2 bucket storage is connected.');
 }
@@ -296,7 +358,6 @@ function handleAvatarUpload(e) {
 // 4. EVENT LISTENERS
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
-    // Connect click triggers for profile modal (navbar avatar or account button)
     const navAvatar = document.getElementById('navHeaderAvatar');
     const accountNavBtn = document.getElementById('accountNavBtn');
 
