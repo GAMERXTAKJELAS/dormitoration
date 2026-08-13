@@ -7,12 +7,14 @@ let currentProfileImage = null;
 // 1. INITIALIZATION
 // ==========================================
 document.addEventListener('DOMContentLoaded', async () => {
+    // 1. Get stored user data (handles both 'id' or 'user_id' keys)
     const userData = JSON.parse(localStorage.getItem('userData') || '{}');
     const userId = userData.id || userData.user_id;
 
     if (!userId) {
-        console.warn('No User ID found in localStorage.');
-        updateDashboardState('pending');
+        console.warn('No valid User ID found in localStorage.');
+        // Show pending view without triggering instant expiration modal
+        updateDashboardState('pending', null, null, false); 
         return;
     }
 
@@ -24,36 +26,44 @@ async function fetchStudentStatus(userId) {
         const response = await fetch(`/api/student/status?user_id=${encodeURIComponent(userId)}`);
         
         if (!response.ok) {
-            throw new Error(`Server status: ${response.status}`);
+            throw new Error(`Server returned status: ${response.status}`);
         }
 
         const data = await response.json();
 
-        // Save fresh user details in localStorage
+        // Save fresh account status & info back into localStorage
         if (data.user) {
+            const currentStored = JSON.parse(localStorage.getItem('userData') || '{}');
             localStorage.setItem('userData', JSON.stringify({
-                ...JSON.parse(localStorage.getItem('userData') || '{}'),
-                ...data.user
+                ...currentStored,
+                ...data.user,
+                status: data.status // Ensure status is synced
             }));
-            populateAccountModal(data.user);
+            
+            if (typeof populateAccountModal === 'function') {
+                populateAccountModal(data.user);
+            }
         }
 
+        // Pass official status from server
         updateDashboardState(
             data.status || 'pending', 
             data.roomDetails || null, 
-            data.reason || null
+            data.reason || null,
+            true // allow countdown trigger only if genuinely pending
         );
 
     } catch (err) {
-        console.error('Failed to load status:', err);
-        updateDashboardState('pending');
+        console.error('Failed to fetch status from server:', err);
+        // Fallback safely without locking out user with fake expiration
+        updateDashboardState('pending', null, null, false);
     }
 }
 
 // ==========================================
 // 2. DASHBOARD RENDERER
 // ==========================================
-function updateDashboardState(status, details = null, reason = null) {
+function updateDashboardState(status, details = null, reason = null, allowExpirationCheck = true) {
     const mainContainer = document.getElementById('mainContainer');
     const deadlineBanner = document.getElementById('deadlineBanner');
     if (!mainContainer) return;
@@ -61,39 +71,52 @@ function updateDashboardState(status, details = null, reason = null) {
     const userData = JSON.parse(localStorage.getItem('userData') || '{}');
     const normalizedStatus = String(status || '').toLowerCase().trim();
 
-    // Reset container classes
+    // Reset view classes
     mainContainer.classList.remove('status-pending', 'status-success', 'status-fail');
 
-    // Update Pills
+    // Update Status Indicator Pills
     updateStatusPills(normalizedStatus);
 
-    // Countdown handling for pending status
-    if (normalizedStatus === 'pending') {
-        mainContainer.classList.add('status-pending');
-        if (deadlineBanner) deadlineBanner.style.display = 'flex';
-
-        let deadlineStr = userData.registration_deadline;
-        if (!deadlineStr && userData.created_at) {
-            const createdDate = new Date(userData.created_at);
-            const fallbackDeadline = new Date(createdDate.getTime() + (7 * 24 * 60 * 60 * 1000));
-            deadlineStr = fallbackDeadline.toISOString();
-        }
-        if (deadlineStr) startRegistrationCountdown(deadlineStr);
-
-    } else {
+    // --- CASE A: ACTIVE / APPROVED / SUCCESS ---
+    if (['active', 'approved', 'success'].includes(normalizedStatus)) {
+        // 1. Clear any running countdowns and hide banner
         if (countdownInterval) clearInterval(countdownInterval);
         if (deadlineBanner) deadlineBanner.style.display = 'none';
 
-        if (['active', 'approved', 'success'].includes(normalizedStatus)) {
-            mainContainer.classList.add('status-success');
-            
-            setElementText('displayBlock', details && details.block ? `Block: ${details.block}` : 'Block: No Data');
-            setElementText('displayRoom', details && details.room_number ? `Room: ${details.room_number}` : 'Room: No Data');
-            setElementText('displayPasscode', details && details.passcode ? details.passcode : 'No Data');
+        // 2. Hide Expired Modal if it was accidentally shown
+        const expiredModal = document.getElementById('expired-modal');
+        if (expiredModal) expiredModal.style.display = 'none';
 
-        } else if (['returned', 'rejected', 'fail'].includes(normalizedStatus)) {
-            mainContainer.classList.add('status-fail');
-            setElementText('failReason', `Reason: ${reason || 'No Data'}`);
+        mainContainer.classList.add('status-success');
+        
+        setElementText('displayBlock', details && details.block ? `Block: ${details.block}` : 'Block: No Data');
+        setElementText('displayRoom', details && details.room_number ? `Room: ${details.room_number}` : 'Room: No Data');
+        setElementText('displayPasscode', details && details.passcode ? details.passcode : 'No Data');
+
+    // --- CASE B: RETURNED / REJECTED ---
+    } else if (['returned', 'rejected', 'fail'].includes(normalizedStatus)) {
+        if (countdownInterval) clearInterval(countdownInterval);
+        if (deadlineBanner) deadlineBanner.style.display = 'none';
+
+        mainContainer.classList.add('status-fail');
+        setElementText('failReason', `Reason: ${reason || 'No Data'}`);
+
+    // --- CASE C: PENDING (Only state where countdown applies) ---
+    } else {
+        mainContainer.classList.add('status-pending');
+
+        if (allowExpirationCheck) {
+            if (deadlineBanner) deadlineBanner.style.display = 'flex';
+
+            let deadlineStr = userData.registration_deadline;
+            if (!deadlineStr && userData.created_at) {
+                const createdDate = new Date(userData.created_at);
+                const fallbackDeadline = new Date(createdDate.getTime() + (7 * 24 * 60 * 60 * 1000));
+                deadlineStr = fallbackDeadline.toISOString();
+            }
+            if (deadlineStr) startRegistrationCountdown(deadlineStr);
+        } else {
+            if (deadlineBanner) deadlineBanner.style.display = 'none';
         }
     }
 
@@ -112,15 +135,6 @@ function updateStatusPills(status) {
         if (['returned', 'rejected', 'fail'].includes(status) && pillStatus === 'returned') pill.classList.add('active');
     });
 }
-// studenthomepage.js - Updated Section
-
-function showExpiredModal() {
-    const expiredModal = document.getElementById('expired-modal');
-    if (expiredModal) {
-        expiredModal.style.display = 'flex';
-        // Prevent clicking backdrop/esc key from closing it by keeping it forced open
-    }
-}
 
 function startRegistrationCountdown(deadlineIsoString) {
     if (countdownInterval) clearInterval(countdownInterval);
@@ -136,8 +150,11 @@ function startRegistrationCountdown(deadlineIsoString) {
             if (countdownInterval) clearInterval(countdownInterval);
             if (timerElement) timerElement.innerText = "00d 00h 00m 00s (Expired)";
             
-            // Trigger the expired modal
-            showExpiredModal();
+            // Only show modal if the account is actually still pending
+            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+            if (userData.status === 'pending' || !userData.status) {
+                showExpiredModal();
+            }
             return;
         }
 
@@ -153,6 +170,13 @@ function startRegistrationCountdown(deadlineIsoString) {
 
     updateTimer();
     countdownInterval = setInterval(updateTimer, 1000);
+}
+
+function showExpiredModal() {
+    const expiredModal = document.getElementById('expired-modal');
+    if (expiredModal) {
+        expiredModal.style.display = 'flex';
+    }
 }
 
 // ==========================================
