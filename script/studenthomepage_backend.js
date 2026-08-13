@@ -24,8 +24,8 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
           u.status AS account_status,
           u.registration_deadline,
           u.created_at,
+          ha.gender AS gender, -- Directly from hostel_applications
           ha.id AS application_id,
-          ha.gender, -- Select gender from hostel_applications table
           ha.reject_reason,
           r.block,
           r.room_number,
@@ -45,7 +45,7 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
         });
       }
 
-      // Map 'active' or 'approved' to 'approved'
+      // Map 'active' to 'approved'
       let normalizedStatus = (data.account_status || 'pending').toLowerCase();
       if (normalizedStatus === 'active') normalizedStatus = 'approved';
 
@@ -56,7 +56,7 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
           username: data.username || 'N/A',
           email: data.email || 'N/A',
           phone: data.phone || 'N/A',
-          gender: data.gender || '', // Include gender in user object
+          gender: data.gender || '', // Passes "Perempuan" or "Lelaki"
           profile_picture: data.profile_picture || null,
           registration_deadline: data.registration_deadline,
           created_at: data.created_at

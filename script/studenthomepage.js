@@ -14,11 +14,11 @@ function getDynamicAvatar(student) {
 
     const gender = (student.gender || '').toLowerCase().trim();
 
-    if (gender === 'perempuan' || gender === 'female' || gender === 'p') {
+    // Correctly matches 'perempuan' from your hostel_applications table
+    if (gender === 'Perempuan' || gender === 'female' || gender === 'p') {
         return '/image/default_Female.svg';
     }
 
-    // Default fallback for Lelaki / Male or unspecified
     return '/image/default_Male.svg';
 }
 
