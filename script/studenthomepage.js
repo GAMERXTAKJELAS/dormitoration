@@ -90,60 +90,41 @@ function updateDashboardState(status, details = null, reason = null, allowExpira
     const deadlineBanner = document.getElementById('deadlineBanner');
     if (!mainContainer) return;
 
-    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
     const normalizedStatus = String(status || '').toLowerCase().trim();
 
-    // Reset view classes
-    mainContainer.classList.remove('status-pending', 'status-success', 'status-fail');
+    // Use requestAnimationFrame to prevent forced sync layout
+    requestAnimationFrame(() => {
+        mainContainer.classList.remove('status-pending', 'status-success', 'status-fail');
 
-    // Update Status Indicator Pills
-    updateStatusPills(normalizedStatus);
+        updateStatusPills(normalizedStatus);
 
-    // --- CASE A: ACTIVE / APPROVED / SUCCESS ---
-    if (['active', 'approved', 'success'].includes(normalizedStatus)) {
-        // 1. Clear any running countdowns and hide banner
-        if (countdownInterval) clearInterval(countdownInterval);
-        if (deadlineBanner) deadlineBanner.style.display = 'none';
-
-        // 2. Hide Expired Modal if it was accidentally shown
-        const expiredModal = document.getElementById('expired-modal');
-        if (expiredModal) expiredModal.style.display = 'none';
-
-        mainContainer.classList.add('status-success');
-        
-        setElementText('displayBlock', details && details.block ? `Block: ${details.block}` : 'Block: No Data');
-        setElementText('displayRoom', details && details.room_number ? `Room: ${details.room_number}` : 'Room: No Data');
-        setElementText('displayPasscode', details && details.passcode ? details.passcode : 'No Data');
-
-    // --- CASE B: RETURNED / REJECTED ---
-    } else if (['returned', 'rejected', 'fail'].includes(normalizedStatus)) {
-        if (countdownInterval) clearInterval(countdownInterval);
-        if (deadlineBanner) deadlineBanner.style.display = 'none';
-
-        mainContainer.classList.add('status-fail');
-        setElementText('failReason', `Reason: ${reason || 'No Data'}`);
-
-    // --- CASE C: PENDING (Only state where countdown applies) ---
-    } else {
-        mainContainer.classList.add('status-pending');
-
-        if (allowExpirationCheck) {
-            if (deadlineBanner) deadlineBanner.style.display = 'flex';
-
-            let deadlineStr = userData.registration_deadline;
-            if (!deadlineStr && userData.created_at) {
-                const createdDate = new Date(userData.created_at);
-                const fallbackDeadline = new Date(createdDate.getTime() + (7 * 24 * 60 * 60 * 1000));
-                deadlineStr = fallbackDeadline.toISOString();
-            }
-            if (deadlineStr) startRegistrationCountdown(deadlineStr);
-        } else {
+        if (['active', 'approved', 'success'].includes(normalizedStatus)) {
+            if (countdownInterval) clearInterval(countdownInterval);
             if (deadlineBanner) deadlineBanner.style.display = 'none';
-        }
-    }
 
-    mainContainer.style.visibility = 'visible';
-    mainContainer.style.opacity = '1';
+            mainContainer.classList.add('status-success');
+            
+            setElementText('displayBlock', details && details.block ? `Block: ${details.block}` : 'Block: No Data');
+            setElementText('displayRoom', details && details.room_number ? `Room: ${details.room_number}` : 'Room: No Data');
+            setElementText('displayPasscode', details && details.passcode ? details.passcode : 'No Data');
+
+        } else if (['returned', 'rejected', 'fail'].includes(normalizedStatus)) {
+            if (countdownInterval) clearInterval(countdownInterval);
+            if (deadlineBanner) deadlineBanner.style.display = 'none';
+
+            mainContainer.classList.add('status-fail');
+            setElementText('failReason', `Reason: ${reason || 'No Data'}`);
+
+        } else {
+            mainContainer.classList.add('status-pending');
+            if (!allowExpirationCheck && deadlineBanner) {
+                deadlineBanner.style.display = 'none';
+            }
+        }
+
+        mainContainer.style.visibility = 'visible';
+        mainContainer.style.opacity = '1';
+    });
 }
 
 function updateStatusPills(status) {
