@@ -172,12 +172,7 @@ function startRegistrationCountdown(deadlineIsoString) {
     countdownInterval = setInterval(updateTimer, 1000);
 }
 
-function showExpiredModal() {
-    const expiredModal = document.getElementById('expired-modal');
-    if (expiredModal) {
-        expiredModal.style.display = 'flex';
-    }
-}
+
 
 // ==========================================
 // 3. ACCOUNT MODAL HANDLERS
