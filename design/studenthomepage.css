@@ -21,35 +21,55 @@ body {
     background-color: var(--body-color);
     color: var(--text-color);
     margin: 0;
-    font-family: 'Segoe UI', sans-serif;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow: hidden; /* Heights and scrolling handled by .scroll-container */
 }
 
 /* --- NAVIGATION --- */
 .top-nav {
     position: fixed;
-    top: 0; width: 100%; height: 70px;
+    top: 0; 
+    width: 100%; 
+    height: 70px;
     background-color: var(--sidebar-color);
     border-bottom: 1px solid var(--card-bg);
     z-index: 2000;
-    display: flex; align-items: center;
+    display: flex; 
+    align-items: center;
 }
 
 .nav-container {
-    width: 90%; max-width: 1200px;
-    margin: 0 auto; display: flex;
-    justify-content: space-between; align-items: center;
+    width: 90%; 
+    max-width: 1200px;
+    margin: 0 auto; 
+    display: flex;
+    justify-content: space-between; 
+    align-items: center;
 }
 
-.brand { display: flex; align-items: center; gap: 8px; font-weight: bold; color: var(--primary-color); }
-.nav-links { display: flex; align-items: center; gap: 15px; }
-.nav-links a { text-decoration: none; color: var(--text-color); }
+.brand { 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+    font-weight: bold; 
+    color: var(--primary-color); 
+    font-size: 1.2rem;
+}
 
-.theme-btn { background: none; border: none; color: var(--text-color); font-size: 1.4rem; cursor: pointer; }
+.nav-links { 
+    display: flex; 
+    align-items: center; 
+    gap: 15px; 
+}
 
-/* --- HEADER NAV & AVATAR FIXES --- */
+.theme-btn { 
+    background: none; 
+    border: none; 
+    color: var(--text-color); 
+    font-size: 1.4rem; 
+    cursor: pointer; 
+}
+
 .user-controls {
     display: flex;
     align-items: center;
@@ -78,19 +98,43 @@ body {
     border: 1.5px solid var(--primary-color);
 }
 
-/* --- MAIN CONTENT --- */
-.main-content {
-    flex: 1 0 auto; /* Ensures content expands naturally */
-    padding: 100px 5% 80px; /* Gives space so content doesn't collide with fixed top bar or footer */
-    max-width: 1200px;
-    margin: 0 auto;
-    width: 100%;
+/* --- SCROLL SNAP CONTAINER --- */
+.scroll-container {
+    height: 100vh;
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+}
+
+#mainContainer {
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.home-section {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    scroll-snap-align: start;
+    padding: 70px 10% 0;
     box-sizing: border-box;
-    min-height: calc(100vh - 70px); /* Keeps content area tall enough to require a scroll for footer */
+}
+
+.portal-wrapper {
+    width: 100%;
+    max-width: 1100px;
 }
 
 /* --- STATUS INDICATORS --- */
-.status-header { display: flex; gap: 10px; margin-bottom: 30px; justify-content: center; }
+.status-header { 
+    display: flex; 
+    gap: 10px; 
+    margin-bottom: 30px; 
+    justify-content: center; 
+}
+
 .status-indicator { 
     padding: 6px 18px; 
     border-radius: 20px; 
@@ -100,11 +144,11 @@ body {
     transition: var(--transition-smooth);
 }
 
-/* Status Active Pill Highlights */
 .status-indicator.pending.active { opacity: 1; color: #ffa500; border-color: #ffa500; font-weight: bold; }
 .status-indicator.success.active { opacity: 1; color: var(--primary-color); border-color: var(--primary-color); font-weight: bold; }
 .status-indicator.fail.active { opacity: 1; color: #ff6b6b; border-color: #ff6b6b; font-weight: bold; }
-/* --- LOGIC SHOW/HIDE VIEWS --- */
+
+/* --- DYNAMIC VIEWS --- */
 .view-success, 
 .view-fail, 
 .view-pending { 
@@ -116,19 +160,53 @@ body {
 .status-success .view-success { display: block; }
 .status-fail .view-fail { display: block; }
 
-/* --- CARDS --- */
-.info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+/* --- CARDS & INFO --- */
+.info-grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+    gap: 20px; 
+}
+
 .info-card, .error-card, .pending-card {
     background: var(--card-bg);
-    padding: 30px; border-radius: 15px;
+    padding: 30px; 
+    border-radius: 15px;
     border: 1px solid var(--sidebar-color);
 }
 
-.badge { background: var(--primary-color); color: var(--body-color); display: inline-block; padding: 4px 12px; border-radius: 4px; font-weight: bold; }
-.room-no { font-size: 2.5rem; font-weight: bold; margin: 10px 0; }
-.passcode { background: var(--body-color); padding: 15px; border-radius: 10px; margin: 20px 0; }
-.passcode p { font-size: 2.2rem; letter-spacing: 5px; color: var(--primary-color); margin: 0; }
-.qr-box i { font-size: 5rem; margin-top: 10px; }
+.badge { 
+    background: var(--primary-color); 
+    color: var(--body-color); 
+    display: inline-block; 
+    padding: 4px 12px; 
+    border-radius: 4px; 
+    font-weight: bold; 
+}
+
+.room-no { 
+    font-size: 2.5rem; 
+    font-weight: bold; 
+    margin: 10px 0; 
+}
+
+.passcode { 
+    background: var(--body-color); 
+    padding: 15px; 
+    border-radius: 10px; 
+    margin: 20px 0; 
+}
+
+.passcode p { 
+    font-size: 2.2rem; 
+    letter-spacing: 5px; 
+    color: var(--primary-color); 
+    margin: 0; 
+}
+
+.qr-box i { 
+    font-size: 5rem; 
+    margin-top: 10px; 
+}
 
 /* --- BUTTONS --- */
 .btn-primary { 
@@ -170,18 +248,20 @@ body {
     cursor: pointer;
 }
 
-/* --- FOOTER (ONLY VISIBLE ON SCROLL) --- */
+/* --- FOOTER SNAP --- */
 .main-footer { 
-    flex-shrink: 0;
-    padding: 25px 20px; 
+    height: 60px;
     background: var(--sidebar-color); 
-    text-align: center; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
     font-size: 0.85rem; 
     color: var(--text-muted);
     border-top: 1px solid var(--card-bg);
+    scroll-snap-align: end;
 }
 
-/* --- MODAL OVERLAYS --- */
+/* --- MODALS --- */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -207,11 +287,30 @@ body {
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
-.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-.modal-header h2 { margin: 0; color: var(--primary-color); font-size: 1.3rem; display: flex; align-items: center; gap: 8px; }
-.btn-icon { background: none; border: none; color: var(--text-color); font-size: 1.5rem; cursor: pointer; }
+.modal-header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 20px; 
+}
 
-/* Account Modal Styling */
+.modal-header h2 { 
+    margin: 0; 
+    color: var(--primary-color); 
+    font-size: 1.3rem; 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+}
+
+.btn-icon { 
+    background: none; 
+    border: none; 
+    color: var(--text-color); 
+    font-size: 1.5rem; 
+    cursor: pointer; 
+}
+
 .profile-avatar-container {
     position: relative;
     width: 100px;
@@ -244,8 +343,18 @@ body {
     box-shadow: 0 2px 8px rgba(0,0,0,0.4);
 }
 
-.form-group { margin-bottom: 15px; text-align: left; }
-.form-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px; }
+.form-group { 
+    margin-bottom: 15px; 
+    text-align: left; 
+}
+
+.form-group label { 
+    display: block; 
+    font-size: 0.85rem; 
+    color: var(--text-muted); 
+    margin-bottom: 5px; 
+}
+
 .form-input {
     width: 100%;
     padding: 10px 12px;
@@ -281,8 +390,8 @@ body {
     gap: 10px;
 }
 
-#mainContainer {
-    visibility: hidden;
-    opacity: 0;
-    transition: opacity 0.2s ease-in-out;
+@media (max-width: 600px) {
+    .hide-mobile {
+        display: none;
+    }
 }

@@ -45,7 +45,7 @@ export async function handleLogin(request, env, headers) {
 
         return new Response(
           JSON.stringify({
-            error: 'Account terminated. Your 1-week registration window has expired.'
+            error: 'Account terminated. Your registration window has expired.'
           }),
           { status: 403, headers }
         );
