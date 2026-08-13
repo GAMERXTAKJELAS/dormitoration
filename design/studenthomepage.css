@@ -53,7 +53,7 @@ body {
 /* --- MAIN CONTENT --- */
 .main-content {
     flex: 1;
-    padding: 100px 5% 40px;
+    padding: 100px 5% 60px;
     max-width: 1200px;
     margin: 0 auto;
     width: 100%;
@@ -61,37 +61,32 @@ body {
 }
 
 /* --- STATUS INDICATORS --- */
-.status-header { display: flex; gap: 10px; margin-bottom: 30px; }
+.status-header { display: flex; gap: 10px; margin-bottom: 30px; justify-content: center; }
 .status-indicator { 
-    padding: 6px 15px; 
+    padding: 6px 18px; 
     border-radius: 20px; 
-    font-size: 0.8rem; 
+    font-size: 0.85rem; 
     opacity: 0.3; 
     border: 1px solid var(--text-muted); 
-    transition: opacity 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    transition: var(--transition-smooth);
 }
 
-/* Active Indicator States */
-.status-pending .status-indicator.pending { opacity: 1; color: #ffa500; border-color: #ffa500; }
-.status-success .status-indicator.success { opacity: 1; color: var(--primary-color); border-color: var(--primary-color); }
-.status-fail .status-indicator.fail { opacity: 1; color: #ff6b6b; border-color: #ff6b6b; }
-.status-appealed .status-indicator.appealed { opacity: 1; color: #3498db; border-color: #3498db; }
+/* Status Active Indicator Colors */
+.status-pending .status-indicator.pending { opacity: 1; color: #ffa500; border-color: #ffa500; font-weight: bold; }
+.status-success .status-indicator.success { opacity: 1; color: var(--primary-color); border-color: var(--primary-color); font-weight: bold; }
+.status-fail .status-indicator.fail { opacity: 1; color: #ff6b6b; border-color: #ff6b6b; font-weight: bold; }
 
 /* --- LOGIC SHOW/HIDE VIEWS --- */
-.view-register, 
 .view-success, 
 .view-fail, 
-.view-pending, 
-.view-appealed { 
+.view-pending { 
     display: none; 
     text-align: center; 
 }
 
-.status-none .view-register { display: block; }
 .status-pending .view-pending { display: block; }
 .status-success .view-success { display: block; }
 .status-fail .view-fail { display: block; }
-.status-appealed .view-appealed { display: block; }
 
 /* --- CARDS --- */
 .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
@@ -108,18 +103,53 @@ body {
 .qr-box i { font-size: 5rem; margin-top: 10px; }
 
 /* --- BUTTONS --- */
-.btn-primary { background: var(--primary-color); color: var(--body-color); padding: 10px 25px; border-radius: 8px; text-decoration: none; font-weight: bold; }
-.btn-outline { border: 1px solid var(--primary-color); color: var(--primary-color); padding: 10px 25px; border-radius: 8px; text-decoration: none; }
+.btn-primary { 
+    background: var(--primary-color); 
+    color: var(--body-color); 
+    padding: 10px 20px; 
+    border-radius: 8px; 
+    text-decoration: none; 
+    font-weight: bold; 
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
 
-/* --- FOOTER --- */
-.main-footer { padding: 20px; background: var(--sidebar-color); text-align: center; font-size: 0.8rem; color: var(--text-muted); }
+.btn-outline { 
+    border: 1px solid var(--primary-color); 
+    color: var(--primary-color); 
+    background: transparent;
+    padding: 10px 20px; 
+    border-radius: 8px; 
+    text-decoration: none; 
+    font-weight: bold;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
 
-/* --- RESPONSIVE --- */
-@media (max-width: 600px) {
-    .hide-mobile { display: none; }
-    .status-header { flex-wrap: wrap; justify-content: center; }
-    .main-content { padding-top: 85px; }
-    .passcode p { font-size: 1.8rem; }
+.btn-danger {
+    background: #ff6b6b;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+}
+
+/* --- FOOTER (ONLY VISIBLE ON SCROLL) --- */
+.main-footer { 
+    padding: 25px 20px; 
+    background: var(--sidebar-color); 
+    text-align: center; 
+    font-size: 0.85rem; 
+    color: var(--text-muted);
+    margin-top: auto; 
 }
 
 /* --- MODAL OVERLAYS --- */
@@ -139,47 +169,76 @@ body {
 
 .modal-content {
     background: var(--card-bg);
-    padding: 40px;
+    padding: 30px;
     border-radius: 20px;
     text-align: center;
     border: 1px solid var(--sidebar-color);
-    max-width: 400px;
+    max-width: 420px;
     width: 90%;
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
-.modal-icon i {
-    font-size: 4rem;
-    color: #ff6b6b;
-    margin-bottom: 15px;
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.modal-header h2 { margin: 0; color: var(--primary-color); font-size: 1.3rem; display: flex; align-items: center; gap: 8px; }
+.btn-icon { background: none; border: none; color: var(--text-color); font-size: 1.5rem; cursor: pointer; }
+
+/* Account Modal Styling */
+.profile-avatar-container {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 20px;
 }
 
-.modal-content h2 { margin: 0 0 10px; color: var(--text-color); }
-.modal-content p { color: var(--text-muted); margin-bottom: 25px; }
-.modal-btns { display: flex; gap: 15px; justify-content: center; }
+.avatar-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--primary-color);
+}
 
-.btn-danger {
-    background: #ff6b6b;
-    color: white;
-    padding: 10px 25px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: bold;
-    border: none;
+.avatar-upload-btn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background: var(--primary-color);
+    color: var(--body-color);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    transition: var(--transition-smooth);
+    font-size: 1.2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
 }
 
-.btn-danger:hover {
-    background: #ff4757;
-    transform: translateY(-2px);
+.form-group { margin-bottom: 15px; text-align: left; }
+.form-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px; }
+.form-input {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: var(--body-color);
+    color: var(--text-color);
+    border: 1px solid var(--sidebar-color);
+    box-sizing: border-box;
 }
 
-/* User Controls Navigation */
-.user-controls { display: flex; align-items: center; gap: 15px; }
-.user-controls a { text-decoration: none; color: var(--text-color); display: flex; align-items: center; gap: 5px; }
+.form-input:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
 
-/* Countdown Banner */
+.account-modal-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 25px;
+}
+
 .deadline-banner {
     background: rgba(255, 165, 0, 0.15);
     border: 1px solid #ffa500;
@@ -191,41 +250,8 @@ body {
     align-items: center;
     justify-content: center;
     gap: 10px;
-    font-size: 0.95rem;
 }
-.deadline-banner i { font-size: 1.4rem; }
 
-/* Account Card Section */
-.view-account { text-align: left; }
-.account-card {
-    background: var(--card-bg);
-    padding: 35px;
-    border-radius: 15px;
-    border: 1px solid var(--sidebar-color);
-    max-width: 550px;
-    margin: 0 auto;
-}
-.account-card h2 { margin-top: 0; color: var(--primary-color); display: flex; align-items: center; gap: 8px; }
-
-.form-group { margin-bottom: 18px; }
-.form-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px; }
-
-.account-card-header { display: flex; justify-content: space-between; align-items: center; }
-.btn-icon { background: none; border: none; color: var(--text-color); font-size: 1.5rem; cursor: pointer; }
-
-.quick-info-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--sidebar-color);
-}
-.account-card-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 25px; }
-.flex-btn { display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; }
-
-.warning-icon i {
-    font-size: 3.5rem;
-    color: #ffa500;
-}
 #mainContainer {
     visibility: hidden;
     opacity: 0;

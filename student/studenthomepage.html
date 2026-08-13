@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="/design/studenthomepage.css">
     <script src="/script/theme.js" defer></script>
     <script src="/script/logout_logic.js" defer></script>
-  
 </head>
 <body class="dark-mode"> 
 
@@ -27,39 +26,52 @@
         </div>
     </div>
 
-    <!-- Rayuan (Appeal) Modal -->
-    <div id="appeal-modal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-icon warning-icon">
-                <i class='bx bx-edit-alt'></i>
+    <!-- Account Profile Modal -->
+    <div id="account-modal" class="modal-overlay">
+        <div class="modal-content account-modal-content">
+            <div class="modal-header">
+                <h2><i class='bx bx-user-circle'></i> Account Profile</h2>
+                <button class="btn-icon" onclick="closeAccountModal()"><i class='bx bx-x'></i></button>
             </div>
-            <h2>Borang Rayuan Permohonan</h2>
-            <p>Nyatakan sebab rayuan atau kemaskini maklumat permohonan anda.</p>
-            <form id="appealForm">
-                <div class="form-group" style="text-align: left;">
-                    <label for="appealReason">Sebab Rayuan / Nota Tambahan:</label>
-                    <textarea id="appealReason" rows="4" required placeholder="Contoh: Saya telah mengemas kini dokumen yang salah..." style="width:100%; padding:10px; border-radius:8px; background:var(--body-color); color:var(--text-color); border:1px solid var(--sidebar-color);"></textarea>
+
+            <div class="profile-avatar-container">
+                <img id="profileAvatar" src="https://via.placeholder.com/100" alt="Profile Picture" class="avatar-img">
+                <label for="avatarUpload" class="avatar-upload-btn" title="Upload New Picture">
+                    <i class='bx bx-camera'></i>
+                </label>
+                <input type="file" id="avatarUpload" accept="image/*" style="display: none;" onchange="handleAvatarUpload(event)">
+            </div>
+
+            <form id="accountForm" onsubmit="handleAccountSave(event)">
+                <div class="form-group">
+                    <label for="accUsername">Username</label>
+                    <input type="text" id="accUsername" class="form-input" disabled required>
                 </div>
-                <div class="modal-btns" style="margin-top: 15px;">
-                    <button type="button" class="btn-outline" onclick="closeAppealModal()">Batal</button>
-                    <button type="submit" class="btn-primary">Hantar Rayuan</button>
+                <div class="form-group">
+                    <label for="accEmail">Email</label>
+                    <input type="email" id="accEmail" class="form-input" disabled required>
+                </div>
+                <div class="form-group">
+                    <label for="accPhone">Phone Number</label>
+                    <input type="tel" id="accPhone" class="form-input" disabled required>
+                </div>
+
+                <div class="account-modal-footer">
+                    <div class="left-action">
+                        <button type="button" id="editToggleBtn" class="btn-outline" onclick="toggleAccountEditMode()">
+                            <i class='bx bx-edit'></i> Edit
+                        </button>
+                        <button type="submit" id="saveAccountBtn" class="btn-primary" style="display: none;">
+                            <i class='bx bx-save'></i> Save
+                        </button>
+                    </div>
+                    <div class="right-action">
+                        <a href="/student/detailinformation.html" class="btn-primary">
+                            <i class='bx bx-detail'></i> Details Page
+                        </a>
+                    </div>
                 </div>
             </form>
-        </div>
-    </div>
-
-    <!-- Delete Account Modal -->
-    <div id="delete-modal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-icon">
-                <i class='bx bx-trash'></i>
-            </div>
-            <h2>Padam Akaun Pengguna</h2>
-            <p>Akaun pengguna anda akan dipadamkan dari sistem. Rekod permohonan asrama akan dinyahpautkan.</p>
-            <div class="modal-btns">
-                <button class="btn-outline" onclick="closeDeleteModal()">Batal</button>
-                <button class="btn-danger" onclick="confirmDeleteAccount()">Padam Akaun</button>
-            </div>
         </div>
     </div>
 
@@ -73,7 +85,7 @@
 
             <nav class="nav-links">
                 <div class="user-controls">
-                    <a href="javascript:void(0)" onclick="toggleAccountView()" class="nav-item">
+                    <a href="javascript:void(0)" onclick="openAccountModal()" class="nav-item">
                         <i class='bx bx-user-circle'></i>
                         <span class="hide-mobile">Account</span>
                     </a>
@@ -91,38 +103,47 @@
     </header>
 
     <!-- Main Content Body -->
-    <main class="main-content status-success" id="mainContainer">
+    <main class="main-content" id="mainContainer">
         
-        <!-- Status Indicator Bar -->
+        <!-- Status Indicator Bar (Only 3 statuses) -->
         <div class="status-header">
             <div class="status-indicator pending" data-status="pending"><i class='bx bx-time-five'></i> Pending</div>
             <div class="status-indicator success" data-status="approved"><i class='bx bx-check-circle'></i> Approved</div>
-            <div class="status-indicator fail" data-status="fail"><i class='bx bx-x-circle'></i> Returned / Disapproved</div>
-            <div class="status-indicator appealed" data-status="appealed"><i class='bx bx-refresh'></i> Appeal Under Review</div>
+            <div class="status-indicator fail" data-status="returned"><i class='bx bx-x-circle'></i> Returned</div>
         </div>
 
         <div class="content-wrapper">
 
-            <!-- STATE 0: No Application Yet -->
-            <div class="view-register">
-                <h1 id="welcomeUser">Welcome, Student</h1>
-                <p>You haven't applied for a room for this semester yet.</p>
-                <a href="/student/detailinformation.html" class="btn-primary">Register Room Now</a>
+            <!-- STATE 1: PENDING -->
+            <div class="view-pending">
+                <div id="deadlineBanner" class="deadline-banner">
+                    <i class='bx bx-alarm-exclamation'></i>
+                    <span>Account Termination Countdown: <strong id="registrationCountdown">Calculating...</strong></span>
+                </div>
+
+                <div class="pending-card">
+                    <i class='bx bx-time-five' style="font-size: 3.5rem; color: #ffa500; margin-bottom: 10px;"></i>
+                    <h2>Account Pending Verification</h2>
+                    <p>Your details are currently pending. Please click below to complete your details.</p>
+                    <a href="/student/detailinformation.html" class="btn-primary" style="margin-top: 15px; display: inline-block;">
+                        Register Your Room Now!
+                    </a>
+                </div>
             </div>
 
-            <!-- STATE 1: Application Approved / Success -->
+            <!-- STATE 2: APPROVED / ACTIVE -->
             <div class="view-success">
                 <div class="info-grid">
                     <div class="info-card">
                         <h3>Room Details</h3>
-                        <div class="badge" id="displayBlock">Block --</div>
-                        <p class="room-no" id="displayRoom">Room ---</p>
+                        <div class="badge" id="displayBlock">Block: No Data</div>
+                        <p class="room-no" id="displayRoom">Room: No Data</p>
                     </div>
                     <div class="info-card">
                         <h3>Smart Access</h3>
                         <div class="passcode">
                             <small>PASSCODE</small>
-                            <p id="displayPasscode">#----</p>
+                            <p id="displayPasscode">No Data</p>
                         </div>
                         <div class="qr-box">
                             <i class='bx bx-qr-scan'></i>
@@ -130,64 +151,24 @@
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- STATE 3: Application Under Review / Pending -->
-            <div class="view-pending">
-                <div id="deadlineBanner" class="deadline-banner" style="margin-bottom: 20px;">
-                    <i class='bx bx-alarm-exclamation'></i>
-                    <span>Countdown before account terminate: <strong id="registrationCountdown">Calculating...</strong></span>
-                </div>
-
-                <div class="pending-card">
-                    <div class="loader"></div>
-                    <h2>Verifying Details...</h2>
-                    <p>The Admin is currently reviewing your application. Please check back later.</p>
+                <div class="action-bar" style="margin-top: 25px; text-align: center;">
+                    <a href="/student/report.html" class="btn-outline">
+                        <i class='bx bx-error-circle'></i> Submit Report
+                    </a>
                 </div>
             </div>
 
-            <!-- STATE 4: Rayuan Under Review -->
-            <div class="view-appealed">
-                <div class="pending-card">
-                    <i class='bx bx-refresh bx-spin' style="font-size:3rem; color:var(--primary-color);"></i>
-                    <h2>Rayuan Dalam Semakan</h2>
-                    <p>Rayuan anda telah dihantar dan sedang diproses oleh pihak pentadbir.</p>
-                </div>
-            </div>
-
-            <!-- QUICK ACCOUNT OVERVIEW SECTION -->
-            <div class="view-account" id="accountSection" style="display: none;">
-                <div class="account-card">
-                    <div class="account-card-header">
-                        <h2><i class='bx bx-user-circle'></i> Basic Profile</h2>
-                        <button class="btn-icon" onclick="toggleAccountView()"><i class='bx bx-x'></i></button>
-                    </div>
-
-                    <div class="account-quick-info">
-                        <div class="quick-info-item">
-                            <span>Full Name:</span>
-                            <strong id="summaryName">--</strong>
-                        </div>
-                        <div class="quick-info-item">
-                            <span>Email:</span>
-                            <strong id="summaryEmail">--</strong>
-                        </div>
-                        <div class="quick-info-item">
-                            <span>Phone:</span>
-                            <strong id="summaryPhone">--</strong>
-                        </div>
-                        <div class="quick-info-item">
-                            <span>Account Status:</span>
-                            <span class="badge" id="summaryStatus">Pending</span>
-                        </div>
-                    </div>
-
-                    <div class="account-card-actions">
-                        <a href="/student/detailinformation.html" class="btn-primary flex-btn">
-                            <i class='bx bx-edit'></i> Edit / Complete Full Details
-                        </a>
-                        <button type="button" class="btn-outline" onclick="toggleAccountView()">Close</button>
-                    </div>
+            <!-- STATE 3: RETURNED -->
+            <div class="view-fail">
+                <div class="error-card">
+                    <i class='bx bx-error-alt' style="font-size: 4rem; color: #ff6b6b; margin-bottom: 15px;"></i>
+                    <h2>Application Returned</h2>
+                    <p>Sorry, your application needs further revision or was returned by administration.</p>
+                    <p class="reason-text" id="failReason" style="font-style: italic; color: #ff6b6b; margin: 15px 0;">Reason: No Data</p>
+                    <a href="/student/suratrayuan.html" class="btn-primary">
+                        <i class='bx bx-file'></i> Submit Appeal Letter
+                    </a>
                 </div>
             </div>
 
@@ -197,6 +178,7 @@
     <footer class="main-footer">
         <p>&copy; 2026 Dormitoration System</p>
     </footer>
-      <script src="/script/studenthomepage.js" defer></script>
+
+    <script src="/script/studenthomepage.js" defer></script>
 </body>
 </html>
