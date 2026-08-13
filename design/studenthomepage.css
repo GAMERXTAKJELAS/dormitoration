@@ -100,11 +100,10 @@ body {
     transition: var(--transition-smooth);
 }
 
-/* Status Active Indicator Colors */
-.status-pending .status-indicator.pending { opacity: 1; color: #ffa500; border-color: #ffa500; font-weight: bold; }
-.status-success .status-indicator.success { opacity: 1; color: var(--primary-color); border-color: var(--primary-color); font-weight: bold; }
-.status-fail .status-indicator.fail { opacity: 1; color: #ff6b6b; border-color: #ff6b6b; font-weight: bold; }
-
+/* Status Active Pill Highlights */
+.status-indicator.pending.active { opacity: 1; color: #ffa500; border-color: #ffa500; font-weight: bold; }
+.status-indicator.success.active { opacity: 1; color: var(--primary-color); border-color: var(--primary-color); font-weight: bold; }
+.status-indicator.fail.active { opacity: 1; color: #ff6b6b; border-color: #ff6b6b; font-weight: bold; }
 /* --- LOGIC SHOW/HIDE VIEWS --- */
 .view-success, 
 .view-fail, 
