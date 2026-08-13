@@ -112,6 +112,15 @@ function updateStatusPills(status) {
         if (['returned', 'rejected', 'fail'].includes(status) && pillStatus === 'returned') pill.classList.add('active');
     });
 }
+// studenthomepage.js - Updated Section
+
+function showExpiredModal() {
+    const expiredModal = document.getElementById('expired-modal');
+    if (expiredModal) {
+        expiredModal.style.display = 'flex';
+        // Prevent clicking backdrop/esc key from closing it by keeping it forced open
+    }
+}
 
 function startRegistrationCountdown(deadlineIsoString) {
     if (countdownInterval) clearInterval(countdownInterval);
@@ -126,6 +135,9 @@ function startRegistrationCountdown(deadlineIsoString) {
         if (difference <= 0) {
             if (countdownInterval) clearInterval(countdownInterval);
             if (timerElement) timerElement.innerText = "00d 00h 00m 00s (Expired)";
+            
+            // Trigger the expired modal
+            showExpiredModal();
             return;
         }
 
@@ -162,12 +174,14 @@ function populateAccountModal(user) {
     document.getElementById('accEmail').value = user.email || '';
     document.getElementById('accPhone').value = user.phone || '';
 
-    const avatarImg = document.getElementById('profileAvatar');
-    if (user.profile_picture) {
-        avatarImg.src = user.profile_picture;
-    } else {
-        avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username || 'User')}&background=47f59b&color=121212`;
-    }
+    const avatarSrc = user.profile_picture || '/image/default_avatar.png';
+    
+    // Update both modal avatar and nav header avatar
+    const modalAvatar = document.getElementById('profileAvatar');
+    const headerAvatar = document.getElementById('navHeaderAvatar');
+
+    if (modalAvatar) modalAvatar.src = avatarSrc;
+    if (headerAvatar) headerAvatar.src = avatarSrc;
 }
 
 function toggleAccountEditMode() {
@@ -197,7 +211,12 @@ function handleAvatarUpload(event) {
     const reader = new FileReader();
     reader.onload = function(e) {
         currentProfileImage = e.target.result;
-        document.getElementById('profileAvatar').src = currentProfileImage;
+        
+        // Update previews immediately
+        const modalAvatar = document.getElementById('profileAvatar');
+        const headerAvatar = document.getElementById('navHeaderAvatar');
+        if (modalAvatar) modalAvatar.src = currentProfileImage;
+        if (headerAvatar) headerAvatar.src = currentProfileImage;
     };
     reader.readAsDataURL(file);
 }

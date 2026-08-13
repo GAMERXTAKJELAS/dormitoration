@@ -21,7 +21,6 @@ body {
     background-color: var(--body-color);
     color: var(--text-color);
     margin: 0;
-    transition: background-color 0.3s, color 0.3s;
     font-family: 'Segoe UI', sans-serif;
     display: flex;
     flex-direction: column;
@@ -50,14 +49,44 @@ body {
 
 .theme-btn { background: none; border: none; color: var(--text-color); font-size: 1.4rem; cursor: pointer; }
 
+/* --- HEADER NAV & AVATAR FIXES --- */
+.user-controls {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: var(--text-color);
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.nav-item:hover {
+    color: var(--primary-color);
+}
+
+.nav-avatar-img {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1.5px solid var(--primary-color);
+}
+
 /* --- MAIN CONTENT --- */
 .main-content {
-    flex: 1;
-    padding: 100px 5% 60px;
+    flex: 1 0 auto; /* Ensures content expands naturally */
+    padding: 100px 5% 80px; /* Gives space so content doesn't collide with fixed top bar or footer */
     max-width: 1200px;
     margin: 0 auto;
     width: 100%;
     box-sizing: border-box;
+    min-height: calc(100vh - 70px); /* Keeps content area tall enough to require a scroll for footer */
 }
 
 /* --- STATUS INDICATORS --- */
@@ -144,12 +173,13 @@ body {
 
 /* --- FOOTER (ONLY VISIBLE ON SCROLL) --- */
 .main-footer { 
+    flex-shrink: 0;
     padding: 25px 20px; 
     background: var(--sidebar-color); 
     text-align: center; 
     font-size: 0.85rem; 
     color: var(--text-muted);
-    margin-top: auto; 
+    border-top: 1px solid var(--card-bg);
 }
 
 /* --- MODAL OVERLAYS --- */
