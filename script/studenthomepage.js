@@ -1,8 +1,10 @@
 // studenthomepage.js
 
 let countdownInterval = null;
-let currentProfileImage = null;
 
+// ==========================================
+// AVATAR HELPER
+// ==========================================
 function getDynamicAvatar(student) {
     if (!student) return '/image/default_Male.svg';
 
@@ -22,13 +24,13 @@ function getDynamicAvatar(student) {
 }
 
 // ==========================================
-// 1. INITIALIZATION
+// 1. INITIALIZATION & STATUS FETCH
 // ==========================================
 window.addEventListener('load', async () => {
     const userData = JSON.parse(localStorage.getItem('userData') || '{}');
     const userId = userData.id || userData.user_id;
 
-    // Fast initial preview
+    // Fast initial preview for navbar avatar
     const headerAvatar = document.getElementById('navHeaderAvatar');
     if (headerAvatar && userData) {
         headerAvatar.src = getDynamicAvatar(userData);
@@ -68,9 +70,8 @@ async function fetchStudentStatus(userId) {
                 headerAvatar.src = getDynamicAvatar(mergedUser);
             }
 
-            if (typeof populateAccountModal === 'function') {
-                populateAccountModal(mergedUser);
-            }
+            // Sync values to account modal if open or ready
+            populateAccountModal(mergedUser);
         }
 
         // Trigger UI status transition
@@ -151,3 +152,165 @@ function setElementText(id, text) {
     const el = document.getElementById(id);
     if (el) el.innerText = text;
 }
+
+// ==========================================
+// 3. ACCOUNT PROFILE MODAL CONTROLLERS
+// ==========================================
+
+// Populates form inputs and profile image in the modal
+function populateAccountModal(user) {
+    if (!user) return;
+
+    const usernameInput = document.getElementById('accUsername');
+    const emailInput = document.getElementById('accEmail');
+    const phoneInput = document.getElementById('accPhone');
+    const profileAvatar = document.getElementById('profileAvatar');
+
+    if (usernameInput) usernameInput.value = user.username || '';
+    if (emailInput) emailInput.value = user.email || '';
+    if (phoneInput) phoneInput.value = user.phone || '';
+
+    if (profileAvatar) {
+        profileAvatar.src = getDynamicAvatar(user);
+    }
+}
+
+// Open Account Modal
+function openAccountModal() {
+    const modal = document.getElementById('account-modal');
+    if (!modal) return;
+
+    const storedUser = JSON.parse(localStorage.getItem('userData') || '{}');
+    populateAccountModal(storedUser);
+
+    // Reset inputs back to disabled view-only mode on open
+    setEditState(false);
+
+    modal.style.display = 'flex';
+    modal.classList.add('active');
+}
+
+// Close Account Modal
+function closeAccountModal() {
+    const modal = document.getElementById('account-modal');
+    if (modal) {
+        modal.style.display = 'none';
+        modal.classList.remove('active');
+    }
+}
+
+// Toggle between View and Edit states inside the modal
+function toggleAccountEditMode() {
+    const usernameInput = document.getElementById('accUsername');
+    const isCurrentlyDisabled = usernameInput ? usernameInput.disabled : true;
+    
+    setEditState(isCurrentlyDisabled);
+}
+
+function setEditState(enableEdit) {
+    const fieldIds = ['accUsername', 'accEmail', 'accPhone'];
+    fieldIds.forEach(id => {
+        const input = document.getElementById(id);
+        if (input) input.disabled = !enableEdit;
+    });
+
+    const editBtn = document.getElementById('editToggleBtn');
+    const saveBtn = document.getElementById('saveAccountBtn');
+
+    if (editBtn && saveBtn) {
+        if (enableEdit) {
+            editBtn.style.display = 'none';
+            saveBtn.style.display = 'inline-flex';
+        } else {
+            editBtn.style.display = 'inline-flex';
+            saveBtn.style.display = 'none';
+        }
+    }
+}
+
+// Save profile changes to Worker backend
+async function handleAccountSave(e) {
+    e.preventDefault();
+
+    const storedUser = JSON.parse(localStorage.getItem('userData') || '{}');
+    const userId = storedUser.id || storedUser.user_id;
+
+    if (!userId) {
+        alert('User session expired. Please log in again.');
+        return;
+    }
+
+    const updatedUsername = document.getElementById('accUsername').value.trim();
+    const updatedEmail = document.getElementById('accEmail').value.trim();
+    const updatedPhone = document.getElementById('accPhone').value.trim();
+
+    const payload = {
+        user_id: userId,
+        username: updatedUsername,
+        email: updatedEmail,
+        phone: updatedPhone
+    };
+
+    try {
+        const response = await fetch('/api/student/update-account', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.error || 'Failed to update account.');
+        }
+
+        // Update local session
+        const mergedUser = { 
+            ...storedUser, 
+            username: updatedUsername, 
+            email: updatedEmail, 
+            phone: updatedPhone 
+        };
+        localStorage.setItem('userData', JSON.stringify(mergedUser));
+
+        alert('Account details updated successfully!');
+        
+        // Return back to disabled view mode
+        setEditState(false);
+
+        // Refresh status & sync avatar/UI
+        await fetchStudentStatus(userId);
+
+    } catch (err) {
+        console.error('Error updating account:', err);
+        alert(`Error: ${err.message}`);
+    }
+}
+
+// Avatar file upload placeholder until R2 is integrated
+function handleAvatarUpload(e) {
+    alert('Avatar upload feature will be available once R2 bucket storage is connected.');
+}
+
+// ==========================================
+// 4. EVENT LISTENERS
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+    // Connect click triggers for profile modal (navbar avatar or account button)
+    const navAvatar = document.getElementById('navHeaderAvatar');
+    const accountNavBtn = document.getElementById('accountNavBtn');
+
+    if (navAvatar) {
+        navAvatar.addEventListener('click', (e) => {
+            e.preventDefault();
+            openAccountModal();
+        });
+    }
+
+    if (accountNavBtn) {
+        accountNavBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            openAccountModal();
+        });
+    }
+});
