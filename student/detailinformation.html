@@ -9,12 +9,11 @@
     
     <!-- Theme Switcher & Detail Info JS -->
     <script src="/script/theme.js" defer></script>
-    <script src="/script/detailinformation.js" defer></script>
+    <script src="/script/detail_info.js" defer></script>
 </head>
 <body class="dark-mode">
 
-    <!-- Top Navigation Bar -->
-    <header class="top-nav">
+<header class="top-nav">
     <div class="nav-container">
         <div class="brand">
             <i class='bx bxs-building-house'></i>
@@ -22,16 +21,9 @@
         </div>
 
         <nav class="nav-links">
-            <a href="/student/profile.html" class="nav-item">
-                <img src="/assets/avatar-placeholder.png" alt="Account" class="user-avatar">
-                <span>Account</span>
-            </a>
-            <a href="/logout" class="nav-item">
-                <i class='bx bx-log-out'></i>
-                <span>Log Out</span>
-            </a>
-            <button type="button" id="themeToggle" class="btn-theme-toggle" aria-label="Toggle Theme">
-                <i class='bx bx-sun'></i>
+            <a href="/student/studenthomepage.html">back</a>
+            <button id="theme-toggle" class="theme-btn" aria-label="Toggle Theme">
+                <i class='bx bx-moon' id="theme-icon"></i>
             </button>
         </nav>
     </div>
@@ -411,8 +403,8 @@
 
     <!-- Page Footer -->
     <footer class="main-footer">
-    <p>&copy; 2026 Dormitoration System. All Rights Reserved.</p>
-</footer>
+        <p>&copy; 2026 Dormitoration System. All Rights Reserved.</p>
+    </footer>
 
 </body>
 </html>

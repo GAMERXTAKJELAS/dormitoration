@@ -54,6 +54,12 @@ body {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
+.top-nav a,
+.top-nav a:visited {
+    color: #ffffff;
+    text-decoration: none;
+}
+
 .nav-container {
     width: 95%;
     max-width: 1200px;
@@ -83,21 +89,21 @@ body {
 }
 
 .nav-links .btn-outline {
-    border: 1px solid var(--primary-color);
-    color: var(--primary-color);
-    padding: 8px 18px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: #ffffff;
+    padding: 6px 14px;
     border-radius: 8px;
     text-decoration: none;
     font-weight: 600;
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    transition: background-color var(--transition-smooth), color var(--transition-smooth);
+    transition: all var(--transition-smooth);
 }
 
 .nav-links .btn-outline:hover {
-    background-color: var(--primary-color);
-    color: var(--body-color);
+    background-color: #ffffff;
+    color: #00875a;
 }
 
 .nav-item {
