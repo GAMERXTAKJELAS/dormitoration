@@ -5,16 +5,20 @@
     --card-bg: #282828;
     --text-color: #bcfcd2;
     --text-muted: #8b8b8b;
+    --footer-bg: #0b1120;
+    --footer-text: #94a3b8;
     --transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 body.light-mode {
     --body-color: #f5f6fa;
-    --sidebar-color: #ffffff;
-    --primary-color: #2ecc71;
+    --sidebar-color: #009669; /* Emerald Green header background matching image */
+    --primary-color: #009669;
     --card-bg: #ffffff;
     --text-color: #1a1a2e;
     --text-muted: #636e72;
+    --footer-bg: #0b1120;     /* Dark navy footer in light mode matching image */
+    --footer-text: #94a3b8;
 }
 
 body {
@@ -36,6 +40,7 @@ body {
     z-index: 2000;
     display: flex; 
     align-items: center;
+    transition: background-color var(--transition-smooth);
 }
 
 .nav-container {
@@ -54,6 +59,21 @@ body {
     font-weight: bold; 
     color: var(--primary-color); 
     font-size: 1.2rem;
+}
+
+/* Ensure header text & icons adapt gracefully in light mode */
+body.light-mode .top-nav .brand,
+body.light-mode .top-nav .nav-item,
+body.light-mode .top-nav .theme-btn {
+    color: #ffffff;
+}
+
+body.light-mode .top-nav .nav-item:hover {
+    color: #d1fae5;
+}
+
+body.light-mode .nav-avatar-img {
+    border-color: #ffffff;
 }
 
 .nav-links { 
@@ -211,7 +231,7 @@ body {
 /* --- BUTTONS --- */
 .btn-primary { 
     background: var(--primary-color); 
-    color: var(--body-color); 
+    color: #ffffff; 
     padding: 10px 20px; 
     border-radius: 8px; 
     text-decoration: none; 
@@ -221,6 +241,10 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 6px;
+}
+
+body.dark-mode .btn-primary {
+    color: var(--body-color);
 }
 
 .btn-outline { 
@@ -251,13 +275,13 @@ body {
 /* --- FOOTER SNAP --- */
 .main-footer { 
     height: 60px;
-    background: var(--sidebar-color); 
+    background: var(--footer-bg); 
     display: flex;
     justify-content: center;
     align-items: center;
     font-size: 0.85rem; 
-    color: var(--text-muted);
-    border-top: 1px solid var(--card-bg);
+    color: var(--footer-text);
+    border-top: 2px solid var(--primary-color); /* Green top line separator */
     scroll-snap-align: end;
 }
 
