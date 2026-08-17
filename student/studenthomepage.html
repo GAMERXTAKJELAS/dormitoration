@@ -24,7 +24,7 @@
         </div>
     </div>
 
-    <!-- Custom Success / Alert Modal (Replaces browser alert()) -->
+    <!-- Custom Alert Modal (Replaces default alert window) -->
     <div id="success-modal" class="modal-overlay">
         <div class="modal-content">
             <i class='bx bx-check-circle' style="font-size: 3.5rem; color: #10b981;" id="alert-icon"></i>
@@ -36,7 +36,7 @@
         </div>
     </div>
 
-    <!-- Top Navigation Header -->
+    <!-- Header (Structure Maintained) -->
     <header class="top-nav">
         <div class="nav-container">
             <div class="brand">
@@ -73,13 +73,13 @@
         <section class="home-section">
             <div class="dashboard-landing">
                 
-                <!-- Hero Header -->
+                <!-- Hero Section -->
                 <div class="hero-content">
                     <h1>Student Portal <br><span>Hostel Management</span></h1>
                     <p>Track your accommodation status and application details easily.</p>
                 </div>
 
-                <!-- Appeal / Application Details Section -->
+                <!-- Appeal Details Section -->
                 <div class="shortcut-card appeal-card" id="appeal-section" style="width: 100%; max-width: 700px;">
                     <div class="card-header">
                         <div class="card-icon"><i class='bx bxs-message-square-detail'></i></div>
@@ -88,7 +88,7 @@
                     <h3>Reason for Application / Appeal</h3>
                     <p id="appeal-reason-display">Loading reason...</p>
 
-                    <!-- Delete Trigger Button -->
+                    <!-- Delete Button Trigger -->
                     <div style="margin-top: 15px; display: flex; justify-content: flex-end;">
                         <button class="btn-danger" onclick="openDeleteModal()">
                             <i class='bx bx-trash'></i> Delete Application
@@ -100,14 +100,13 @@
         </section>
     </main>
     
-    <!-- Footer -->
+    <!-- Footer (Structure Maintained) -->
     <footer class="main-footer">
         <p>&copy; 2026 Dormitoration System — All rights reserved.</p>
     </footer>
 
-    <!-- Delete & Appeal Reason Logic -->
+    <!-- JS Handlers -->
     <script>
-        // Custom Alert Modal Handler
         function showCustomAlert(title, message, isSuccess = true) {
             document.getElementById('alert-modal-title').innerText = title;
             document.getElementById('alert-modal-message').innerText = message;
@@ -126,7 +125,6 @@
             document.getElementById('success-modal').style.display = 'none';
         }
 
-        // Delete Modal Handler
         function openDeleteModal() {
             document.getElementById('delete-modal').style.display = 'flex';
         }
@@ -138,32 +136,28 @@
         async function executeDeleteApplication() {
             closeDeleteModal();
             try {
-                // Perform backend delete API call here
-                // const res = await fetch('/api/application/delete', { method: 'DELETE' });
-                
-                // Show Custom Alert instead of standard browser window.alert()
-                showCustomAlert('Account Deleted', 'Your application record has been successfully deleted.');
+                // Execute API call here
+                // await fetch('/api/application/delete', { method: 'DELETE' });
+                showCustomAlert('Deleted', 'Your application record has been successfully deleted.');
             } catch (err) {
-                showCustomAlert('Error', 'Failed to delete application. Please try again.', false);
+                showCustomAlert('Error', 'Failed to delete application record.', false);
             }
         }
 
-        // Fetch application and evaluate appeal_reason column
+        // Logic for handling null/empty appeal_reason column
         function renderAppealReason(applicationData) {
             const reasonDisplay = document.getElementById('appeal-reason-display');
 
             if (applicationData && applicationData.appeal_reason && applicationData.appeal_reason.trim() !== "") {
                 reasonDisplay.innerText = applicationData.appeal_reason;
             } else {
-                // Default reason if appeal_reason row is NULL or empty
                 reasonDisplay.innerText = "System Generated: Standard hostel application placement request due to campus residence requirement.";
             }
         }
 
-        // Demo initialization (replace with actual fetch result from hostel_applications)
         document.addEventListener('DOMContentLoaded', () => {
-            const mockApplication = { appeal_reason: null }; // Example NULL row
-            renderAppealReason(mockApplication);
+            const mockData = { appeal_reason: null };
+            renderAppealReason(mockData);
         });
     </script>
 </body>

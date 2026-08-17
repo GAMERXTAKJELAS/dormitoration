@@ -1,10 +1,10 @@
 /* ==========================================================================
-   1. COLOR VARIABLES & THEMES
+   1. COLOR VARIABLES & LIGHT MODE REFINEMENTS
    ========================================================================== */
 :root {
     --body-color: #121212;
     --sidebar-color: #1b251e;
-    --primary-color: #47f59b;        /* Neon Green */
+    --primary-color: #47f59b;
     --card-bg: #282828;
     --text-color: #bcfcd2;
     --text-heading: #ffffff;
@@ -12,20 +12,20 @@
     --border-color: rgba(255, 255, 255, 0.08);
     --footer-bg: #0f172a;
     --footer-text: #94a3b8;
-    --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-smooth: 0.3s ease;
 }
 
-/* --- LIGHT MODE OVERRIDES --- */
+/* --- LIGHT MODE COLOR OVERRIDES ONLY --- */
 .light-mode {
-    --body-color: #f8fafc;           /* Anti-glare background */
-    --sidebar-color: #ffffff;        /* Clean White Header */
-    --primary-color: #059669;        /* Emerald Accent */
+    --body-color: #f8fafc;
+    --sidebar-color: #ffffff;
+    --primary-color: #059669;
     --card-bg: #ffffff;
     --text-color: #1e293b;
     --text-heading: #0f172a;
     --text-muted: #64748b;
     --border-color: #e2e8f0;
-    --footer-bg: #f1f5f9;            /* Light gray footer background */
+    --footer-bg: #f1f5f9;
     --footer-text: #475569;
 }
 
@@ -47,7 +47,7 @@ body {
 }
 
 /* ==========================================================================
-   3. NAVIGATION BAR
+   3. HEADER / TOP NAV
    ========================================================================== */
 .top-nav {
     position: fixed;
@@ -82,10 +82,6 @@ body {
     color: var(--primary-color);
 }
 
-.light-mode .brand {
-    color: #059669;
-}
-
 .nav-links {
     display: flex;
     align-items: center;
@@ -94,22 +90,14 @@ body {
 
 .nav-links a {
     text-decoration: none;
-    color: rgba(255, 255, 255, 0.85);
+    color: var(--text-heading);
     font-weight: 500;
     transition: color 0.2s ease;
     cursor: pointer;
 }
 
-.light-mode .nav-links a {
-    color: #334155;
-}
-
 .nav-links a:hover {
     color: var(--primary-color);
-}
-
-.light-mode .nav-links a:hover {
-    color: #059669;
 }
 
 .theme-btn {
@@ -120,21 +108,14 @@ body {
     cursor: pointer;
     display: flex;
     align-items: center;
-    transition: transform 0.2s;
 }
 
-.theme-btn:hover {
-    transform: scale(1.1);
-}
-
-/* --- STUDENT VISIBILITY LOGIC --- */
 .student-controls {
     display: flex;
     gap: 20px;
     align-items: center;
     border-left: 1px solid var(--border-color);
     padding-left: 20px;
-    margin-right: 10px;
 }
 
 .student-controls a {
@@ -145,13 +126,8 @@ body {
     color: var(--primary-color) !important;
 }
 
-.light-mode .student-controls a {
-    color: #059669 !important;
-    font-weight: 600;
-}
-
 /* ==========================================================================
-   4. SCROLL CONTAINER & HERO
+   4. CONTENT & CARDS
    ========================================================================== */
 .scroll-container {
     width: 100%;
@@ -198,20 +174,16 @@ body {
     font-size: 1.1rem;
 }
 
-/* ==========================================================================
-   5. SHORTCUT CARDS & APPEAL CARDS
-   ========================================================================== */
 .shortcut-card {
     background: var(--card-bg);
     border: 1px solid var(--border-color);
     border-radius: 14px;
     padding: 25px;
-    text-decoration: none;
     display: flex;
     flex-direction: column;
     gap: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-    transition: transform var(--transition-smooth), border-color var(--transition-smooth), box-shadow 0.3s;
+    transition: background-color var(--transition-smooth), border-color var(--transition-smooth);
 }
 
 .card-header {
@@ -254,7 +226,7 @@ body {
 }
 
 /* ==========================================================================
-   6. MODALS
+   5. MODALS & BUTTONS
    ========================================================================== */
 .modal-overlay {
     position: fixed;
@@ -304,11 +276,6 @@ body {
     border-radius: 8px; 
     cursor: pointer; 
     font-weight: 600;
-    transition: background 0.2s;
-}
-
-.btn-secondary:hover {
-    background: var(--border-color);
 }
 
 .btn-danger { 
@@ -322,15 +289,10 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    transition: background 0.2s;
-}
-
-.btn-danger:hover {
-    background: #dc2626;
 }
 
 /* ==========================================================================
-   7. FOOTER
+   6. FOOTER
    ========================================================================== */
 .main-footer {
     width: 100%;
@@ -345,7 +307,7 @@ body {
 }
 
 /* ==========================================================================
-   8. RESPONSIVE DESIGN
+   7. RESPONSIVE DESIGN
    ========================================================================== */
 @media screen and (max-width: 992px) {
     .hero-content h1 { font-size: 2.8rem; }
@@ -356,7 +318,6 @@ body {
     .hide-mobile { display: none; }
     .top-nav { height: 60px; }
     .brand { font-size: 1.2rem; }
-    .brand span { font-size: 1.1rem; }
     .student-controls { padding-left: 12px; gap: 12px; }
     .home-section { padding-top: 90px; }
     .hero-content h1 { font-size: 2.2rem; }
