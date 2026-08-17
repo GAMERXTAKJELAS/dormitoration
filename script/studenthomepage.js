@@ -24,13 +24,62 @@ function getDynamicAvatar(student) {
 }
 
 // ==========================================
-// EXPIRED MODAL CONTROLLERS
+// MODAL CONTROLLERS
 // ==========================================
 function showExpiredModal() {
     const expiredModal = document.getElementById('expired-modal');
     if (expiredModal) {
         expiredModal.style.display = 'flex';
         expiredModal.classList.add('active');
+    }
+}
+
+function openDeleteAccountModal() {
+    const modal = document.getElementById('delete-account-modal');
+    if (modal) {
+        modal.style.display = 'flex';
+        modal.classList.add('active');
+    }
+}
+
+function closeDeleteAccountModal() {
+    const modal = document.getElementById('delete-account-modal');
+    if (modal) {
+        modal.style.display = 'none';
+        modal.classList.remove('active');
+    }
+}
+
+async function executeDeleteAccount() {
+    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+    const userId = userData.id || userData.user_id;
+
+    if (!userId) {
+        alert('User session not found.');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/student/delete-account', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: userId })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.error || 'Failed to delete account.');
+        }
+
+        alert('Account deleted successfully.');
+        localStorage.removeItem('userData');
+        sessionStorage.clear();
+        window.location.href = '/login.html';
+
+    } catch (err) {
+        console.error('Account deletion error:', err);
+        alert(`Error deleting account: ${err.message}`);
     }
 }
 
@@ -50,7 +99,6 @@ window.addEventListener('load', async () => {
     const userData = JSON.parse(localStorage.getItem('userData') || '{}');
     const userId = userData.id || userData.user_id;
 
-    // Fast initial preview for navbar avatar
     const headerAvatar = document.getElementById('navHeaderAvatar');
     if (headerAvatar && userData) {
         headerAvatar.src = getDynamicAvatar(userData);
@@ -84,17 +132,15 @@ async function fetchStudentStatus(userId) {
 
             localStorage.setItem('userData', JSON.stringify(mergedUser));
             
-            // Re-render header avatar once DB returns gender
             const headerAvatar = document.getElementById('navHeaderAvatar');
             if (headerAvatar) {
                 headerAvatar.src = getDynamicAvatar(mergedUser);
             }
 
-            // Sync values to account modal
             populateAccountModal(mergedUser);
         }
 
-        // Trigger UI status transition and timer calculation
+        // Render dashboard using appeal_reason provided by the API
         updateDashboardState(
             data.status || 'pending', 
             data.roomDetails || null, 
@@ -126,7 +172,6 @@ function updateDashboardState(status, details = null, reason = null, allowExpira
         updateStatusPills(normalizedStatus);
 
         if (['active', 'approved', 'success'].includes(normalizedStatus)) {
-            // STOP COUNTDOWN & HIDE BANNER FOR APPROVED STATUS
             if (countdownInterval) clearInterval(countdownInterval);
             if (deadlineBanner) deadlineBanner.style.display = 'none';
 
@@ -137,15 +182,15 @@ function updateDashboardState(status, details = null, reason = null, allowExpira
             setElementText('displayPasscode', details && details.passcode ? details.passcode : 'Active');
 
         } else if (['returned', 'rejected', 'fail'].includes(normalizedStatus)) {
-            // STOP COUNTDOWN & HIDE BANNER FOR REJECTED STATUS
             if (countdownInterval) clearInterval(countdownInterval);
             if (deadlineBanner) deadlineBanner.style.display = 'none';
 
             mainContainer.classList.add('status-fail');
+            
+            // Set appeal reason directly from DB row
             setElementText('failReason', `Reason: ${reason || 'Application needs review/resubmission.'}`);
 
         } else {
-            // PENDING STATE: Show banner and start timer/check expiration
             mainContainer.classList.add('status-pending');
             
             if (allowExpirationCheck && user && user.registration_deadline) {
@@ -165,7 +210,6 @@ function updateDashboardState(status, details = null, reason = null, allowExpira
 function startCountdownTimer(user) {
     if (countdownInterval) clearInterval(countdownInterval);
 
-    // If registration_deadline is explicitly null, remove timer and banner
     if (!user || user.registration_deadline === null) {
         const deadlineBanner = document.getElementById('deadlineBanner');
         if (deadlineBanner) deadlineBanner.style.display = 'none';
@@ -192,7 +236,6 @@ function startCountdownTimer(user) {
             || document.querySelector('#deadlineBanner span') 
             || document.querySelector('#deadlineBanner');
 
-        // IF EXPIRED
         if (diff <= 0) {
             if (countdownInterval) clearInterval(countdownInterval);
             
@@ -209,7 +252,6 @@ function startCountdownTimer(user) {
             return;
         }
 
-        // IF NOT EXPIRED YET:
         const days = Math.floor(diff / (1000 * 60 * 60 * 24));
         const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
