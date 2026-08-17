@@ -9,13 +9,15 @@ export async function handleRegister(request, env, headers) {
     
     const { 
       ic_number, 
+      matriks_number,
       full_name, 
       email, 
       phone, 
       password, 
       tarikh_lahir, 
       umur,        
-      jantina,      
+      jantina, 
+      negeri,     
       role 
     } = body;
 
@@ -39,7 +41,7 @@ export async function handleRegister(request, env, headers) {
     const nowISO = new Date().toISOString();
 
     // -------------------------------------------------------------------------
-    // 1. Check for Existing Account (By Phone, Email, or IC Number)
+    // 1. Check for Existing Account (By Phone or Email)
     // -------------------------------------------------------------------------
     const existingUser = await env.DB.prepare(`
       SELECT id, account_status, registration_deadline 
@@ -54,10 +56,12 @@ export async function handleRegister(request, env, headers) {
       const isExpired = existingUser.registration_deadline && existingUser.registration_deadline <= nowISO;
 
       if (isTerminated || isExpired) {
-        // Old account is terminated/expired -> PURGE OLD USER ACCOUNT
+        // Unlink application before purging user to prevent foreign key errors
+        await env.DB.prepare(`UPDATE hostel_applications SET user_id = NULL WHERE user_id = ?`).bind(existingUser.id).run();
+        // Delete expired/terminated user record
         await env.DB.prepare(`DELETE FROM users WHERE id = ?`).bind(existingUser.id).run();
       } else {
-        // Account exists and is active/pending
+        // Active/pending account exists
         return new Response(
           JSON.stringify({ error: 'Akaun dengan No. Telefon atau e-mel ini telah wujud dan aktif.' }), 
           { status: 409, headers }
@@ -118,66 +122,67 @@ export async function handleRegister(request, env, headers) {
 
     const newUserId = userResult.meta?.last_row_id;
 
-// -------------------------------------------------------------------------
-// 4. Update / Re-link Hostel Application DB
-// -------------------------------------------------------------------------
-if (newUserId && ic_number) {
-  const now = new Date();
-  const month = now.getMonth() + 1; 
-  const yearShort = now.getFullYear().toString().slice(-2); 
-  const currentSession = (month >= 1 && month <= 6) ? `JJ${yearShort}` : `JD${yearShort}`;
+    // -------------------------------------------------------------------------
+    // 4. Update / Re-link Hostel Application DB (Resets admin_approval to 'pending')
+    // -------------------------------------------------------------------------
+    if (newUserId && ic_number) {
+      const now = new Date();
+      const month = now.getMonth() + 1; 
+      const yearShort = now.getFullYear().toString().slice(-2); 
+      const currentSession = (month >= 1 && month <= 6) ? `JJ${yearShort}` : `JD${yearShort}`;
 
-  // Check if an existing hostel application row exists for this IC
-  const existingApp = await env.DB.prepare(
-    `SELECT id, submission_status FROM hostel_applications WHERE ic_number = ? LIMIT 1`
-  ).bind(ic_number).first();
+      // Check for existing application record tied to this IC
+      const existingApp = await env.DB.prepare(
+        `SELECT id, submission_status FROM hostel_applications WHERE ic_number = ? LIMIT 1`
+      ).bind(ic_number).first();
 
-  if (existingApp) {
-    // Re-link existing application record to the new user ID
-    // Retain existing submission_status if it was already submitted/draft
-    await env.DB.prepare(`
-      UPDATE hostel_applications 
-      SET user_id = ?,
-          dob = COALESCE(NULLIF(?, ''), dob),
-          age = COALESCE(?, age),
-          gender = COALESCE(NULLIF(?, ''), gender)
-      WHERE ic_number = ?
-    `).bind(
-      newUserId, 
-      tarikh_lahir || null, 
-      umur || null, 
-      jantina || null, 
-      ic_number
-    ).run();
-  } else {
-    // Insert new application record with explicit 'draft' status
-    await env.DB.prepare(`
-      INSERT INTO hostel_applications (
-        user_id,
-        session_id,
-        ic_number,
-        dob,
-        age,
-        gender,
-        submission_status,
-        head_of_program_support,
-        admin_approval
-      ) VALUES (
-        ?, ?, ?, ?, ?, ?,
-        'draft',
-        'pending',
-        'pending'
-      )
-    `).bind(
-      newUserId,
-      currentSession,
-      ic_number,
-      tarikh_lahir || null,
-      umur || null,
-      jantina || null
-    ).run();
-  }
-}
+      if (existingApp) {
+        // Reset admin_approval to 'pending' during re-registration/re-link
+        await env.DB.prepare(`
+          UPDATE hostel_applications 
+          SET user_id = ?,
+              dob = COALESCE(NULLIF(?, ''), dob),
+              age = COALESCE(?, age),
+              gender = COALESCE(NULLIF(?, ''), gender),
+              admin_approval = 'pending',
+              appeal_reason = NULL
+          WHERE ic_number = ?
+        `).bind(
+          newUserId, 
+          tarikh_lahir || null, 
+          umur || null, 
+          jantina || null, 
+          ic_number
+        ).run();
+      } else {
+        // Insert new application record with default status 'pending'
+        await env.DB.prepare(`
+          INSERT INTO hostel_applications (
+            user_id,
+            session_id,
+            ic_number,
+            dob,
+            age,
+            gender,
+            submission_status,
+            head_of_program_support,
+            admin_approval
+          ) VALUES (
+            ?, ?, ?, ?, ?, ?,
+            'draft',
+            'pending',
+            'pending'
+          )
+        `).bind(
+          newUserId,
+          currentSession,
+          ic_number,
+          tarikh_lahir || null,
+          umur || null,
+          jantina || null
+        ).run();
+      }
+    }
 
     // -------------------------------------------------------------------------
     // 5. Build and Send Success Response
@@ -189,11 +194,14 @@ if (newUserId && ic_number) {
       email: email || null,
       phone: phone || null,
       ic_number: ic_number || null,
+      matriks_number: matriks_number || null,
       tarikh_lahir: tarikh_lahir || null,
       umur: umur || null,
       jantina: jantina || null,
+      negeri: negeri || null,
       role: role || 'student',
       account_status: 'pending_details',
+      admin_approval: 'pending',
       registration_deadline: registrationDeadline
     };
 

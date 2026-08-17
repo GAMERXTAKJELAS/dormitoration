@@ -73,10 +73,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
 
             if (response.ok) {
-                // Save user payload returned by server into localStorage
+                // Save returned user payload into localStorage
                 const userPayload = data.user || {
                     ...payload,
-                    account_status: 'pending_details'
+                    account_status: 'pending_details',
+                    admin_approval: 'pending'
                 };
 
                 localStorage.setItem('isLoggedIn', 'true');
@@ -101,11 +102,12 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             console.warn("Server unavailable. Saving session locally:", err);
 
-            // Fallback session storage in case of local network disconnection
+            // Fallback session storage in case of network disconnect
             const fallbackPayload = {
                 ...payload,
                 id: 'temp_' + Date.now(),
-                account_status: 'pending_details'
+                account_status: 'pending_details',
+                admin_approval: 'pending'
             };
 
             localStorage.setItem('isLoggedIn', 'true');
