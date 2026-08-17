@@ -15,7 +15,7 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
     }
 
     try {
-      // 1. Fetch user & hostel application status
+      // 1. Fetch user & hostel application status using admin_approval
       const userQuery = env.DB.prepare(`
         SELECT 
           u.id AS user_id,
@@ -24,8 +24,10 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
           u.phone,
           u.created_at,
           u.registration_deadline,
+          u.account_status,
           ha.gender AS gender,
-          ha.submission_status
+          ha.admin_approval AS admin_approval,
+          ha.submission_status AS submission_status
         FROM users u
         LEFT JOIN hostel_applications ha ON u.id = ha.user_id
         WHERE u.id = ?
@@ -64,10 +66,25 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
       const durationValue = parseFloat(settings['temp_account_deadline_value']) || 24;
       const durationUnit = String(settings['temp_account_deadline_unit'] || 'hours').toLowerCase().trim();
 
+      // Determine approval status prioritizing admin_approval, then account_status
+      let rawStatus = (data.admin_approval || data.account_status || 'pending').toLowerCase().trim();
+      let normalizedStatus = 'pending';
+
+      if (['approved', 'active', 'success'].includes(rawStatus)) {
+        normalizedStatus = 'approved';
+      } else if (['returned', 'rejected', 'fail', 'declined'].includes(rawStatus)) {
+        normalizedStatus = 'returned';
+      } else {
+        normalizedStatus = 'pending';
+      }
+
       // Calculate deadline dynamically based on created_at and admin settings
       let calculatedDeadline = data.registration_deadline;
 
-      if (!calculatedDeadline && data.created_at) {
+      // If account is approved, force deadline to null to disable timer
+      if (normalizedStatus === 'approved') {
+        calculatedDeadline = null;
+      } else if (!calculatedDeadline && data.created_at) {
         const createdMs = new Date(data.created_at.replace(' ', 'T')).getTime();
         if (!isNaN(createdMs)) {
           let multiplier = 60 * 60 * 1000; // default to hours
@@ -80,17 +97,6 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
           const calculatedTime = new Date(createdMs + (durationValue * multiplier));
           calculatedDeadline = calculatedTime.toISOString();
         }
-      }
-
-      let rawStatus = (data.submission_status || 'pending').toLowerCase().trim();
-      let normalizedStatus = 'pending';
-
-      if (['approved', 'active', 'success'].includes(rawStatus)) {
-        normalizedStatus = 'approved';
-      } else if (['returned', 'rejected', 'fail'].includes(rawStatus)) {
-        normalizedStatus = 'returned';
-      } else {
-        normalizedStatus = 'pending';
       }
 
       return new Response(JSON.stringify({

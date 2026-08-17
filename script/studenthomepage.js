@@ -39,7 +39,7 @@ if (typeof window.executeLogout !== 'function') {
     window.executeLogout = function() {
         localStorage.removeItem('userData');
         sessionStorage.clear();
-        window.location.href = '/login.html'; // Adjust to your login page route
+        window.location.href = '/login.html';
     };
 }
 
@@ -90,7 +90,7 @@ async function fetchStudentStatus(userId) {
                 headerAvatar.src = getDynamicAvatar(mergedUser);
             }
 
-            // Sync values to account modal if open or ready
+            // Sync values to account modal
             populateAccountModal(mergedUser);
         }
 
@@ -132,9 +132,9 @@ function updateDashboardState(status, details = null, reason = null, allowExpira
 
             mainContainer.classList.add('status-success');
             
-            setElementText('displayBlock', details && details.block ? `Block: ${details.block}` : 'Block: No Data');
-            setElementText('displayRoom', details && details.room_number ? `Room: ${details.room_number}` : 'Room: No Data');
-            setElementText('displayPasscode', details && details.passcode ? details.passcode : 'No Data');
+            setElementText('displayBlock', details && details.block ? `Block: ${details.block}` : 'Block: Assigned');
+            setElementText('displayRoom', details && details.room_number ? `Room: ${details.room_number}` : 'Room: Assigned');
+            setElementText('displayPasscode', details && details.passcode ? details.passcode : 'Active');
 
         } else if (['returned', 'rejected', 'fail'].includes(normalizedStatus)) {
             // STOP COUNTDOWN & HIDE BANNER FOR REJECTED STATUS
@@ -142,17 +142,18 @@ function updateDashboardState(status, details = null, reason = null, allowExpira
             if (deadlineBanner) deadlineBanner.style.display = 'none';
 
             mainContainer.classList.add('status-fail');
-            setElementText('failReason', `Reason: ${reason || 'No Data'}`);
+            setElementText('failReason', `Reason: ${reason || 'Application needs review/resubmission.'}`);
 
         } else {
             // PENDING STATE: Show banner and start timer/check expiration
             mainContainer.classList.add('status-pending');
             
-            if (allowExpirationCheck && user) {
+            if (allowExpirationCheck && user && user.registration_deadline) {
                 if (deadlineBanner) deadlineBanner.style.display = 'block';
                 startCountdownTimer(user);
-            } else if (deadlineBanner) {
-                deadlineBanner.style.display = 'none';
+            } else {
+                if (countdownInterval) clearInterval(countdownInterval);
+                if (deadlineBanner) deadlineBanner.style.display = 'none';
             }
         }
 
@@ -164,24 +165,23 @@ function updateDashboardState(status, details = null, reason = null, allowExpira
 function startCountdownTimer(user) {
     if (countdownInterval) clearInterval(countdownInterval);
 
+    // If registration_deadline is explicitly null, remove timer and banner
+    if (!user || user.registration_deadline === null) {
+        const deadlineBanner = document.getElementById('deadlineBanner');
+        if (deadlineBanner) deadlineBanner.style.display = 'none';
+        return;
+    }
+
     let targetTime = null;
 
-    // 1. Check calculated registration deadline from backend
-    if (user && user.registration_deadline) {
+    if (user.registration_deadline) {
         targetTime = new Date(user.registration_deadline.replace(' ', 'T')).getTime();
     }
-    
-    // 2. Fallback: Default to created_at + 24 hours
-    if ((!targetTime || isNaN(targetTime)) && user && user.created_at) {
-        const createdMs = new Date(user.created_at.replace(' ', 'T')).getTime();
-        if (!isNaN(createdMs)) {
-            targetTime = createdMs + (24 * 60 * 60 * 1000);
-        }
-    }
 
-    // 3. Ultimate Fallback: 24 hours from right now
     if (!targetTime || isNaN(targetTime)) {
-        targetTime = Date.now() + (24 * 60 * 60 * 1000);
+        const deadlineBanner = document.getElementById('deadlineBanner');
+        if (deadlineBanner) deadlineBanner.style.display = 'none';
+        return;
     }
 
     function updateTimer() {
@@ -205,7 +205,6 @@ function startCountdownTimer(user) {
                 }
             }
 
-            // Trigger the modal display immediately
             showExpiredModal();
             return;
         }
@@ -235,10 +234,8 @@ function startCountdownTimer(user) {
         }
     }
 
-    // Run check immediately on load
     updateTimer();
     
-    // Continue interval if not expired
     if (targetTime - Date.now() > 0) {
         countdownInterval = setInterval(updateTimer, 1000);
     }
