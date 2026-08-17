@@ -82,6 +82,7 @@ export async function handleAdminApplications(request, env, headers) {
           COALESCE(NULLIF(h.program, ''), 'Pending Fill') AS program,
           COALESCE(NULLIF(h.session_id, ''), '-') AS session_id,
           COALESCE(NULLIF(h.admin_approval, ''), 'pending') AS status,
+          COALESCE(NULLIF(h.submission_status, ''), 'draft') AS submission_status,
           u.account_status AS user_account_status
         FROM users u
         LEFT JOIN hostel_applications h ON u.id = h.user_id
@@ -105,7 +106,7 @@ export async function handleAdminApplications(request, env, headers) {
   }
 
   // -------------------------------------------------------------------------
-  // 2. PATCH Request: Update application status
+  // 2. PATCH Request: Update admin approval status & manage account lifecycle
   // -------------------------------------------------------------------------
   if (method === 'PATCH' && url.pathname === '/api/admin/applications/status') {
     try {
@@ -120,18 +121,30 @@ export async function handleAdminApplications(request, env, headers) {
       }
 
       let targetAccountStatus = 'pending_details';
+
       if (status === 'approved') {
         targetAccountStatus = 'active';
-      } else if (status === 'returned' || status === 'rejected' || status === 'declined') {
+
+        // UPDATE USER: Activate account and clear registration_deadline to protect from Cron termination
+        await env.DB.prepare(`
+          UPDATE users 
+          SET account_status = 'active',
+              registration_deadline = NULL 
+          WHERE id = ?
+        `).bind(user_id).run();
+
+      } else {
+        // For returned, rejected, or declined states
         targetAccountStatus = 'pending_details';
+
+        await env.DB.prepare(`
+          UPDATE users 
+          SET account_status = 'pending_details' 
+          WHERE id = ?
+        `).bind(user_id).run();
       }
 
-      await env.DB.prepare(`
-        UPDATE users 
-        SET account_status = ? 
-        WHERE id = ?
-      `).bind(targetAccountStatus, user_id).run();
-
+      // Update hostel_applications record
       const existingApp = await env.DB.prepare(
         `SELECT id FROM hostel_applications WHERE user_id = ? LIMIT 1`
       ).bind(user_id).first();
@@ -139,15 +152,14 @@ export async function handleAdminApplications(request, env, headers) {
       if (existingApp) {
         await env.DB.prepare(`
           UPDATE hostel_applications 
-          SET admin_approval = ?,
-              submission_status = ?
+          SET admin_approval = ?
           WHERE user_id = ?
-        `).bind(status, status, user_id).run();
+        `).bind(status, user_id).run();
       } else {
         await env.DB.prepare(`
           INSERT INTO hostel_applications (user_id, admin_approval, submission_status)
-          VALUES (?, ?, ?)
-        `).bind(user_id, status, status).run();
+          VALUES (?, ?, 'draft')
+        `).bind(user_id, status).run();
       }
 
       return new Response(
@@ -167,7 +179,7 @@ export async function handleAdminApplications(request, env, headers) {
     }
   }
 
-// -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
   // 3. POST Request: Import CSV & Auto Fill dob, age, gender, ic_number
   // -------------------------------------------------------------------------
   if (method === 'POST' && url.pathname === '/api/admin/applications/import-csv') {
@@ -196,15 +208,14 @@ export async function handleAdminApplications(request, env, headers) {
         const phone = s.phone || s.telefon || s.no_hp || '';
         const randomPass = 'TVET-' + crypto.randomUUID().slice(0, 8);
 
-        // 1. Extract raw IC from payload
+        // Extract raw IC from payload
         const rawIC = s.ic_number || s.ic || s.mykad || s.no_kp || s.nokp || '';
         const icParsed = parseMalaysianIC(rawIC);
 
-        // 2. Format IC Number (Keep cleaned 12 digits or raw)
+        // Format IC Number
         const icNumber = icParsed ? icParsed.rawIC : (rawIC ? String(rawIC).replace(/[^0-9]/g, '') : '-');
 
-        // 3. Determine DOB, Age, Gender:
-        // Use backend IC parsed values FIRST; if IC was not parsed/missing, fallback to webpage/frontend pre-calculated values
+        // Determine DOB, Age, Gender
         const dob = (icParsed && icParsed.dob) ? icParsed.dob : (s.dob || null);
         const age = (icParsed && icParsed.age) ? icParsed.age : (s.age || null);
         const gender = (icParsed && icParsed.gender) ? icParsed.gender : (s.gender || null);
@@ -246,7 +257,6 @@ export async function handleAdminApplications(request, env, headers) {
           ).bind(userId).first();
 
           if (existingApp) {
-            // Force update fields even if previous DB value was '-' or NULL
             await env.DB.prepare(`
               UPDATE hostel_applications 
               SET ic_number = CASE WHEN ? IS NOT NULL AND ? != '-' THEN ? ELSE ic_number END, 
@@ -261,7 +271,7 @@ export async function handleAdminApplications(request, env, headers) {
             await env.DB.prepare(`
               INSERT INTO hostel_applications 
                 (user_id, ic_number, program, session_id, gender, dob, age, admin_approval, submission_status)
-              VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', 'pending')
+              VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', 'draft')
             `).bind(userId, icNumber, program, session, gender, dob, age).run();
           }
         }
