@@ -373,11 +373,22 @@ function closeInfoModal() {
    ========================================================= */
 async function fetchAndPopulateStudentDetails() {
     try {
-        const res = await fetch('/api/student/details');
+        const userData = getStorageData('userData');
+        const usernameParam = userData.username ? `?username=${encodeURIComponent(userData.username)}` : '';
+
+        const res = await fetch(`/api/student/details${usernameParam}`, {
+            headers: {
+                'Authorization': userData.username ? `Bearer ${userData.username}` : ''
+            }
+        });
+
         if (res.ok) {
             const apiData = await res.json();
             if (apiData && Object.keys(apiData).length > 0) {
                 populateForm(apiData);
+                // Sync backend data to localStorage cache
+                const updatedCache = { ...userData, ...apiData };
+                localStorage.setItem('userData', JSON.stringify(updatedCache));
                 return;
             }
         }
@@ -402,18 +413,19 @@ function populateForm(data) {
         parseMalaysianIC(icVal);
     }
     if (data.noTel || data.phone) setInputValue('noTel', data.noTel || data.phone);
-    if (data.alamatRumah) setInputValue('alamatRumah', data.alamatRumah);
-    if (data.poskod) setInputValue('poskod', data.poskod);
-    if (data.bandar) setInputValue('bandar', data.bandar);
-    if (data.negeri) setInputValue('negeri', data.negeri);
-    if (data.sebabMemohon) setInputValue('sebabMemohon', data.sebabMemohon);
+    if (data.alamatRumah || data.address) setInputValue('alamatRumah', data.alamatRumah || data.address);
+    if (data.poskod || data.postcode) setInputValue('poskod', data.poskod || data.postcode);
+    if (data.bandar || data.city) setInputValue('bandar', data.bandar || data.city);
+    if (data.negeri || data.state) setInputValue('negeri', data.negeri || data.state);
+    if (data.sebabMemohon || data.reason) setInputValue('sebabMemohon', data.sebabMemohon || data.reason);
 
     if (data.program) setInputValue('program', data.program);
     if (data.semester) setInputValue('semester', data.semester);
     if (data.gpa) setInputValue('gpa', data.gpa);
     if (data.cgpa) setInputValue('cgpa', data.cgpa);
 
-    if (data.isMpp === 'Yes') {
+    const isMppVal = data.isMpp || data.is_mpp;
+    if (isMppVal === 'Yes') {
         const mppYes = document.querySelector('input[name="isMpp"][value="Yes"]');
         if (mppYes) {
             mppYes.checked = true;
@@ -435,7 +447,8 @@ function populateForm(data) {
         }
     }
 
-    if (data.familyMode === 'guardians') {
+    const mode = data.familyMode || data.family_mode;
+    if (mode === 'guardians') {
         switchGuardianMode('guardians');
     } else {
         switchGuardianMode('parents');
@@ -459,6 +472,21 @@ function populateForm(data) {
     }
 
     if (data.tanggunganAnak) setInputValue('tanggunganAnak', data.tanggunganAnak);
+
+    // If PDF exists in base64 string format, set preview option
+    const pdfData = data.slipGajiPDF || data.slip_gaji_pdf;
+    if (pdfData && pdfData.startsWith('data:application/pdf')) {
+        pdfBase64String = pdfData;
+        const nameDisplay = document.getElementById('fileNameDisplay');
+        const previewContainer = document.getElementById('pdfPreviewContainer');
+        const previewFrame = document.getElementById('pdfPreviewFrame');
+
+        if (nameDisplay) nameDisplay.innerText = "📄 Existing Payslip PDF Loaded";
+        if (previewFrame && previewContainer) {
+            previewFrame.src = pdfData;
+            previewContainer.style.display = 'block';
+        }
+    }
 }
 
 function getStorageData(key) {
