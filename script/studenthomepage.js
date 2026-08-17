@@ -1,6 +1,54 @@
 // studenthomepage.js
 
 let countdownInterval = null;
+let customAlertCallback = null;
+
+// ==========================================
+// CUSTOM ALERT MODAL HELPERS
+// ==========================================
+function showCustomAlert(message, type = 'success', onClose = null) {
+    const modal = document.getElementById('custom-alert-modal');
+    const iconContainer = document.getElementById('customAlertIcon');
+    const messageElement = document.getElementById('customAlertMessage');
+    const titleElement = document.getElementById('customAlertTitle');
+
+    if (!modal) {
+        alert(message);
+        if (typeof onClose === 'function') onClose();
+        return;
+    }
+
+    customAlertCallback = onClose;
+    if (messageElement) messageElement.textContent = message;
+
+    if (type === 'success') {
+        if (titleElement) titleElement.textContent = 'Success';
+        if (iconContainer) iconContainer.innerHTML = `<i class='bx bx-check-circle' style="color: var(--primary-color);"></i>`;
+    } else if (type === 'error') {
+        if (titleElement) titleElement.textContent = 'Error';
+        if (iconContainer) iconContainer.innerHTML = `<i class='bx bx-error-circle' style="color: #ff6b6b;"></i>`;
+    } else {
+        if (titleElement) titleElement.textContent = 'Notification';
+        if (iconContainer) iconContainer.innerHTML = `<i class='bx bx-info-circle' style="color: #ffa500;"></i>`;
+    }
+
+    modal.style.display = 'flex';
+    modal.classList.add('active');
+}
+
+function closeCustomAlert() {
+    const modal = document.getElementById('custom-alert-modal');
+    if (modal) {
+        modal.style.display = 'none';
+        modal.classList.remove('active');
+    }
+
+    if (typeof customAlertCallback === 'function') {
+        const callback = customAlertCallback;
+        customAlertCallback = null;
+        callback();
+    }
+}
 
 // ==========================================
 // AVATAR HELPER
@@ -55,7 +103,7 @@ async function executeDeleteAccount() {
     const userId = userData.id || userData.user_id;
 
     if (!userId) {
-        alert('User session not found.');
+        showCustomAlert('User session not found.', 'error');
         return;
     }
 
@@ -72,14 +120,19 @@ async function executeDeleteAccount() {
             throw new Error(result.error || 'Failed to delete account.');
         }
 
-        alert('Account deleted successfully.');
-        localStorage.removeItem('userData');
-        sessionStorage.clear();
-        window.location.href = '/log_in.html';
+        // Close delete confirmation modal first
+        closeDeleteAccountModal();
+
+        // Show custom alert popup, then auto-redirect to log_in.html when closed/clicked
+        showCustomAlert('Account deleted successfully.', 'success', () => {
+            localStorage.removeItem('userData');
+            sessionStorage.clear();
+            window.location.href = '/log_in.html';
+        });
 
     } catch (err) {
         console.error('Account deletion error:', err);
-        alert(`Error deleting account: ${err.message}`);
+        showCustomAlert(`Error deleting account: ${err.message}`, 'error');
     }
 }
 
@@ -88,7 +141,7 @@ if (typeof window.executeLogout !== 'function') {
     window.executeLogout = function() {
         localStorage.removeItem('userData');
         sessionStorage.clear();
-        window.location.href = '/login.html';
+        window.location.href = '/log_in.html';
     };
 }
 
@@ -140,7 +193,6 @@ async function fetchStudentStatus(userId) {
             populateAccountModal(mergedUser);
         }
 
-        // Render dashboard using appeal_reason provided by the API
         updateDashboardState(
             data.status || 'pending', 
             data.roomDetails || null, 
@@ -187,7 +239,6 @@ function updateDashboardState(status, details = null, reason = null, allowExpira
 
             mainContainer.classList.add('status-fail');
             
-            // Set appeal reason directly from DB row
             setElementText('failReason', `Reason: ${reason || 'Application needs review/resubmission.'}`);
 
         } else {
@@ -377,7 +428,7 @@ async function handleAccountSave(e) {
     const userId = storedUser.id || storedUser.user_id;
 
     if (!userId) {
-        alert('User session expired. Please log in again.');
+        showCustomAlert('User session expired. Please log in again.', 'error');
         return;
     }
 
@@ -413,19 +464,19 @@ async function handleAccountSave(e) {
         };
         localStorage.setItem('userData', JSON.stringify(mergedUser));
 
-        alert('Account details updated successfully!');
+        showCustomAlert('Account details updated successfully!', 'success');
         
         setEditState(false);
         await fetchStudentStatus(userId);
 
     } catch (err) {
         console.error('Error updating account:', err);
-        alert(`Error: ${err.message}`);
+        showCustomAlert(`Error: ${err.message}`, 'error');
     }
 }
 
 function handleAvatarUpload(e) {
-    alert('Avatar upload feature will be available once R2 bucket storage is connected.');
+    showCustomAlert('Avatar upload feature will be available once R2 bucket storage is connected.', 'info');
 }
 
 // ==========================================

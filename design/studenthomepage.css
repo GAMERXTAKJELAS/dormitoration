@@ -272,7 +272,7 @@ body.dark-mode .btn-primary {
     cursor: pointer;
 }
 
-/* --- FOOTER SNAP --- */
+/* --- FOOTER SEPARATOR LINE --- */
 .main-footer { 
     height: 60px;
     background: var(--footer-bg); 
@@ -281,7 +281,7 @@ body.dark-mode .btn-primary {
     align-items: center;
     font-size: 0.85rem; 
     color: var(--footer-text);
-    border-top: 2px solid var(--primary-color); /* Green top line separator */
+    border-top: 2px solid var(--primary-color); /* Green line separator */
     scroll-snap-align: end;
 }
 
@@ -417,5 +417,21 @@ body.dark-mode .btn-primary {
 @media (max-width: 600px) {
     .hide-mobile {
         display: none;
+    }
+}
+
+/* --- CUSTOM ALERT MODAL POP ANIMATION --- */
+#custom-alert-modal .modal-content {
+    animation: alertPop 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes alertPop {
+    from {
+        transform: scale(0.85);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
     }
 }
