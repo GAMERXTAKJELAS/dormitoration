@@ -5,6 +5,7 @@ import { handleAdminDeadlineSettings } from './script/settings_backend.js';
 import { handleAdminApplications } from './script/approval_backend.js';
 import { handleStudentRoutes } from './script/studenthomepage_backend.js';
 import { handleDashboardRoutes } from './script/dashboard_backend.js';
+import { handleDetailInfoRoutes } from './script/detail_backend.js';
 
 export default {
   // 1. Standard HTTP Request Router
@@ -15,7 +16,7 @@ export default {
       'Content-Type': 'application/json',
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     };
 
     if (request.method === 'OPTIONS') {
@@ -47,6 +48,10 @@ export default {
         return await handleAdminApplications(request, env, headers);
       }
 
+      // Handle Detail Information Routes (GET /api/student/details and POST /api/student/update-details)
+      const detailInfoResponse = await handleDetailInfoRoutes(request, env, headers);
+      if (detailInfoResponse) return detailInfoResponse;
+
       if (url.pathname.startsWith('/api/student')) {
         const studentResponse = await handleStudentRoutes(request, env, headers);
         if (studentResponse) return studentResponse;
@@ -67,8 +72,6 @@ export default {
     const nowISO = new Date().toISOString();
 
     try {
-      // Safely update only expired pending accounts to 'terminated'
-      // Active accounts (status = 'active' or deadline IS NULL) are protected and ignored
       const result = await env.DB.prepare(`
         UPDATE users 
         SET account_status = 'terminated'

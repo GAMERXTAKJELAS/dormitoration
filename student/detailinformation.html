@@ -7,263 +7,412 @@
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="/design/detailinforamtion.css">
     
-    <!-- Include theme switcher logic -->
+    <!-- Theme Switcher & Detail Info JS -->
     <script src="/script/theme.js" defer></script>
     <script src="/script/detailinformation.js" defer></script>
 </head>
 <body class="dark-mode">
 
-<!-- Top Navigation -->
+    <!-- Top Navigation Bar -->
     <header class="top-nav">
-        <div class="nav-container">
-            <div class="brand">
-                <i class='bx bxs-building-house'></i>
-                <span>Dormitoration</span>
-            </div>
-
-            <nav class="nav-links">
-                <a href="/student/studenthomepage.html" class="btn-outline">
-                    <i class='bx bx-left-arrow-alt'></i> Back to Dashboard
-                </a>
-            </nav>
+    <div class="nav-container">
+        <div class="brand">
+            <i class='bx bxs-building-house'></i>
+            <span>Dormitoration</span>
         </div>
-    </header>
+
+        <nav class="nav-links">
+            <a href="/student/profile.html" class="nav-item">
+                <img src="/assets/avatar-placeholder.png" alt="Account" class="user-avatar">
+                <span>Account</span>
+            </a>
+            <a href="/logout" class="nav-item">
+                <i class='bx bx-log-out'></i>
+                <span>Log Out</span>
+            </a>
+            <button type="button" id="themeToggle" class="btn-theme-toggle" aria-label="Toggle Theme">
+                <i class='bx bx-sun'></i>
+            </button>
+        </nav>
+    </div>
+</header>
 
     <main class="main-content">
-        <div class="account-card detail-card">
-            <h2><i class='bx bx-id-card'></i> Complete Student Profile</h2>
-            <p class="sub-text">Please provide complete and accurate information for hostel allocation verification.</p>
-
-            <!-- Status / Feedback Message Container -->
-            <div id="detailMsg" class="message-banner"></div>
-
-            <form id="detailInfoForm" class="form-grid-container">
-    
-<!-- CSV AUTO-FILL BOX -->
-<div class="form-section csv-upload-card" style="border: 2px dashed var(--primary-color); background: rgba(71, 245, 155, 0.05); text-align: center; margin-bottom: 25px;">
-    <h2><i class='bx bx-file'></i> Auto-Fill Form guna CSV File</h2>
-    <p class="sub-text">Muat naik CSV file contain detail pelajar untuk isi form dibawah secara automatik.</p>
-    
-    <div style="display: flex; gap: 10px; justify-content: center; align-items: center; margin-top: 15px;">
-        <button type="button" class="btn-primary-submit" style="width: auto; padding: 10px 20px;" onclick="document.getElementById('csvFileInput').click()">
-            <i class='bx bx-upload'></i> Muat naik CSV File
-        </button>
-        <span id="csvFileNameDisplay" style="font-size: 0.9rem; color: var(--text-muted);">Tiada CSV dipilih</span>
-        <input type="file" id="csvFileInput" accept=".csv" style="display: none;">
-    </div>
-</div>
-
-    <!-- BAHAGIAN A: BUTIR-BUTIR PERIBADI -->
-    <div class="form-section">
-        <h2><i class='bx bx-user'></i> BAHAGIAN A: BUTIR-BUTIR PERIBADI</h2>
-        <div class="input-grid">
-            <div class="input-box full-width">
-                <label>Nama Pelajar</label>
-                <input type="text" id="namaPelajar" name="namaPelajar" placeholder="NAMA PENUH SEPERTI DALAM IC">
+        <!-- Header Banner & Action Bar -->
+        <div class="page-action-header">
+            <div class="page-title-box">
+                <h2><i class='bx bx-id-card'></i> Complete Student Profile</h2>
+                <p class="sub-text">Provide complete and accurate details for hostel allocation verification.</p>
             </div>
 
-            <div class="input-box">
-                <label>No. Kad Pengenalan</label>
-                <input type="text" id="noIC" name="noIC" placeholder="030101-08-XXXX">
-            </div>
-
-            <div class="input-box">
-                <label>Tarikh Lahir</label>
-                <input type="date" id="tarikhLahir" name="tarikhLahir">
-            </div>
-
-            <div class="input-box">
-                <label>Umur</label>
-                <input type="number" id="umur" name="umur" readonly placeholder="Auto">
-            </div>
-
-            <div class="input-box">
-                <label>Jantina</label>
-                <select id="jantina" name="jantina">
-                    <option value="">-- Pilih --</option>
-                    <option value="Lelaki">Lelaki</option>
-                    <option value="Perempuan">Perempuan</option>
-                </select>
-            </div>
-
-            <div class="input-box">
-                <label>No. Telefon</label>
-                <input type="tel" id="noTel" name="noTel" placeholder="01X-XXXXXXX">
-            </div>
-
-            <div class="input-box full-width">
-                <label>Alamat Rumah</label>
-                <textarea id="alamatRumah" name="alamatRumah" rows="2"></textarea>
-            </div>
-
-            <div class="input-box">
-                <label>Poskod</label>
-                <input type="text" id="poskod" name="poskod">
-            </div>
-
-            <div class="input-box">
-                <label>Bandar</label>
-                <input type="text" id="bandar" name="bandar">
-            </div>
-
-            <div class="input-box">
-                <label>Negeri</label>
-                <input type="text" id="negeri" name="negeri">
-            </div>
-
-            <div class="input-box full-width">
-                <label>Sebab Memohon Untuk Tinggal Di Asrama</label>
-                <textarea id="sebabMemohon" name="sebabMemohon" rows="3"></textarea>
-            </div>
-        </div>
-    </div>
-
-    <!-- BAHAGIAN B: MAKLUMAT AKADEMIK & SUMBANGAN -->
-    <div class="form-section">
-        <h2><i class='bx bx-book-bookmark'></i> BAHAGIAN B: MAKLUMAT AKADEMIK & SUMBANGAN</h2>
-        <div class="input-grid">
-            <div class="input-box">
-                <label>Program</label>
-                <input type="text" id="program" name="program" placeholder="Contoh: DKT">
-            </div>
-
-            <div class="input-box">
-                <label>Semester</label>
-                <select id="semester" name="semester">
-                    <option value="">-- Pilih Semester --</option>
-                    <option value="1">Semester 1</option>
-                    <option value="2">Semester 2</option>
-                    <option value="3">Semester 3</option>
-                    <option value="4">Semester 4</option>
-                    <option value="5">Semester 5</option>
-                    <option value="6">Semester 6</option>
-                </select>
-            </div>
-
-            <div class="input-box">
-                <label>Keputusan GPA</label>
-                <input type="number" step="0.01" id="gpa" name="gpa" placeholder="0.00 - 4.00">
-            </div>
-
-            <div class="input-box">
-                <label>Keputusan CGPA</label>
-                <input type="number" step="0.01" id="cgpa" name="cgpa" placeholder="0.00 - 4.00">
-            </div>
-
-            <div class="input-box full-width">
-                <label>Sumbangan & Penglibatan di TVETMARA Lumut (Kelab/Persatuan/Sukan)</label>
-                <input type="text" id="sumbangan1" name="sumbangan1" placeholder="1. Contoh: AJK Majlis Perwakilan Pelajar" style="margin-bottom: 8px;">
-                <input type="text" id="sumbangan2" name="sumbangan2" placeholder="2. Contoh: Ahli Kelab Robotik" style="margin-bottom: 8px;">
-                <input type="text" id="sumbangan3" name="sumbangan3" placeholder="3. Contoh: Pemain Bola Sepak TVETMARA Lumut">
-            </div>
-        </div>
-    </div>
-
-    <!-- BAHAGIAN C: MAKLUMAT IBU BAPA / PENJAGA -->
-    <div class="form-section">
-        <h2><i class='bx bx-group'></i> BAHAGIAN C: MAKLUMAT IBU BAPA / PENJAGA</h2>
-        
-        <!-- BAPA / PENJAGA 1 -->
-        <h3 class="sub-title">Bapa / Penjaga 1</h3>
-        <div class="input-grid">
-            <div class="input-box">
-                <label>Nama Bapa/Penjaga 1</label>
-                <input type="text" id="namaPenjaga1" name="namaPenjaga1">
-            </div>
-            <div class="input-box">
-                <label>No. Kad Pengenalan</label>
-                <input type="text" id="icPenjaga1" name="icPenjaga1">
-            </div>
-            <div class="input-box">
-                <label>No. Telefon</label>
-                <input type="tel" id="telPenjaga1" name="telPenjaga1">
-            </div>
-            <div class="input-box">
-                <label>Hubungan</label>
-                <input type="text" id="hubunganPenjaga1" name="hubunganPenjaga1" value="Bapa">
-            </div>
-            <div class="input-box">
-                <label>Pekerjaan & Nama Majikan</label>
-                <input type="text" id="pekerjaanPenjaga1" name="pekerjaanPenjaga1">
-            </div>
-            <div class="input-box">
-                <label>Pendapatan Bulanan (RM)</label>
-                <input type="number" id="pendapatanPenjaga1" name="pendapatanPenjaga1">
-            </div>
-        </div>
-
-        <!-- IBU / PENJAGA 2 -->
-        <h3 class="sub-title" style="margin-top: 15px;">Ibu / Penjaga 2</h3>
-        <div class="input-grid">
-            <div class="input-box">
-                <label>Nama Ibu/Penjaga 2</label>
-                <input type="text" id="namaPenjaga2" name="namaPenjaga2">
-            </div>
-            <div class="input-box">
-                <label>No. Kad Pengenalan</label>
-                <input type="text" id="icPenjaga2" name="icPenjaga2">
-            </div>
-            <div class="input-box">
-                <label>No. Telefon</label>
-                <input type="tel" id="telPenjaga2" name="telPenjaga2">
-            </div>
-            <div class="input-box">
-                <label>Hubungan</label>
-                <input type="text" id="hubunganPenjaga2" name="hubunganPenjaga2" value="Ibu">
-            </div>
-            <div class="input-box">
-                <label>Pekerjaan & Nama Majikan</label>
-                <input type="text" id="pekerjaanPenjaga2" name="pekerjaanPenjaga2">
-            </div>
-            <div class="input-box">
-                <label>Pendapatan Bulanan (RM)</label>
-                <input type="number" id="pendapatanPenjaga2" name="pendapatanPenjaga2">
-            </div>
-        </div>
-
-        <div class="input-grid" style="margin-top: 15px;">
-            <div class="input-box full-width">
-                <label>Tanggungan Anak Yang Masih Belajar / Bersekolah</label>
-                <input type="number" id="tanggunganAnak" name="tanggunganAnak" placeholder="Jumlah anak masih sekolah">
-            </div>
-        </div>
-
-        <!-- PDF ATTACHMENT SECTION -->
-        <div class="pdf-upload-box">
-            <label class="pdf-label">
-                <i class='bx bxs-file-pdf'></i> Muat Naik Slip Gaji / Penyata Pendapatan (PDF Sahaja)
-            </label>
-            <p class="pdf-note">* Sila sertakan Slip Gaji / Penyata Pendapatan Terkini. Format fail mestilah **PDF**.</p>
-            
-            <div class="file-drop-area">
-                <button type="button" class="btn-pdf-select" id="btnPdfSelect">
-                    <i class='bx bx-upload'></i> Pilih Fail PDF
+            <!-- Top-Right CSV Actions -->
+            <div class="csv-actions-wrapper">
+                <button type="button" class="btn-csv-upload" onclick="document.getElementById('csvFileInput').click()">
+                    <i class='bx bx-file'></i> Auto-Fill via CSV
                 </button>
-                <span id="fileNameDisplay">Tiada fail dipilih</span>
-                <input type="file" id="slipGajiPDF" name="slipGajiPDF" accept="application/pdf" style="display: none;">
+                <button type="button" class="btn-info-icon" title="CSV Auto-Fill Info" onclick="openInfoModal('csv')">
+                    <i class='bx bx-info-circle'></i>
+                </button>
+                <input type="file" id="csvFileInput" accept=".csv" style="display: none;">
             </div>
         </div>
 
-    </div>
+        <div id="csvFileNameDisplay" class="csv-file-badge" style="display: none;"></div>
+        <div id="detailMsg" class="message-banner"></div>
 
-    <!-- PERAKUAN PELAJAR -->
-    <div class="form-section">
-        <div class="checkbox-container">
-            <input type="checkbox" id="perakuan" name="perakuan">
-            <label for="perakuan">Saya dengan ini mengaku bahawa semua maklumat yang diberikan di atas adalah benar.</label>
-        </div>
-        
-        <button type="submit" class="btn-primary-submit">Simpan & Hantar Permohonan</button>
-    </div>
+        <form id="detailInfoForm" class="form-grid-container">
 
-</form>
-        </div>
+            <!-- SECTION A: PERSONAL DETAILS -->
+            <div class="form-section">
+                <div class="section-header">
+                    <h2><i class='bx bx-user'></i> SECTION A: PERSONAL DETAILS</h2>
+                    <div class="section-actions">
+                        <!-- Hidden Camera Feature Button for Future IC Scanner -->
+                        <button type="button" id="btnIcCamera" class="btn-camera-ic" style="display: none;" title="Scan IC (Coming Soon)" disabled>
+                            <i class='bx bx-camera'></i>
+                        </button>
+                        <button type="button" class="btn-info-icon" onclick="openInfoModal('sectionA')">
+                            <i class='bx bx-info-circle'></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="input-grid">
+                    <div class="input-box full-width">
+                        <label>Student Full Name</label>
+                        <input type="text" id="namaPelajar" name="namaPelajar" placeholder="FULL NAME AS PER IC">
+                    </div>
+
+                    <div class="input-box">
+                        <label>Identity Card (IC) Number</label>
+                        <input type="text" id="noIC" name="noIC" placeholder="030101-08-XXXX">
+                    </div>
+
+                    <div class="input-box">
+                        <label>Date of Birth</label>
+                        <input type="date" id="tarikhLahir" name="tarikhLahir">
+                    </div>
+
+                    <div class="input-box">
+                        <label>Age</label>
+                        <input type="number" id="umur" name="umur" readonly placeholder="Auto-calculated">
+                    </div>
+
+                    <div class="input-box">
+                        <label>Gender</label>
+                        <select id="jantina" name="jantina">
+                            <option value="">-- Select Gender --</option>
+                            <option value="Lelaki">Male</option>
+                            <option value="Perempuan">Female</option>
+                        </select>
+                    </div>
+
+                    <div class="input-box">
+                        <label>Phone Number</label>
+                        <input type="tel" id="noTel" name="noTel" placeholder="01X-XXXXXXX">
+                    </div>
+
+                    <div class="input-box full-width">
+                        <label>Home Address</label>
+                        <textarea id="alamatRumah" name="alamatRumah" rows="2" placeholder="Full residential address"></textarea>
+                    </div>
+
+                    <div class="input-box">
+                        <label>Postcode</label>
+                        <input type="text" id="poskod" name="poskod">
+                    </div>
+
+                    <div class="input-box">
+                        <label>City</label>
+                        <input type="text" id="bandar" name="bandar">
+                    </div>
+
+                    <div class="input-box">
+                        <label>State</label>
+                        <input type="text" id="negeri" name="negeri">
+                    </div>
+
+                    <div class="input-box full-width">
+                        <label>Reason for Hostel Application</label>
+                        <textarea id="sebabMemohon" name="sebabMemohon" rows="3" placeholder="State your primary reason for residing on campus"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION B: ACADEMIC INFORMATION & CONTRIBUTIONS -->
+            <div class="form-section">
+                <div class="section-header">
+                    <h2><i class='bx bx-book-bookmark'></i> SECTION B: ACADEMIC INFORMATION & CONTRIBUTIONS</h2>
+                    <button type="button" class="btn-info-icon" onclick="openInfoModal('sectionB')">
+                        <i class='bx bx-info-circle'></i>
+                    </button>
+                </div>
+
+                <div class="input-grid">
+                    <div class="input-box full-width">
+                        <label>Academic Program</label>
+                        <select id="program" name="program">
+                            <option value="">-- Select Academic Program --</option>
+                            <option value="DIPLOMA KOMPETENSI ELEKTRIK (KUASA)">DIPLOMA KOMPETENSI ELEKTRIK (KUASA)</option>
+                            <option value="DIPLOMA KOMPETENSI ELEKTRIK (DOMESTIK & INDUSTRI)">DIPLOMA KOMPETENSI ELEKTRIK (DOMESTIK & INDUSTRI)</option>
+                            <option value="DIPLOMA TEKNOLOGI KOMPUTER (ANALISA DATA BESAR)">DIPLOMA TEKNOLOGI KOMPUTER (ANALISA DATA BESAR)</option>
+                            <option value="DIPLOMA TEKNOLOGI AUTOMOTIF">DIPLOMA TEKNOLOGI AUTOMOTIF</option>
+                            <option value="DIPLOMA TEKNOLOGI KEJURUTERAAN (PEMBUATAN PINTAR)">DIPLOMA TEKNOLOGI KEJURUTERAAN (PEMBUATAN PINTAR)</option>
+                            <option value="DIPLOMA TEKNOLOGI AUTOMATIF (BAIKPULIH & KEMASAN BADAN KENDERAAN)">DIPLOMA TEKNOLOGI AUTOMATIF (BAIKPULIH & KEMASAN BADAN KENDERAAN)</option>
+                            <option value="DIPLOMA TEKNOLOGI PENGELUARAN PERABOT KONTEMPORARI">DIPLOMA TEKNOLOGI PENGELUARAN PERABOT KONTEMPORARI</option>
+                            <option value="DIPLOMA TEKNOLOGI PERKHIDMATAN AIR">DIPLOMA TEKNOLOGI PERKHIDMATAN AIR</option>
+                            <option value="DIPLOMA KOMPETENSI KIMPALAN">DIPLOMA KOMPETENSI KIMPALAN</option>
+                            <option value="SIJIL TEKNOLOGI KEJURUTERAAN BANGUNAN">SIJIL TEKNOLOGI KEJURUTERAAN BANGUNAN</option>
+                            <option value="SIJIL TEKNOLOGI KEJURUTERAAN MEKANIKAL (LUKISAN REKABENTUK)">SIJIL TEKNOLOGI KEJURUTERAAN MEKANIKAL (LUKISAN REKABENTUK)</option>
+                            <option value="SIJIL SENIBINA">SIJIL SENIBINA</option>
+                            <option value="SIJIL TEKNOLOGI FOUNDRI">SIJIL TEKNOLOGI FOUNDRI</option>
+                        </select>
+                    </div>
+
+                    <div class="input-box">
+                        <label>Current Semester</label>
+                        <select id="semester" name="semester">
+                            <option value="">-- Select Semester --</option>
+                            <option value="1">Semester 1</option>
+                            <option value="2">Semester 2</option>
+                            <option value="3">Semester 3</option>
+                            <option value="4">Semester 4</option>
+                            <option value="5">Semester 5</option>
+                            <option value="6">Semester 6</option>
+                        </select>
+                    </div>
+
+                    <div class="input-box">
+                        <label>GPA (Current)</label>
+                        <input type="number" step="0.01" id="gpa" name="gpa" placeholder="0.00 - 4.00">
+                    </div>
+
+                    <div class="input-box full-width">
+                        <label>CGPA (Cumulative)</label>
+                        <input type="number" step="0.01" id="cgpa" name="cgpa" placeholder="0.00 - 4.00">
+                    </div>
+
+                    <!-- MPP Membership Question -->
+                    <div class="input-box full-width">
+                        <label>Are you a Student Representative Council (MPP) Member?</label>
+                        <div class="radio-group-horizontal">
+                            <label class="radio-option">
+                                <input type="radio" name="isMpp" value="Yes" onchange="toggleMppContributions(true)">
+                                <span>Yes</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="isMpp" value="No" checked onchange="toggleMppContributions(false)">
+                                <span>No</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Club/Sports Contributions (Visible when MPP = No) -->
+                    <div class="input-box full-width" id="nonMppContributionsWrapper">
+                        <label>Contributions & Involvement at TVETMARA Lumut (Clubs/Associations/Sports)</label>
+                        <input type="text" id="sumbangan1" name="sumbangan1" placeholder="1. e.g. Vice President - Robotics Club" style="margin-bottom: 8px;">
+                        <input type="text" id="sumbangan2" name="sumbangan2" placeholder="2. e.g. Campus Football Team Player" style="margin-bottom: 8px;">
+                        <input type="text" id="sumbangan3" name="sumbangan3" placeholder="3. e.g. Event Coordinator - Cultural Night">
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION C: PARENT / GUARDIAN INFORMATION -->
+            <div class="form-section">
+                <div class="section-header">
+                    <h2><i class='bx bx-group'></i> SECTION C: PARENT / GUARDIAN DETAILS</h2>
+                    <button type="button" class="btn-info-icon" onclick="openInfoModal('sectionC')">
+                        <i class='bx bx-info-circle'></i>
+                    </button>
+                </div>
+
+                <!-- Parents / Guardian Mode Switch Box -->
+                <div class="parent-switch-card">
+                    <span class="switch-label">Select Family Status:</span>
+                    <div class="segmented-control">
+                        <button type="button" id="btnModeParents" class="segment-btn active" onclick="switchGuardianMode('parents')">
+                            <i class='bx bx-group'></i> Has Parents
+                        </button>
+                        <button type="button" id="btnModeGuardians" class="segment-btn" onclick="switchGuardianMode('guardians')">
+                            <i class='bx bx-user-check'></i> No Parents (Guardians Only)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- CONTAINER 1: HAS PARENTS MODE -->
+                <div id="parentsModeContainer">
+                    <h3 class="sub-title">Father / Parent 1</h3>
+                    <div class="input-grid">
+                        <div class="input-box">
+                            <label>Full Name</label>
+                            <input type="text" id="namaPenjaga1" name="namaPenjaga1">
+                        </div>
+                        <div class="input-box">
+                            <label>IC Number</label>
+                            <input type="text" id="icPenjaga1" name="icPenjaga1">
+                        </div>
+                        <div class="input-box">
+                            <label>Phone Number</label>
+                            <input type="tel" id="telPenjaga1" name="telPenjaga1">
+                        </div>
+                        <div class="input-box">
+                            <label>Relationship</label>
+                            <input type="text" id="hubunganPenjaga1" name="hubunganPenjaga1" value="Father">
+                        </div>
+                        <div class="input-box">
+                            <label>Occupation & Employer</label>
+                            <input type="text" id="pekerjaanPenjaga1" name="pekerjaanPenjaga1">
+                        </div>
+                        <div class="input-box">
+                            <label>Monthly Income (RM)</label>
+                            <input type="number" id="pendapatanPenjaga1" name="pendapatanPenjaga1">
+                        </div>
+                    </div>
+
+                    <h3 class="sub-title" style="margin-top: 20px;">Mother / Parent 2</h3>
+                    <div class="input-grid">
+                        <div class="input-box">
+                            <label>Full Name</label>
+                            <input type="text" id="namaPenjaga2" name="namaPenjaga2">
+                        </div>
+                        <div class="input-box">
+                            <label>IC Number</label>
+                            <input type="text" id="icPenjaga2" name="icPenjaga2">
+                        </div>
+                        <div class="input-box">
+                            <label>Phone Number</label>
+                            <input type="tel" id="telPenjaga2" name="telPenjaga2">
+                        </div>
+                        <div class="input-box">
+                            <label>Relationship</label>
+                            <input type="text" id="hubunganPenjaga2" name="hubunganPenjaga2" value="Mother">
+                        </div>
+                        <div class="input-box">
+                            <label>Occupation & Employer</label>
+                            <input type="text" id="pekerjaanPenjaga2" name="pekerjaanPenjaga2">
+                        </div>
+                        <div class="input-box">
+                            <label>Monthly Income (RM)</label>
+                            <input type="number" id="pendapatanPenjaga2" name="pendapatanPenjaga2">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONTAINER 2: NO PARENTS MODE -->
+                <div id="guardiansModeContainer" style="display: none;">
+                    <div id="dynamicGuardiansList">
+                        <!-- Guardian 1 (Default) -->
+                        <div class="guardian-card" id="guardianCard_1">
+                            <h3 class="sub-title">Guardian 1</h3>
+                            <div class="input-grid">
+                                <div class="input-box">
+                                    <label>Full Name</label>
+                                    <input type="text" class="g-name">
+                                </div>
+                                <div class="input-box">
+                                    <label>IC Number</label>
+                                    <input type="text" class="g-ic">
+                                </div>
+                                <div class="input-box">
+                                    <label>Phone Number</label>
+                                    <input type="tel" class="g-tel">
+                                </div>
+                                <div class="input-box">
+                                    <label>Relationship</label>
+                                    <input type="text" class="g-relation" placeholder="e.g. Uncle / Aunt / Sibling">
+                                </div>
+                                <div class="input-box">
+                                    <label>Occupation & Employer</label>
+                                    <input type="text" class="g-job">
+                                </div>
+                                <div class="input-box">
+                                    <label>Monthly Income (RM)</label>
+                                    <input type="number" class="g-income">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Add Additional Guardian Button -->
+                    <button type="button" class="btn-add-guardian" onclick="addGuardianCard()">
+                        <i class='bx bx-plus-circle'></i> Add More Guardian
+                    </button>
+                </div>
+
+                <!-- School Dependents Counter -->
+                <div class="input-grid" style="margin-top: 20px;">
+                    <div class="input-box full-width">
+                        <label>Schooling Dependents / Siblings Currently Studying</label>
+                        <input type="number" id="tanggunganAnak" name="tanggunganAnak" placeholder="Total dependents still in school / tertiary education">
+                    </div>
+                </div>
+
+                <!-- PAYSLIP PDF UPLOAD & PREVIEW SECTION -->
+                <div class="pdf-upload-box">
+                    <div class="pdf-header">
+                        <label class="pdf-label">
+                            <i class='bx bxs-file-pdf'></i> Upload Salary Slip / Income Statement (PDF Only)
+                        </label>
+                        <button type="button" class="btn-info-icon pdf-info-btn" onclick="openInfoModal('payslip')">
+                            <i class='bx bx-info-circle'></i>
+                        </button>
+                    </div>
+                    <p class="pdf-note">* Please attach the latest household income documentation. Allowed format: <strong>PDF</strong>.</p>
+                    
+                    <div class="file-drop-area">
+                        <button type="button" class="btn-pdf-select" id="btnPdfSelect">
+                            <i class='bx bx-upload'></i> Select PDF File
+                        </button>
+                        <span id="fileNameDisplay">No file selected</span>
+                        <input type="file" id="slipGajiPDF" name="slipGajiPDF" accept="application/pdf" style="display: none;">
+                    </div>
+
+                    <!-- PDF Live Preview Frame -->
+                    <div id="pdfPreviewContainer" class="pdf-preview-wrapper" style="display: none;">
+                        <div class="preview-bar">
+                            <span><i class='bx bx-show'></i> Document Preview</span>
+                            <button type="button" class="btn-close-preview" onclick="closePdfPreview()">&times;</button>
+                        </div>
+                        <iframe id="pdfPreviewFrame" src="" class="pdf-iframe"></iframe>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- DECLARATION & FORM SUBMISSION -->
+            <div class="form-section declaration-section">
+                <div class="checkbox-container">
+                    <input type="checkbox" id="perakuan" name="perakuan" required>
+                    <label for="perakuan">
+                        I hereby declare that all information provided in this application is accurate, true, and complete. I understand that misrepresentation may lead to immediate disqualification of hostel allocation.
+                    </label>
+                </div>
+                
+                <button type="submit" class="btn-primary-submit">
+                    <i class='bx bx-paper-plane'></i> Save & Submit Application
+                </button>
+            </div>
+
+        </form>
     </main>
 
-<!-- Full-Width Matching Footer -->
+    <!-- INFORMATION POPUP MODAL -->
+    <div id="infoModalOverlay" class="modal-overlay" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="modalTitle"><i class='bx bx-info-circle'></i> Information</h3>
+                <button type="button" class="modal-close-btn" onclick="closeInfoModal()">&times;</button>
+            </div>
+            <div id="modalBody" class="modal-body">
+                <!-- Content injected dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Page Footer -->
     <footer class="main-footer">
-        <p>&copy; 2026 Dormitoration System</p>
-    </footer>
+    <p>&copy; 2026 Dormitoration System. All Rights Reserved.</p>
+</footer>
 
 </body>
 </html>

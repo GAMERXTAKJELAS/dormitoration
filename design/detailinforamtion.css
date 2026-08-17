@@ -15,9 +15,6 @@
     --radius: 12px;
 }
 
-/* =========================================================
-   2. LIGHT MODE OVERRIDES (.light-mode)
-   ========================================================= */
 .light-mode {
     --body-color: #f5f6fa;
     --text-color: #1a1a2e;
@@ -34,233 +31,31 @@ body {
     background-color: var(--body-color);
     color: var(--text-color);
     margin: 0;
-    padding: 20px;
-    font-family: 'Segoe UI', sans-serif;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    font-family: 'Segoe UI', system-ui, sans-serif;
     transition: background-color var(--transition-smooth), color var(--transition-smooth);
 }
 
-.form-grid-container {
-    max-width: 900px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
-}
-
-/* Section Cards */
-.form-section {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius);
-    padding: 25px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-    transition: background var(--transition-smooth), border-color var(--transition-smooth);
-}
-
-.form-section h2 {
-    color: var(--primary-color);
-    font-size: 1.25rem;
-    margin-top: 0;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 12px;
-}
-
-.sub-title {
-    color: var(--primary-color);
-    font-size: 1.05rem;
-    margin: 15px 0 10px 0;
-}
-
-/* Grid System */
-.input-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 18px;
-}
-
-.input-box {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.input-box.full-width {
-    grid-column: span 2;
-}
-
-.input-box label {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-/* Input Fields, Select, Textarea */
-.input-box input,
-.input-box select,
-.input-box textarea {
-    width: 100%;
-    box-sizing: border-box;
-    background-color: var(--input-bg);
-    border: 1px solid var(--border-color);
-    color: var(--text-color);
-    padding: 12px 14px;
-    border-radius: 8px;
-    font-size: 0.95rem;
-    outline: none;
-    transition: border-color var(--transition-smooth), background-color var(--transition-smooth);
-}
-
-/* Focus States */
-.input-box input:focus,
-.input-box select:focus,
-.input-box textarea:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(71, 245, 155, 0.15);
-}
-
-/* Readonly Field (Umur) */
-.input-box input[readonly] {
-    opacity: 0.8;
-    color: var(--primary-color);
-    font-weight: bold;
-    cursor: not-allowed;
-}
-
-/* PDF Upload Box */
-.pdf-upload-box {
-    margin-top: 25px;
-    padding: 20px;
-    background: rgba(255, 75, 75, 0.05);
-    border: 2px dashed var(--danger-color);
-    border-radius: var(--radius);
-}
-
-.pdf-label {
-    font-weight: 600;
-    color: var(--danger-color);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 1rem;
-}
-
-.pdf-note {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    margin: 6px 0 16px 0;
-}
-
-.file-drop-area {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.btn-pdf-select {
-    background-color: var(--danger-color);
-    color: #ffffff;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    transition: opacity var(--transition-smooth);
-}
-
-.btn-pdf-select:hover {
-    opacity: 0.9;
-}
-
-#fileNameDisplay {
-    font-size: 0.9rem;
-    color: var(--text-color);
-}
-
-/* Checkbox & Submit Button */
-.checkbox-container {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    margin-bottom: 20px;
-}
-
-.checkbox-container input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    accent-color: var(--primary-color);
-    cursor: pointer;
-    margin-top: 2px;
-}
-
-.checkbox-container label {
-    font-size: 0.9rem;
-    color: var(--text-muted);
-    line-height: 1.4;
-    cursor: pointer;
-}
-
-.btn-primary-submit {
-    width: 100%;
-    background-color: var(--primary-color);
-    color: var(--body-color);
-    border: none;
-    padding: 14px;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: transform 0.1s ease, filter var(--transition-smooth);
-}
-
-.btn-primary-submit:hover {
-    filter: brightness(1.1);
-}
-
-.btn-primary-submit:active {
-    transform: scale(0.99);
-}
-
-/* Mobile Responsiveness */
-@media screen and (max-width: 600px) {
-    .input-grid {
-        grid-template-columns: 1fr;
-    }
-    .input-box.full-width {
-        grid-column: span 1;
-    }
-    .file-drop-area {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-}
-
 /* =========================================================
-   MATCHING TOP NAVIGATION (FIXED BAR)
+   TOP FIXED NAVIGATION BAR
    ========================================================= */
 .top-nav {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
-    height: 70px;
-    background-color: var(--sidebar-color);
-    border-bottom: 1px solid var(--card-bg);
+    height: 60px;
+    background-color: #00875a; /* Emerald green theme bar */
     z-index: 2000;
     display: flex;
     align-items: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .nav-container {
-    width: 90%;
+    width: 95%;
     max-width: 1200px;
     margin: 0 auto;
     display: flex;
@@ -271,18 +66,22 @@ body {
 .brand {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-weight: bold;
-    color: var(--primary-color);
+    gap: 10px;
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: #ffffff;
+}
+
+.brand i {
+    font-size: 1.3rem;
 }
 
 .nav-links {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 20px;
 }
 
-/* Back button matching student homepage styling */
 .nav-links .btn-outline {
     border: 1px solid var(--primary-color);
     color: var(--primary-color);
@@ -301,43 +100,588 @@ body {
     color: var(--body-color);
 }
 
-
-/* =========================================================
-   MAIN CONTENT WRAPPER & PADDING
-   ========================================================= */
-body {
-    background-color: var(--body-color);
-    color: var(--text-color);
-    margin: 0;
+.nav-item {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.95rem;
     display: flex;
-    flex-direction: column;
-    min-height: 100vh;
+    align-items: center;
+    gap: 8px;
+    transition: opacity var(--transition-smooth);
 }
 
+.nav-item:hover {
+    opacity: 0.85;
+}
+
+/* =========================================================
+   MAIN CONTENT CONTAINER
+   ========================================================= */
 .main-content {
     flex: 1;
-    padding: 100px 5% 40px; /* 100px top offset clears the fixed navbar */
-    max-width: 900px;
+    padding: 100px 5% 40px;
+    max-width: 950px;
     margin: 0 auto;
     width: 100%;
     box-sizing: border-box;
 }
 
+/* Top Page Title & CSV Action Bar */
+.page-action-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.page-title-box h2 {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+    margin: 0 0 5px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sub-text {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.csv-actions-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-csv-upload {
+    background: rgba(71, 245, 155, 0.12);
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+    padding: 9px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    transition: all var(--transition-smooth);
+}
+
+.btn-csv-upload:hover {
+    background: var(--primary-color);
+    color: var(--body-color);
+}
+
+.csv-file-badge {
+    background: rgba(71, 245, 155, 0.1);
+    color: var(--primary-color);
+    border: 1px dashed var(--primary-color);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    margin-bottom: 20px;
+}
+
+/* Message Feedback Banner */
+.message-banner {
+    margin-bottom: 15px;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.user-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+}
 
 /* =========================================================
-   MATCHING FULL-WIDTH FOOTER
+   FORM CARDS & SECTIONS
    ========================================================= */
-.main-footer {
-    padding: 20px;
-    background: var(--sidebar-color);
-    text-align: center;
-    font-size: 0.8rem;
+.form-grid-container {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.form-section {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 25px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 12px;
+    margin-bottom: 20px;
+}
+
+.section-header h2 {
+    color: var(--primary-color);
+    font-size: 1.15rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.section-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-theme-toggle {
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    font-size: 1.3rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    transition: transform var(--transition-smooth);
+}
+
+.btn-theme-toggle:hover {
+    transform: scale(1.1);
+}
+
+.btn-info-icon {
+    background: transparent;
+    border: none;
     color: var(--text-muted);
+    font-size: 1.25rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 50%;
+    transition: color var(--transition-smooth);
+}
+
+.btn-info-icon:hover {
+    color: var(--primary-color);
+}
+
+.btn-camera-ic {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    padding: 5px 8px;
+    border-radius: 6px;
+    cursor: not-allowed;
+}
+
+.sub-title {
+    color: var(--primary-color);
+    font-size: 1rem;
+    margin: 15px 0 10px 0;
+}
+
+/* =========================================================
+   INPUT GRID & FIELDS
+   ========================================================= */
+.input-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+}
+
+.input-box {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.input-box.full-width {
+    grid-column: span 2;
+}
+
+.input-box label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.input-box input,
+.input-box select,
+.input-box textarea {
     width: 100%;
     box-sizing: border-box;
+    background-color: var(--input-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color var(--transition-smooth);
+}
+
+.input-box input:focus,
+.input-box select:focus,
+.input-box textarea:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(71, 245, 155, 0.15);
+}
+
+.input-box input[readonly] {
+    opacity: 0.8;
+    color: var(--primary-color);
+    font-weight: bold;
+    cursor: not-allowed;
+}
+
+/* Radio Group Styling */
+.radio-group-horizontal {
+    display: flex;
+    gap: 25px;
+    align-items: center;
+    padding: 8px 0;
+}
+
+.radio-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    color: var(--text-color);
+}
+
+.radio-option input[type="radio"] {
+    accent-color: var(--primary-color);
+    width: 18px;
+    height: 18px;
+}
+
+/* =========================================================
+   SECTION C: SWITCHER & GUARDIANS
+   ========================================================= */
+.parent-switch-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--input-bg);
+    border: 1px solid var(--border-color);
+    padding: 12px 18px;
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.switch-label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.segmented-control {
+    display: flex;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 3px;
+    gap: 4px;
+}
+
+.segment-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all var(--transition-smooth);
+}
+
+.segment-btn.active {
+    background: var(--primary-color);
+    color: var(--body-color);
+}
+
+.guardian-card {
+    background: rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border-color);
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.btn-add-guardian {
+    width: 100%;
+    background: transparent;
+    border: 1px dashed var(--primary-color);
+    color: var(--primary-color);
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 10px;
+    transition: background var(--transition-smooth);
+}
+
+.btn-add-guardian:hover {
+    background: rgba(71, 245, 155, 0.08);
+}
+
+/* =========================================================
+   PAYSLIP PDF UPLOAD & PREVIEW
+   ========================================================= */
+.pdf-upload-box {
+    margin-top: 25px;
+    padding: 20px;
+    background: rgba(255, 75, 75, 0.05);
+    border: 2px dashed var(--danger-color);
+    border-radius: var(--radius);
+}
+
+.pdf-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.pdf-label {
+    font-weight: 600;
+    color: var(--danger-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95rem;
+}
+
+.pdf-info-btn {
+    color: var(--danger-color) !important;
+}
+
+.pdf-note {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin: 6px 0 16px 0;
+}
+
+.file-drop-area {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.btn-pdf-select {
+    background-color: var(--danger-color);
+    color: #ffffff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#fileNameDisplay {
+    font-size: 0.9rem;
+    color: var(--text-color);
+}
+
+.pdf-preview-wrapper {
+    margin-top: 20px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--input-bg);
+}
+
+.preview-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 8px 15px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.btn-close-preview {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.4rem;
+    cursor: pointer;
+}
+
+.pdf-iframe {
+    width: 100%;
+    height: 350px;
+    border: none;
+}
+
+/* =========================================================
+   DECLARATION & SUBMIT BAR
+   ========================================================= */
+.declaration-section {
+    background: var(--card-bg);
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.checkbox-container input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary-color);
+    cursor: pointer;
+    margin-top: 2px;
+}
+
+.checkbox-container label {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+    cursor: pointer;
+}
+
+.btn-primary-submit {
+    width: 100%;
+    background-color: var(--primary-color);
+    color: var(--body-color);
+    border: none;
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: filter var(--transition-smooth);
+}
+
+.btn-primary-submit:hover {
+    filter: brightness(1.1);
+}
+
+/* =========================================================
+   MODAL DIALOG
+   ========================================================= */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 3000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.modal-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.modal-close-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.modal-close-btn:hover {
+    color: var(--danger-color);
+}
+
+.modal-body {
+    padding: 20px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+/* Footer Styling */
+.main-footer {
+    background-color: #0d1117; /* Dark navy background */
+    border-top: 2px solid #00875a; /* Green top accent line */
+    text-align: center;
+    padding: 16px 20px;
+    color: #8b949e;
+    font-size: 0.88rem;
     margin-top: auto;
 }
 
 .main-footer p {
     margin: 0;
+}
+
+@media screen and (max-width: 650px) {
+    .input-grid {
+        grid-template-columns: 1fr;
+    }
+    .input-box.full-width {
+        grid-column: span 1;
+    }
+    .page-action-header {
+        flex-direction: column;
+    }
 }
