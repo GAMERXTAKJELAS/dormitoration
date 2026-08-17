@@ -129,11 +129,12 @@ if (newUserId && ic_number) {
 
   // Check if an existing hostel application row exists for this IC
   const existingApp = await env.DB.prepare(
-    `SELECT id FROM hostel_applications WHERE ic_number = ? LIMIT 1`
+    `SELECT id, submission_status FROM hostel_applications WHERE ic_number = ? LIMIT 1`
   ).bind(ic_number).first();
 
   if (existingApp) {
-    // FIX 2: UPDATE existing hostel application to attach newUserId (e.g. 31)
+    // Re-link existing application record to the new user ID
+    // Retain existing submission_status if it was already submitted/draft
     await env.DB.prepare(`
       UPDATE hostel_applications 
       SET user_id = ?,
@@ -149,7 +150,7 @@ if (newUserId && ic_number) {
       ic_number
     ).run();
   } else {
-    // INSERT a brand-new draft application row if no prior record exists
+    // Insert new application record with explicit 'draft' status
     await env.DB.prepare(`
       INSERT INTO hostel_applications (
         user_id,
@@ -158,40 +159,11 @@ if (newUserId && ic_number) {
         dob,
         age,
         gender,
-        home_address,
-        postcode,
-        city,
-        state,
-        reason_for_apply,
-        program,
-        semester,
-        gpa_cgpa,
-        contributions,
-        guardian1_name,
-        guardian1_ic,
-        guardian1_phone,
-        guardian1_address,
-        guardian1_relationship,
-        guardian1_job,
-        guardian1_income,
-        guardian2_name,
-        guardian2_ic,
-        guardian2_phone,
-        guardian2_address,
-        guardian2_relationship,
-        guardian2_job,
-        guardian2_income,
-        dependents_count,
         submission_status,
         head_of_program_support,
         admin_approval
       ) VALUES (
         ?, ?, ?, ?, ?, ?,
-        '', '', '', '',
-        '', '', 1, 0.0, '',
-        '', '', '', '', '', '', 0.0,
-        '', '', '', '', '', '', 0.0,
-        0,
         'draft',
         'pending',
         'pending'
