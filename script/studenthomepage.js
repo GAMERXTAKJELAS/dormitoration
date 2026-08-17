@@ -75,7 +75,7 @@ async function executeDeleteAccount() {
         alert('Account deleted successfully.');
         localStorage.removeItem('userData');
         sessionStorage.clear();
-        window.location.href = '/login.html';
+        window.location.href = '/log_in.html';
 
     } catch (err) {
         console.error('Account deletion error:', err);
