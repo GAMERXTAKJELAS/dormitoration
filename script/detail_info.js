@@ -61,9 +61,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             username: getStorageData('userData').username || '',
             namaPelajar: getValue('namaPelajar'),
             noIC: getValue('noIC'),
-            tarikhLahir: getValue('tarikhLahir'),
-            umur: getValue('umur'),
-            jantina: getValue('jantina'),
+    
+            // Grab automatically parsed background values
+            tarikhLahir: autoParsedDetails.tarikhLahir,
+            umur: autoParsedDetails.umur,
+            jantina: autoParsedDetails.jantina,
+
             noTel: getValue('noTel'),
             alamatRumah: getValue('alamatRumah'),
             poskod: getValue('poskod'),
@@ -136,8 +139,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 });
 
+// Store calculated values in memory
+let autoParsedDetails = {
+    tarikhLahir: '',
+    umur: '',
+    jantina: ''
+};
+
 /* =========================================================
-   MALAYSIAN IC PARSER
+   MALAYSIAN IC PARSER (Auto-Calculates DOB, Age & Gender)
    ========================================================= */
 function parseMalaysianIC(icString) {
     const cleanIC = icString.replace(/\D/g, '');
@@ -153,7 +163,6 @@ function parseMalaysianIC(icString) {
 
     const monthStr = String(monthDigits).padStart(2, '0');
     const dayStr = String(dayDigits).padStart(2, '0');
-    setInputValue('tarikhLahir', `${fullYear}-${monthStr}-${dayStr}`);
 
     const dob = new Date(fullYear, monthDigits - 1, dayDigits);
     const today = new Date();
@@ -162,10 +171,11 @@ function parseMalaysianIC(icString) {
     if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
         age--;
     }
-    setInputValue('umur', age);
 
-    const gender = (lastDigit % 2 !== 0) ? 'Lelaki' : 'Perempuan';
-    setInputValue('jantina', gender);
+    // Save values directly in background state instead of DOM inputs
+    autoParsedDetails.tarikhLahir = `${fullYear}-${monthStr}-${dayStr}`;
+    autoParsedDetails.umur = age;
+    autoParsedDetails.jantina = (lastDigit % 2 !== 0) ? 'Lelaki' : 'Perempuan';
 }
 
 /* =========================================================

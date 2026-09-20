@@ -251,3 +251,17 @@
         justify-content: center;
     }
 }
+/* --- Custom Confirm Modal (replaces native browser confirm()) --- */
+.btn-confirm {
+    background: var(--primary-color);
+    border: none;
+    color: #0b0b0b;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.btn-confirm:hover {
+    filter: brightness(1.08);
+}

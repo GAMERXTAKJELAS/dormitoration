@@ -260,10 +260,53 @@ async function handleCSVUpload(event) {
     reader.readAsText(file);
 }
 
+// Custom Confirm Modal (replaces native browser confirm())
+function showConfirmModal({ title, message, iconClass = 'bx-check-circle', iconColor = 'var(--primary-color)', confirmText = 'Confirm', confirmClass = 'btn-confirm' }) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('confirm-action-modal');
+        const titleEl = document.getElementById('confirm-modal-title');
+        const msgEl = document.getElementById('confirm-modal-message');
+        const iconEl = document.getElementById('confirm-modal-icon');
+        const okBtn = document.getElementById('confirm-modal-ok');
+        const cancelBtn = document.getElementById('confirm-modal-cancel');
+
+        titleEl.textContent = title;
+        msgEl.textContent = message;
+        iconEl.className = `bx ${iconClass}`;
+        iconEl.style.color = iconColor;
+        okBtn.textContent = confirmText;
+        okBtn.className = confirmClass;
+
+        modal.style.display = 'flex';
+
+        function cleanup(result) {
+            modal.style.display = 'none';
+            okBtn.removeEventListener('click', onOk);
+            cancelBtn.removeEventListener('click', onCancel);
+            resolve(result);
+        }
+        function onOk() { cleanup(true); }
+        function onCancel() { cleanup(false); }
+
+        okBtn.addEventListener('click', onOk);
+        cancelBtn.addEventListener('click', onCancel);
+    });
+}
+
 // Update Application Status Action
 async function updateApplicationStatus(userId, appId, newStatus) {
-    const actionText = newStatus === 'returned' ? 'kembalikan (returned)' : 'luluskan (approved)';
-    if (!confirm(`Adakah anda pasti mahu ${actionText} permohonan ini?`)) return;
+    const isApprove = newStatus !== 'returned';
+    const actionText = isApprove ? 'luluskan (approved)' : 'kembalikan (returned)';
+
+    const confirmed = await showConfirmModal({
+        title: isApprove ? 'Approve Application?' : 'Return Application?',
+        message: `Adakah anda pasti mahu ${actionText} permohonan ini?`,
+        iconClass: isApprove ? 'bx-check-circle' : 'bx-undo',
+        iconColor: isApprove ? 'var(--primary-color)' : '#f2994a',
+        confirmText: isApprove ? 'Ya, Luluskan' : 'Ya, Kembalikan',
+        confirmClass: isApprove ? 'btn-confirm' : 'btn-danger'
+    });
+    if (!confirmed) return;
 
     try {
         const res = await fetch("/api/admin/applications/status", {

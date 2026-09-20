@@ -209,6 +209,70 @@ async function fetchStudentStatus(userId) {
 }
 
 // ==========================================
+// SMART ACCESS QR CODE
+// The unique code is fixed (fetched from the DB, assigned once on approval).
+// Only the VISUAL STYLE is randomized on every page load/reload.
+// ==========================================
+let qrInstance = null;
+
+async function renderAccessQR() {
+    const qrBox = document.getElementById('qrBox');
+    if (!qrBox) return;
+
+    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+    const userId = userData.id || userData.user_id;
+    if (!userId) return;
+
+    try {
+        const response = await fetch(`/api/student/qr-code?user_id=${encodeURIComponent(userId)}`);
+        const data = await response.json();
+
+        if (!data.code) {
+            if (data.expired) {
+                qrBox.innerHTML = `<i class='bx bx-error-circle'></i><p>Access code expired — contact admin to reissue</p>`;
+            } else {
+                qrBox.innerHTML = `<i class='bx bx-qr-scan'></i><p>QR not yet issued</p>`;
+            }
+            return;
+        }
+
+        if (typeof QRCodeStyling === 'undefined') {
+            console.error('QR styling library failed to load.');
+            return;
+        }
+
+        // Randomize only the look (dot shape / corner shape / color) — the encoded
+        // data (data.code) never changes, so any scanner reads the same identity every time.
+        const dotStyles = ['rounded', 'dots', 'classy', 'classy-rounded', 'extra-rounded', 'square'];
+        const cornerStyles = ['dot', 'square', 'extra-rounded'];
+        const colorPairs = [
+            ['#2f80ed', '#ffffff'], ['#27ae60', '#ffffff'], ['#eb5757', '#ffffff'],
+            ['#9b51e0', '#ffffff'], ['#f2994a', '#ffffff'], ['#111111', '#ffffff']
+        ];
+        const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+        const [fgColor, bgColor] = pick(colorPairs);
+
+        qrBox.innerHTML = `<div id="qrCodeCanvas"></div><p>Scan to Unlock</p>`;
+
+        qrInstance = new QRCodeStyling({
+            width: 160,
+            height: 160,
+            data: data.code,
+            margin: 4,
+            dotsOptions: { type: pick(dotStyles), color: fgColor },
+            cornersSquareOptions: { type: pick(cornerStyles), color: fgColor },
+            backgroundOptions: { color: bgColor }
+        });
+
+        qrInstance.append(document.getElementById('qrCodeCanvas'));
+
+    } catch (err) {
+        console.error('Failed to load access QR code:', err);
+        qrBox.innerHTML = `<i class='bx bx-qr-scan'></i><p>Scan to Unlock</p>`;
+    }
+}
+
+// ==========================================
 // 2. DASHBOARD RENDERER & TIMER
 // ==========================================
 function updateDashboardState(status, details = null, reason = null, allowExpirationCheck = true, user = null) {
@@ -232,6 +296,8 @@ function updateDashboardState(status, details = null, reason = null, allowExpira
             setElementText('displayBlock', details && details.block ? `Block: ${details.block}` : 'Block: Assigned');
             setElementText('displayRoom', details && details.room_number ? `Room: ${details.room_number}` : 'Room: Assigned');
             setElementText('displayPasscode', details && details.passcode ? details.passcode : 'Active');
+
+            renderAccessQR();
 
         } else if (['returned', 'rejected', 'fail'].includes(normalizedStatus)) {
             if (countdownInterval) clearInterval(countdownInterval);

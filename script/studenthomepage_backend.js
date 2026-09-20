@@ -1,4 +1,5 @@
 // studenthomepage_backend.js
+import { isAccessCodeExpired } from './access_code_utils.js';
 
 export async function handleStudentRoutes(request, env, corsHeaders) {
   const url = new URL(request.url);
@@ -146,6 +147,40 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
     } catch (err) {
       console.error('Delete Account Error:', err.message);
       return new Response(JSON.stringify({ error: 'Failed to delete account', details: err.message }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+  }
+
+  // GET: Student's stable unique access code (used to render the QR client-side)
+  if (method === 'GET' && url.pathname === '/api/student/qr-code') {
+    const userId = url.searchParams.get('user_id');
+
+    if (!userId) {
+      return new Response(JSON.stringify({ error: 'User ID is required' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    try {
+      const row = await env.DB.prepare(
+        `SELECT qr_access_code, assigned_at FROM student_rfid WHERE user_id = ? LIMIT 1`
+      ).bind(userId).first();
+
+      const expired = row ? isAccessCodeExpired(row.assigned_at) : false;
+
+      return new Response(JSON.stringify({
+        code: (row && !expired) ? row.qr_access_code : null,
+        expired
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    } catch (err) {
+      console.error('QR Code Fetch Error:', err.message);
+      return new Response(JSON.stringify({ error: 'Failed to fetch QR code', details: err.message }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });

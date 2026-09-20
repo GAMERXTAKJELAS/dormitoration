@@ -3,6 +3,8 @@
  * File: /script/approval_backend.js
  */
 
+import { isAccessCodeExpired } from './access_code_utils.js';
+
 // Robust Malaysian IC Parser
 function parseMalaysianIC(icRaw) {
   if (!icRaw) return null;
@@ -132,6 +134,34 @@ export async function handleAdminApplications(request, env, headers) {
               registration_deadline = NULL 
           WHERE id = ?
         `).bind(user_id).run();
+
+        // Issue a stable unique access code (used for the student's QR code) on first approval.
+        // Wrapped in its own try/catch so a QR issuance hiccup never blocks the approval itself.
+        try {
+          const existingRfid = await env.DB.prepare(
+            `SELECT id, qr_access_code, assigned_at FROM student_rfid WHERE user_id = ? LIMIT 1`
+          ).bind(user_id).first();
+
+          const nowISO = new Date().toISOString();
+
+          if (!existingRfid) {
+            const qrCode = crypto.randomUUID();
+            await env.DB.prepare(`
+              INSERT INTO student_rfid (user_id, qr_access_code, assigned_at)
+              VALUES (?, ?, ?)
+            `).bind(user_id, qrCode, nowISO).run();
+          } else if (!existingRfid.qr_access_code || isAccessCodeExpired(existingRfid.assigned_at)) {
+            // No code yet, OR the previous one passed the 5-month-2-week window —
+            // admin (re-)approving is exactly what reissues a fresh code.
+            const qrCode = crypto.randomUUID();
+            await env.DB.prepare(`
+              UPDATE student_rfid SET qr_access_code = ?, assigned_at = ? WHERE id = ?
+            `).bind(qrCode, nowISO, existingRfid.id).run();
+          }
+          // Otherwise a valid, non-expired code already exists — leave it untouched.
+        } catch (rfidErr) {
+          console.error('QR Access Code Issuance Error:', rfidErr.message);
+        }
 
       } else {
         // For returned, rejected, or declined states
