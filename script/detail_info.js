@@ -9,6 +9,7 @@ let currentGuardianCount = 1;
 document.addEventListener('DOMContentLoaded', async () => {
     // 1. Load Existing Application / User Data from Server and LocalStorage
     await fetchAndPopulateStudentDetails();
+    updateGuardianRemoveButtons();
 
     // 2. Real-time IC Listener (Auto DOB, Age & Gender)
     const icInput = document.getElementById('noIC');
@@ -86,7 +87,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 nama: getValue('namaPenjaga1'),
                 ic: getValue('icPenjaga1'),
                 tel: getValue('telPenjaga1'),
-                hubungan: isParentMode ? 'Bapa / Ibu' : getValue('hubunganPenjaga1'),
+                hubungan: isParentMode ? 'Father' : getValue('hubunganPenjaga1'),
                 pekerjaan: getValue('pekerjaanPenjaga1'),
                 pendapatan: getValue('pendapatanPenjaga1')
             },
@@ -94,7 +95,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 nama: getValue('namaPenjaga2'),
                 ic: getValue('icPenjaga2'),
                 tel: getValue('telPenjaga2'),
-                hubungan: 'Ibu',
+                hubungan: 'Mother',
                 pekerjaan: getValue('pekerjaanPenjaga2'),
                 pendapatan: getValue('pendapatanPenjaga2')
             } : null,
@@ -219,7 +220,12 @@ function addGuardianCard() {
     newCard.className = 'guardian-card';
     newCard.id = `guardianCard_${currentGuardianCount}`;
     newCard.innerHTML = `
-        <h3 class="sub-title">Guardian ${currentGuardianCount}</h3>
+        <div class="guardian-card-header">
+            <h3 class="sub-title">Guardian ${currentGuardianCount}</h3>
+            <button type="button" class="btn-remove-guardian" onclick="removeGuardianCard('guardianCard_${currentGuardianCount}')" title="Remove this guardian">
+                <i class='bx bx-trash'></i> Remove
+            </button>
+        </div>
         <div class="input-grid">
             <div class="input-box">
                 <label>Full Name</label>
@@ -248,6 +254,44 @@ function addGuardianCard() {
         </div>
     `;
     list.appendChild(newCard);
+    updateGuardianRemoveButtons();
+}
+
+function removeGuardianCard(cardId) {
+    const list = document.getElementById('dynamicGuardiansList');
+    if (!list) return;
+
+    const cards = list.querySelectorAll('.guardian-card');
+    if (cards.length <= 1) return; // Always keep at least 1 guardian box
+
+    const card = document.getElementById(cardId);
+    if (card) card.remove();
+
+    renumberGuardianCards();
+    updateGuardianRemoveButtons();
+}
+
+function renumberGuardianCards() {
+    const list = document.getElementById('dynamicGuardiansList');
+    if (!list) return;
+
+    list.querySelectorAll('.guardian-card').forEach((card, index) => {
+        const title = card.querySelector('.sub-title');
+        if (title) title.textContent = `Guardian ${index + 1}`;
+    });
+}
+
+function updateGuardianRemoveButtons() {
+    const list = document.getElementById('dynamicGuardiansList');
+    if (!list) return;
+
+    const cards = list.querySelectorAll('.guardian-card');
+    const onlyOneLeft = cards.length <= 1;
+
+    cards.forEach((card) => {
+        const btn = card.querySelector('.btn-remove-guardian');
+        if (btn) btn.disabled = onlyOneLeft;
+    });
 }
 
 /* =========================================================

@@ -201,20 +201,20 @@
 
                 <!-- Parents / Guardian Mode Switch Box -->
                 <div class="parent-switch-card">
-                    <span class="switch-label">Select Family Status:</span>
+                    <span class="switch-label">Who should we list as your emergency contact & family details?</span>
                     <div class="segmented-control">
                         <button type="button" id="btnModeParents" class="segment-btn active" onclick="switchGuardianMode('parents')">
-                            <i class='bx bx-group'></i> Has Parents
+                            <i class='bx bx-group'></i> Parent's Details
                         </button>
                         <button type="button" id="btnModeGuardians" class="segment-btn" onclick="switchGuardianMode('guardians')">
-                            <i class='bx bx-user-check'></i> No Parents (Guardians Only)
+                            <i class='bx bx-user-check'></i> Guardian's Details
                         </button>
                     </div>
                 </div>
 
                 <!-- CONTAINER 1: HAS PARENTS MODE -->
                 <div id="parentsModeContainer">
-                    <h3 class="sub-title">Father / Parent 1</h3>
+                    <h3 class="sub-title">Father</h3>
                     <div class="input-grid">
                         <div class="input-box">
                             <label>Full Name</label>
@@ -229,10 +229,6 @@
                             <input type="tel" id="telPenjaga1" name="telPenjaga1">
                         </div>
                         <div class="input-box">
-                            <label>Relationship</label>
-                            <input type="text" id="hubunganPenjaga1" name="hubunganPenjaga1" value="Father">
-                        </div>
-                        <div class="input-box">
                             <label>Occupation & Employer</label>
                             <input type="text" id="pekerjaanPenjaga1" name="pekerjaanPenjaga1">
                         </div>
@@ -242,7 +238,7 @@
                         </div>
                     </div>
 
-                    <h3 class="sub-title" style="margin-top: 20px;">Mother / Parent 2</h3>
+                    <h3 class="sub-title" style="margin-top: 20px;">Mother</h3>
                     <div class="input-grid">
                         <div class="input-box">
                             <label>Full Name</label>
@@ -257,10 +253,6 @@
                             <input type="tel" id="telPenjaga2" name="telPenjaga2">
                         </div>
                         <div class="input-box">
-                            <label>Relationship</label>
-                            <input type="text" id="hubunganPenjaga2" name="hubunganPenjaga2" value="Mother">
-                        </div>
-                        <div class="input-box">
                             <label>Occupation & Employer</label>
                             <input type="text" id="pekerjaanPenjaga2" name="pekerjaanPenjaga2">
                         </div>
@@ -271,12 +263,17 @@
                     </div>
                 </div>
 
-                <!-- CONTAINER 2: NO PARENTS MODE -->
+                <!-- CONTAINER 2: GUARDIAN MODE -->
                 <div id="guardiansModeContainer" style="display: none;">
                     <div id="dynamicGuardiansList">
                         <!-- Guardian 1 (Default) -->
                         <div class="guardian-card" id="guardianCard_1">
-                            <h3 class="sub-title">Guardian 1</h3>
+                            <div class="guardian-card-header">
+                                <h3 class="sub-title">Guardian 1</h3>
+                                <button type="button" class="btn-remove-guardian" onclick="removeGuardianCard('guardianCard_1')" title="Remove this guardian">
+                                    <i class='bx bx-trash'></i> Remove
+                                </button>
+                            </div>
                             <div class="input-grid">
                                 <div class="input-box">
                                     <label>Full Name</label>
