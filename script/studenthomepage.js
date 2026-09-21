@@ -147,6 +147,15 @@ if (typeof window.executeLogout !== 'function') {
     };
 }
 
+function updateNavAccountLabel(user) {
+    const label = document.getElementById('navAccountLabel');
+    if (!label) return;
+    const username = user && user.username;
+    // "N/A" is what /api/student/status returns when no username is set in the DB —
+    // fall back to the generic "Account" label in the UI only, never write it to the DB.
+    label.textContent = (username && username !== 'N/A') ? username : 'Account';
+}
+
 // ==========================================
 // 1. INITIALIZATION & STATUS FETCH
 // ==========================================
@@ -158,6 +167,7 @@ window.addEventListener('load', async () => {
     if (headerAvatar && userData) {
         headerAvatar.src = getDynamicAvatar(userData);
     }
+    updateNavAccountLabel(userData);
 
     if (!userId) {
         updateDashboardState('pending', null, null, false); 
@@ -191,6 +201,7 @@ async function fetchStudentStatus(userId) {
             if (headerAvatar) {
                 headerAvatar.src = getDynamicAvatar(mergedUser);
             }
+            updateNavAccountLabel(mergedUser);
 
             populateAccountModal(mergedUser);
         }
