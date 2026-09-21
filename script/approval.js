@@ -261,7 +261,7 @@ async function handleCSVUpload(event) {
 }
 
 // Custom Confirm Modal (replaces native browser confirm())
-function showConfirmModal({ title, message, iconClass = 'bx-check-circle', iconColor = 'var(--primary-color)', confirmText = 'Confirm', confirmClass = 'btn-confirm' }) {
+function showConfirmModal({ title, message, iconClass = 'bx-check-circle', iconColor = 'var(--primary-color)', confirmText = 'Confirm', confirmClass = 'btn-confirm', hideCancel = false }) {
     return new Promise((resolve) => {
         const modal = document.getElementById('confirm-action-modal');
         const titleEl = document.getElementById('confirm-modal-title');
@@ -276,11 +276,13 @@ function showConfirmModal({ title, message, iconClass = 'bx-check-circle', iconC
         iconEl.style.color = iconColor;
         okBtn.textContent = confirmText;
         okBtn.className = confirmClass;
+        cancelBtn.style.display = hideCancel ? 'none' : '';
 
         modal.style.display = 'flex';
 
         function cleanup(result) {
             modal.style.display = 'none';
+            cancelBtn.style.display = '';
             okBtn.removeEventListener('click', onOk);
             cancelBtn.removeEventListener('click', onCancel);
             resolve(result);
@@ -290,6 +292,19 @@ function showConfirmModal({ title, message, iconClass = 'bx-check-circle', iconC
 
         okBtn.addEventListener('click', onOk);
         cancelBtn.addEventListener('click', onCancel);
+    });
+}
+
+// Custom Info/Alert Modal (replaces native browser alert()) — single "OK" button
+function showInfoModal({ title, message, iconClass = 'bx-check-circle', iconColor = 'var(--primary-color)', okText = 'OK' }) {
+    return showConfirmModal({
+        title,
+        message,
+        iconClass,
+        iconColor,
+        confirmText: okText,
+        confirmClass: 'btn-confirm',
+        hideCancel: true
     });
 }
 
@@ -322,8 +337,22 @@ async function updateApplicationStatus(userId, appId, newStatus) {
         const data = await res.json();
 
         if (res.ok) {
-            alert("Status permohonan berjaya dikemaskini!");
-            
+            if (data.qrWarning) {
+                await showInfoModal({
+                    title: 'Status Updated — QR Code Issue',
+                    message: `Status permohonan berjaya dikemaskini, tetapi kod akses QR gagal dijana: ${data.qrWarning}`,
+                    iconClass: 'bx-error',
+                    iconColor: '#f2994a'
+                });
+            } else {
+                await showInfoModal({
+                    title: 'Success',
+                    message: 'Status permohonan berjaya dikemaskini!',
+                    iconClass: 'bx-check-circle',
+                    iconColor: 'var(--primary-color)'
+                });
+            }
+
             // Update local state for immediate response
             const target = allStudents.find(s => 
                 (userId !== 'null' && Number(s.user_id) === Number(userId)) || 
@@ -334,11 +363,21 @@ async function updateApplicationStatus(userId, appId, newStatus) {
             }
             renderTable();
         } else {
-            alert(`Gagal mengemaskini: ${data.error || 'Server error'}`);
+            await showInfoModal({
+                title: 'Update Failed',
+                message: `Gagal mengemaskini: ${data.error || 'Server error'}`,
+                iconClass: 'bx-x-circle',
+                iconColor: '#ef4444'
+            });
         }
     } catch (err) {
         console.error("Error updating status:", err);
-        alert(`Ralat rangkaian: ${err.message}`);
+        await showInfoModal({
+            title: 'Network Error',
+            message: `Ralat rangkaian: ${err.message}`,
+            iconClass: 'bx-wifi-off',
+            iconColor: '#ef4444'
+        });
     }
 }
 

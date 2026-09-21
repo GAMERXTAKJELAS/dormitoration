@@ -90,6 +90,16 @@ body.light-mode .top-nav .theme-btn {
     color: #ffffff;
 }
 
+.theme-btn {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 1.4rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
 .brand i {
     font-size: 1.3rem;
 }
@@ -110,12 +120,13 @@ body.light-mode .top-nav .theme-btn {
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    gap: 6px;
     transition: all var(--transition-smooth);
 }
 
 .nav-links .btn-outline:hover {
     background-color: #ffffff;
-    color: #00875a;
+    color: var(--primary-color);
 }
 
 .nav-item {

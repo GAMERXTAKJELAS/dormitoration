@@ -123,6 +123,7 @@ export async function handleAdminApplications(request, env, headers) {
       }
 
       let targetAccountStatus = 'pending_details';
+      let qrWarning = null;
 
       if (status === 'approved') {
         targetAccountStatus = 'active';
@@ -147,9 +148,9 @@ export async function handleAdminApplications(request, env, headers) {
           if (!existingRfid) {
             const qrCode = crypto.randomUUID();
             await env.DB.prepare(`
-              INSERT INTO student_rfid (user_id, qr_access_code, assigned_at)
-              VALUES (?, ?, ?)
-            `).bind(user_id, qrCode, nowISO).run();
+              INSERT INTO student_rfid (user_id, matriks_number, rfid_card_uid, qr_access_code, assigned_at)
+              VALUES (?, ?, ?, ?, ?)
+            `).bind(user_id, '', '', qrCode, nowISO).run();
           } else if (!existingRfid.qr_access_code || isAccessCodeExpired(existingRfid.assigned_at)) {
             // No code yet, OR the previous one passed the 5-month-2-week window —
             // admin (re-)approving is exactly what reissues a fresh code.
@@ -161,6 +162,7 @@ export async function handleAdminApplications(request, env, headers) {
           // Otherwise a valid, non-expired code already exists — leave it untouched.
         } catch (rfidErr) {
           console.error('QR Access Code Issuance Error:', rfidErr.message);
+          qrWarning = rfidErr.message;
         }
 
       } else {
@@ -196,7 +198,8 @@ export async function handleAdminApplications(request, env, headers) {
         JSON.stringify({ 
           success: true, 
           message: 'Status updated successfully!',
-          account_status: targetAccountStatus
+          account_status: targetAccountStatus,
+          qrWarning
         }),
         { status: 200, headers: { ...headers, "Content-Type": "application/json" } }
       );
