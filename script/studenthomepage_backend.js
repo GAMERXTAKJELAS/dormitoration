@@ -153,6 +153,51 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
     }
   }
 
+  // POST: Update simple biodata (username, email, phone) from the Account modal
+  if (method === 'POST' && url.pathname === '/api/student/update-account') {
+    try {
+      const { user_id, username, email, phone } = await request.json();
+
+      if (!user_id) {
+        return new Response(JSON.stringify({ error: 'User ID is required' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      if (!email || !phone) {
+        return new Response(JSON.stringify({ error: 'Email and phone number cannot be empty.' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      await env.DB.prepare(`
+        UPDATE users 
+        SET username = ?, email = ?, phone = ?, updated_at = ?
+        WHERE id = ?
+      `).bind(username || null, email, phone, new Date().toISOString(), user_id).run();
+
+      return new Response(JSON.stringify({ success: true, message: 'Account updated successfully' }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    } catch (err) {
+      console.error('Update Account Error:', err.message);
+
+      // A UNIQUE constraint violation (duplicate email/username) surfaces here
+      const isDuplicate = /unique/i.test(err.message);
+      const friendlyMessage = isDuplicate
+        ? 'That username or email is already in use by another account.'
+        : 'Failed to update account';
+
+      return new Response(JSON.stringify({ error: friendlyMessage, details: err.message }), {
+        status: isDuplicate ? 409 : 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+  }
+
   // GET: Student's stable unique access code (used to render the QR client-side)
   if (method === 'GET' && url.pathname === '/api/student/qr-code') {
     const userId = url.searchParams.get('user_id');

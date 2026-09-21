@@ -425,6 +425,58 @@ body.dark-mode .btn-primary {
     animation: alertPop 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* --- Custom Alert Modal (redesigned) --- */
+.custom-alert-content {
+    max-width: 360px;
+    padding: 36px 30px 30px;
+}
+
+.alert-icon-badge {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 18px;
+    font-size: 2rem;
+    line-height: 1;
+}
+
+.alert-icon-badge.success {
+    background: rgba(71, 245, 155, 0.12);
+    color: var(--primary-color);
+}
+
+.alert-icon-badge.error {
+    background: rgba(255, 107, 107, 0.12);
+    color: #ff6b6b;
+}
+
+.alert-icon-badge.info {
+    background: rgba(255, 165, 0, 0.12);
+    color: #ffa500;
+}
+
+#customAlertTitle {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-color);
+    margin-bottom: 8px;
+}
+
+#customAlertMessage {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin-bottom: 26px;
+}
+
+#custom-alert-modal .btn-primary {
+    min-width: 130px;
+    padding: 10px 24px;
+}
+
 @keyframes alertPop {
     from {
         transform: scale(0.85);

@@ -21,15 +21,17 @@ function showCustomAlert(message, type = 'success', onClose = null) {
     customAlertCallback = onClose;
     if (messageElement) messageElement.textContent = message;
 
-    if (type === 'success') {
-        if (titleElement) titleElement.textContent = 'Success';
-        if (iconContainer) iconContainer.innerHTML = `<i class='bx bx-check-circle' style="color: var(--primary-color);"></i>`;
-    } else if (type === 'error') {
-        if (titleElement) titleElement.textContent = 'Error';
-        if (iconContainer) iconContainer.innerHTML = `<i class='bx bx-error-circle' style="color: #ff6b6b;"></i>`;
-    } else {
-        if (titleElement) titleElement.textContent = 'Notification';
-        if (iconContainer) iconContainer.innerHTML = `<i class='bx bx-info-circle' style="color: #ffa500;"></i>`;
+    const config = {
+        success: { title: 'Success', icon: 'bx-check-circle' },
+        error: { title: 'Error', icon: 'bx-error-circle' },
+        info: { title: 'Notification', icon: 'bx-info-circle' }
+    }[type] || { title: 'Notification', icon: 'bx-info-circle' };
+    const badgeType = ['success', 'error', 'info'].includes(type) ? type : 'info';
+
+    if (titleElement) titleElement.textContent = config.title;
+    if (iconContainer) {
+        iconContainer.className = `alert-icon-badge ${badgeType}`;
+        iconContainer.innerHTML = `<i class='bx ${config.icon}'></i>`;
     }
 
     modal.style.display = 'flex';

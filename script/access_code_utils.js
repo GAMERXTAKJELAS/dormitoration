@@ -1,18 +1,20 @@
 // access_code_utils.js
 // Shared lifecycle rule for the student QR "unique access code".
-// Validity window: 5 months + 2 weeks from issuance (student_rfid.assigned_at).
-// NOTE: This is completely separate from the room passcode's own 6-month cycle —
+// Default validity window: 6 months from issuance (student_rfid.assigned_at).
+// `validityMonths` is a parameter (not hardcoded) so it can later be driven by
+// an admin-configurable setting (e.g. system_settings.setting_key = 'qr_validity_months')
+// without touching this function's logic again.
+// NOTE: This is completely separate from the room passcode's own cycle —
 // a student's room code keeps working after the QR access code expires.
 
-export function isAccessCodeExpired(createdAtRaw) {
-  if (!createdAtRaw) return false;
+export function isAccessCodeExpired(assignedAtRaw, validityMonths = 6) {
+  if (!assignedAtRaw) return false;
 
-  const created = new Date(String(createdAtRaw).replace(' ', 'T'));
-  if (isNaN(created.getTime())) return false;
+  const assigned = new Date(String(assignedAtRaw).replace(' ', 'T'));
+  if (isNaN(assigned.getTime())) return false;
 
-  const expiry = new Date(created);
-  expiry.setMonth(expiry.getMonth() + 5);
-  expiry.setDate(expiry.getDate() + 14); // + 2 weeks
+  const expiry = new Date(assigned);
+  expiry.setMonth(expiry.getMonth() + validityMonths);
 
   return new Date() >= expiry;
 }
