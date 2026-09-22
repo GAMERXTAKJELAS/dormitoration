@@ -166,6 +166,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                         msgDiv.innerText = 'Application successfully saved and submitted!';
                     }
 
+                    clearDetailFormDraft();
+
                     setTimeout(() => {
                         window.location.href = '/student/studenthomepage.html';
                     }, 1200);
@@ -358,36 +360,166 @@ function handleCSVUpload(event) {
     const reader = new FileReader();
     reader.onload = function (e) {
         const text = e.target.result;
-        const csvData = parseCSVToJSON(text);
+        const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
 
-        if (Object.keys(csvData).length > 0) {
-            const existingUser = getStorageData('userData');
-            const mergedUser = { ...existingUser, ...csvData };
-
-            localStorage.setItem('userData', JSON.stringify(mergedUser));
-            loadDataFromLocalStorage();
-
-            alert("Applicable hostel application fields have been auto-filled from your CSV!");
-        } else {
-            alert("Invalid CSV format. Please ensure the first row contains valid headers.");
+        if (lines.length < 2) {
+            showDetailMessage('Invalid CSV format. Please ensure there is a header row and at least one data row.', true);
+            return;
         }
+
+        const headers = parseCsvLine(lines[0]);
+        const values = parseCsvLine(lines[1]);
+        const { mapped, unmatched } = mapCsvRowToFormData(headers, values);
+
+        if (Object.keys(mapped).length === 0) {
+            showDetailMessage('None of the CSV columns were recognized. Check your column names and try again.', true);
+            return;
+        }
+
+        populateForm(mapped);
+        saveDetailFormDraft(mapped);
+
+        let msg = `CSV imported — ${Object.keys(mapped).length} field(s) auto-filled.`;
+        if (unmatched.length > 0) {
+            msg += ` Skipped unrecognized column(s): ${unmatched.join(', ')}.`;
+        }
+        showDetailMessage(msg, false);
     };
     reader.readAsText(file);
 }
 
-function parseCSVToJSON(csvText) {
-    const lines = csvText.split('\n').map(l => l.trim()).filter(Boolean);
-    if (lines.length < 2) return {};
+// Splits one CSV line into fields, respecting "quoted, commas, inside quotes"
+function parseCsvLine(line) {
+    const result = [];
+    let cur = '';
+    let inQuotes = false;
 
-    const headers = lines[0].split(',').map(h => h.trim().replace(/^["']|["']$/g, ''));
-    const values = lines[1].split(',').map(v => v.trim().replace(/^["']|["']$/g, ''));
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"') {
+            if (inQuotes && line[i + 1] === '"') { cur += '"'; i++; }
+            else inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+            result.push(cur.trim());
+            cur = '';
+        } else {
+            cur += char;
+        }
+    }
+    result.push(cur.trim());
+    return result;
+}
 
-    const result = {};
-    headers.forEach((header, index) => {
-        result[header] = values[index] || "";
+// Lowercases, strips apostrophes/underscores/extra spaces so header matching
+// isn't broken by capitalization, punctuation, or spacing differences.
+function normalizeHeader(h) {
+    return String(h || '')
+        .toLowerCase()
+        .replace(/['"]/g, '')
+        .replace(/[_\-]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+// English-first alias list. Add more variants (or a Malay set) here as needed —
+// the matching logic itself doesn't change, just this dictionary.
+const CSV_FIELD_ALIASES = {
+    namaPelajar: ['full name', 'name', 'student name', 'nama', 'nama penuh'],
+    noIC: ['ic number', 'ic', 'nric', 'identity card', 'identity card number', 'mykad'],
+    tarikhLahir: ['date of birth', 'dob', 'birth date'],
+    noTel: ['phone number', 'phone', 'contact number', 'mobile number', 'mobile', 'tel', 'telephone'],
+    alamatRumah: ['home address', 'address', 'residential address'],
+    poskod: ['postcode', 'postal code', 'zip code', 'zip'],
+    bandar: ['city', 'town'],
+    negeri: ['state'],
+    sebabMemohon: ['reason for applying', 'reason to apply', 'reason', 'reason for application'],
+    program: ['program', 'programme', 'course', 'academic program'],
+    semester: ['semester', 'sem'],
+    gpa: ['gpa', 'current gpa'],
+    cgpa: ['cgpa', 'cumulative gpa'],
+    tanggunganAnak: ['dependents', 'number of dependents', 'total dependents', 'dependents count'],
+    isMpp: ['mpp member', 'is mpp', 'mpp'],
+    'penjaga1.nama': ["father name", "fathers name", "guardian 1 name", "guardian name"],
+    'penjaga1.ic': ['father ic', 'fathers ic', 'guardian 1 ic'],
+    'penjaga1.tel': ['father phone', 'fathers phone', 'guardian 1 phone'],
+    'penjaga1.pekerjaan': ['father job', 'fathers job', 'father occupation', 'guardian 1 job'],
+    'penjaga1.pendapatan': ['father income', 'fathers income', 'guardian 1 income'],
+    'penjaga2.nama': ['mother name', 'mothers name', 'guardian 2 name'],
+    'penjaga2.ic': ['mother ic', 'mothers ic', 'guardian 2 ic'],
+    'penjaga2.tel': ['mother phone', 'mothers phone', 'guardian 2 phone'],
+    'penjaga2.pekerjaan': ['mother job', 'mothers job', 'guardian 2 job'],
+    'penjaga2.pendapatan': ['mother income', 'mothers income', 'guardian 2 income']
+};
+
+const CSV_ALIAS_LOOKUP = {};
+Object.entries(CSV_FIELD_ALIASES).forEach(([targetKey, aliases]) => {
+    aliases.forEach(alias => {
+        CSV_ALIAS_LOOKUP[normalizeHeader(alias)] = targetKey;
+    });
+    CSV_ALIAS_LOOKUP[normalizeHeader(targetKey)] = targetKey; // exact internal key still works too
+});
+
+function mapCsvRowToFormData(headers, values) {
+    const mapped = {};
+    const unmatched = [];
+
+    headers.forEach((rawHeader, idx) => {
+        const targetKey = CSV_ALIAS_LOOKUP[normalizeHeader(rawHeader)];
+        const value = (values[idx] || '').trim();
+        if (!value) return;
+
+        if (!targetKey) {
+            unmatched.push(rawHeader);
+            return;
+        }
+
+        if (targetKey.includes('.')) {
+            const [group, field] = targetKey.split('.');
+            if (!mapped[group]) mapped[group] = {};
+            mapped[group][field] = value;
+        } else {
+            mapped[targetKey] = value;
+        }
     });
 
-    return result;
+    return { mapped, unmatched };
+}
+
+function showDetailMessage(text, isError) {
+    const msgDiv = document.getElementById('detailMsg');
+    if (!msgDiv) return;
+    msgDiv.style.color = isError ? '#ff6b6b' : '#47f59b';
+    msgDiv.innerText = text;
+}
+
+// Draft cache for a NOT-YET-SUBMITTED application, kept separate from `userData`
+// (which is session/account info, not form-in-progress data). This survives the
+// user closing the tab or navigating away before hitting Submit.
+const DETAIL_DRAFT_KEY = 'detailFormDraft';
+
+function saveDetailFormDraft(newData) {
+    try {
+        const existing = JSON.parse(localStorage.getItem(DETAIL_DRAFT_KEY) || '{}');
+        const merged = { ...existing, ...newData };
+        // Merge nested guardian objects instead of letting one overwrite the other
+        if (newData.penjaga1) merged.penjaga1 = { ...(existing.penjaga1 || {}), ...newData.penjaga1 };
+        if (newData.penjaga2) merged.penjaga2 = { ...(existing.penjaga2 || {}), ...newData.penjaga2 };
+        localStorage.setItem(DETAIL_DRAFT_KEY, JSON.stringify(merged));
+    } catch (e) {
+        console.error('Failed to save detail form draft:', e);
+    }
+}
+
+function loadDetailFormDraft() {
+    try {
+        return JSON.parse(localStorage.getItem(DETAIL_DRAFT_KEY) || '{}');
+    } catch (e) {
+        return {};
+    }
+}
+
+function clearDetailFormDraft() {
+    localStorage.removeItem(DETAIL_DRAFT_KEY);
 }
 
 /* =========================================================
@@ -483,7 +615,21 @@ async function fetchAndPopulateStudentDetails() {
         if (res.ok) {
             const apiData = await res.json();
             if (apiData && Object.keys(apiData).length > 0) {
-                populateForm(apiData);
+                // A draft row always exists from registration, so apiData "having keys"
+                // doesn't mean the application was actually submitted. If it's still a
+                // draft, restore any unsaved CSV-filled progress on top of the sparse
+                // server data — server values win only where they're actually non-empty.
+                let dataToRender = apiData;
+                if (apiData.accountStatus !== 'submitted') {
+                    const draft = loadDetailFormDraft();
+                    if (Object.keys(draft).length > 0) {
+                        dataToRender = mergeDraftOverEmptyFields(apiData, draft);
+                    }
+                } else {
+                    clearDetailFormDraft(); // already submitted — a lingering draft is now stale
+                }
+
+                populateForm(dataToRender);
                 lastLoadedData = apiData;
 
                 // Already submitted once? Start in read-only view with an Edit button,
@@ -507,6 +653,31 @@ async function fetchAndPopulateStudentDetails() {
 function loadDataFromLocalStorage() {
     const data = getStorageData('userData');
     populateForm(data);
+}
+
+// Fills in draft values only where the server's own value is empty/null — a real
+// submitted value always wins over a leftover draft.
+function mergeDraftOverEmptyFields(serverData, draftData) {
+    const result = { ...serverData };
+
+    Object.keys(draftData).forEach(key => {
+        if (key === 'penjaga1' || key === 'penjaga2') {
+            const serverGuardian = serverData[key] || {};
+            const draftGuardian = draftData[key] || {};
+            const mergedGuardian = { ...draftGuardian, ...serverGuardian };
+            Object.keys(draftGuardian).forEach(gKey => {
+                if (!serverGuardian[gKey]) mergedGuardian[gKey] = draftGuardian[gKey];
+            });
+            result[key] = mergedGuardian;
+            return;
+        }
+
+        if (!serverData[key]) {
+            result[key] = draftData[key];
+        }
+    });
+
+    return result;
 }
 
 function populateForm(data) {
