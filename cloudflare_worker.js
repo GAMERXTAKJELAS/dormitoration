@@ -6,6 +6,7 @@ import { handleAdminApplications } from './script/approval_backend.js';
 import { handleStudentRoutes } from './script/studenthomepage_backend.js';
 import { handleDashboardRoutes } from './script/dashboard_backend.js';
 import { handleDetailInfoRoutes } from './script/detail_backend.js';
+import { handleHardwareRoutes } from './script/hardware_backend.js';
 
 export default {
   // 1. Standard HTTP Request Router
@@ -46,6 +47,11 @@ export default {
 
       if (url.pathname.startsWith('/api/admin/applications')) {
         return await handleAdminApplications(request, env, headers);
+      }
+
+      if (url.pathname.startsWith('/api/hardware')) {
+        const hardwareResponse = await handleHardwareRoutes(request, env, headers);
+        if (hardwareResponse) return hardwareResponse;
       }
 
       // Handle Detail Information Routes (GET /api/student/details and POST /api/student/update-details)

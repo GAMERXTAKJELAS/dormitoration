@@ -5,6 +5,41 @@
 
 let pdfBase64String = "";
 let currentGuardianCount = 1;
+let lastLoadedData = null;
+
+function setFormFieldsDisabled(disabled) {
+    const form = document.getElementById('detailInfoForm');
+    if (!form) return;
+    form.querySelectorAll('input, select, textarea, button.btn-add-guardian, button.btn-remove-guardian').forEach(el => {
+        if (el.type === 'submit') return; // visibility of submit buttons is handled separately
+        el.disabled = disabled;
+    });
+}
+
+function enterViewMode() {
+    setFormFieldsDisabled(true);
+    const editBtn = document.getElementById('editProfileBtn');
+    const firstTimeBtn = document.getElementById('firstTimeSubmitBtn');
+    const editControls = document.getElementById('editModeControls');
+    if (editBtn) editBtn.style.display = '';
+    if (firstTimeBtn) firstTimeBtn.style.display = 'none';
+    if (editControls) editControls.style.display = 'none';
+}
+
+function enterEditMode() {
+    setFormFieldsDisabled(false);
+    const editBtn = document.getElementById('editProfileBtn');
+    const firstTimeBtn = document.getElementById('firstTimeSubmitBtn');
+    const editControls = document.getElementById('editModeControls');
+    if (editBtn) editBtn.style.display = 'none';
+    if (firstTimeBtn) firstTimeBtn.style.display = 'none';
+    if (editControls) editControls.style.display = 'flex';
+}
+
+function cancelEdit() {
+    if (lastLoadedData) populateForm(lastLoadedData);
+    enterViewMode();
+}
 
 document.addEventListener('DOMContentLoaded', async () => {
     // 1. Load Existing Application / User Data from Server and LocalStorage
@@ -59,7 +94,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const isParentMode = document.getElementById('guardiansModeContainer')?.style.display === 'none';
 
         const updatedDetails = {
-            username: getStorageData('userData').username || '',
+            user_id: getStorageData('userData').id || getStorageData('userData').user_id,
             namaPelajar: getValue('namaPelajar'),
             noIC: getValue('noIC'),
     
@@ -103,6 +138,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             slipGajiPDF: pdfBase64String || getStorageData('userData').slipGajiPDF || ""
         };
 
+        const wasEditingExisting = document.getElementById('editModeControls')?.style.display === 'flex';
+
         try {
             const response = await fetch('/api/student/update-details', {
                 method: 'POST',
@@ -115,14 +152,24 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const newUserData = { ...currentData, ...updatedDetails, account_status: 'pending' };
                 localStorage.setItem('userData', JSON.stringify(newUserData));
 
-                if (msgDiv) {
-                    msgDiv.style.color = '#47f59b';
-                    msgDiv.innerText = 'Application successfully saved and submitted!';
-                }
+                lastLoadedData = { ...updatedDetails, accountStatus: 'submitted' };
 
-                setTimeout(() => {
-                    window.location.href = '/student/studenthomepage.html';
-                }, 1200);
+                if (wasEditingExisting) {
+                    if (msgDiv) {
+                        msgDiv.style.color = '#47f59b';
+                        msgDiv.innerText = 'Changes saved successfully!';
+                    }
+                    enterViewMode();
+                } else {
+                    if (msgDiv) {
+                        msgDiv.style.color = '#47f59b';
+                        msgDiv.innerText = 'Application successfully saved and submitted!';
+                    }
+
+                    setTimeout(() => {
+                        window.location.href = '/student/studenthomepage.html';
+                    }, 1200);
+                }
             } else {
                 const err = await response.json();
                 if (msgDiv) {
@@ -428,18 +475,23 @@ function closeInfoModal() {
 async function fetchAndPopulateStudentDetails() {
     try {
         const userData = getStorageData('userData');
-        const usernameParam = userData.username ? `?username=${encodeURIComponent(userData.username)}` : '';
+        const userId = userData.id || userData.user_id;
+        const userIdParam = userId ? `?user_id=${encodeURIComponent(userId)}` : '';
 
-        const res = await fetch(`/api/student/details${usernameParam}`, {
-            headers: {
-                'Authorization': userData.username ? `Bearer ${userData.username}` : ''
-            }
-        });
+        const res = await fetch(`/api/student/details${userIdParam}`);
 
         if (res.ok) {
             const apiData = await res.json();
             if (apiData && Object.keys(apiData).length > 0) {
                 populateForm(apiData);
+                lastLoadedData = apiData;
+
+                // Already submitted once? Start in read-only view with an Edit button,
+                // instead of the normal fillable first-time form.
+                if (apiData.accountStatus === 'submitted') {
+                    enterViewMode();
+                }
+
                 // Sync backend data to localStorage cache
                 const updatedCache = { ...userData, ...apiData };
                 localStorage.setItem('userData', JSON.stringify(updatedCache));

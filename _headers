@@ -1,0 +1,17 @@
+/design/*
+  Cache-Control: no-cache, must-revalidate
+
+/script/*
+  Cache-Control: no-cache, must-revalidate
+
+/*.html
+  Cache-Control: no-cache, must-revalidate
+
+/student/*
+  Cache-Control: no-cache, must-revalidate
+
+/admin/*
+  Cache-Control: no-cache, must-revalidate
+
+/image/*
+  Cache-Control: public, max-age=604800

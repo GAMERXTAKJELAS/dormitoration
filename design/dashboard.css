@@ -173,6 +173,91 @@ body {
     transition: margin-left var(--transition-smooth);
 }
 
+/* ==========================================================================
+   MOBILE / TABLET: hover-to-expand doesn't exist on touch, so the sidebar
+   becomes a fixed bottom tab bar instead (icon-only, no hover dependency).
+   ========================================================================== */
+@media (max-width: 768px) {
+    .sidebar-nav {
+        position: fixed;
+        top: auto;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 64px;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-around;
+        border-right: none;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .sidebar-nav:hover {
+        width: 100%; /* hover-expand is meaningless on touch; keep it a no-op */
+    }
+
+    .logo-section {
+        display: none; /* no room for branding in a bottom tab bar */
+    }
+
+    .nav-list {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-around;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+    }
+
+    .nav-list li {
+        flex: 1;
+        height: 100%;
+    }
+
+    .nav-list li a {
+        flex-direction: column;
+        justify-content: center;
+        height: 100%;
+        padding: 0;
+    }
+
+    .nav-list li a i {
+        margin-right: 0;
+        font-size: 20px;
+    }
+
+    .nav-list li a.active {
+        border-left: none;
+        border-top: 3px solid var(--primary-color);
+    }
+
+    .light-mode .nav-list li a.active {
+        border-left: none;
+        border-top: 3px solid #ffffff;
+    }
+
+    .sidebar-nav .text {
+        display: none; /* icon-only tabs at this size */
+    }
+
+    .sidebar-footer {
+        position: static;
+        width: auto;
+        padding: 0 12px;
+    }
+
+    .theme-btn .text {
+        display: none;
+    }
+
+    .main-box {
+        margin-left: 0;
+        padding: 20px 16px 90px; /* bottom padding clears the fixed tab bar */
+    }
+}
+
 .dash-header { 
     margin-bottom: 30px; 
 }

@@ -223,9 +223,31 @@ body.light-mode .nav-avatar-img {
     margin: 0; 
 }
 
+.qr-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
 .qr-box i { 
     font-size: 5rem; 
     margin-top: 10px; 
+}
+
+#qrCodeCanvas {
+    display: inline-flex;
+    border-radius: 16px;
+    overflow: hidden;
+    max-width: 100%;
+}
+
+#qrCodeCanvas canvas,
+#qrCodeCanvas svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
 }
 
 /* --- BUTTONS --- */

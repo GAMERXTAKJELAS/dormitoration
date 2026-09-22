@@ -657,6 +657,39 @@ body.light-mode .top-nav .theme-btn {
     filter: brightness(1.1);
 }
 
+.edit-mode-controls {
+    display: flex;
+    gap: 12px;
+}
+
+.edit-mode-controls .btn-primary-submit {
+    flex: 1;
+}
+
+.btn-secondary {
+    flex: 1;
+    background: transparent;
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.btn-secondary:hover {
+    background: var(--input-bg);
+}
+
+/* Disabled fields in view mode should read clearly, not look broken */
+#detailInfoForm input:disabled,
+#detailInfoForm select:disabled,
+#detailInfoForm textarea:disabled {
+    opacity: 0.75;
+    cursor: not-allowed;
+}
+
 /* =========================================================
    MODAL DIALOG
    ========================================================= */

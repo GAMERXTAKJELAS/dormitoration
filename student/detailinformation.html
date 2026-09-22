@@ -41,6 +41,9 @@
 
             <!-- Top-Right CSV Actions -->
             <div class="csv-actions-wrapper">
+                <button type="button" id="editProfileBtn" class="btn-csv-upload" style="display: none;" onclick="enterEditMode()">
+                    <i class='bx bx-edit-alt'></i> Edit Profile
+                </button>
                 <button type="button" class="btn-csv-upload" onclick="document.getElementById('csvFileInput').click()">
                     <i class='bx bx-file'></i> Auto-Fill via CSV
                 </button>
@@ -128,19 +131,19 @@
                         <label>Academic Program</label>
                         <select id="program" name="program">
                             <option value="">-- Select Academic Program --</option>
-                            <option value="DIPLOMA KOMPETENSI ELEKTRIK (KUASA)">DIPLOMA KOMPETENSI ELEKTRIK (KUASA)</option>
-                            <option value="DIPLOMA KOMPETENSI ELEKTRIK (DOMESTIK & INDUSTRI)">DIPLOMA KOMPETENSI ELEKTRIK (DOMESTIK & INDUSTRI)</option>
-                            <option value="DIPLOMA TEKNOLOGI KOMPUTER (ANALISA DATA BESAR)">DIPLOMA TEKNOLOGI KOMPUTER (ANALISA DATA BESAR)</option>
-                            <option value="DIPLOMA TEKNOLOGI AUTOMOTIF">DIPLOMA TEKNOLOGI AUTOMOTIF</option>
-                            <option value="DIPLOMA TEKNOLOGI KEJURUTERAAN (PEMBUATAN PINTAR)">DIPLOMA TEKNOLOGI KEJURUTERAAN (PEMBUATAN PINTAR)</option>
-                            <option value="DIPLOMA TEKNOLOGI AUTOMATIF (BAIKPULIH & KEMASAN BADAN KENDERAAN)">DIPLOMA TEKNOLOGI AUTOMATIF (BAIKPULIH & KEMASAN BADAN KENDERAAN)</option>
-                            <option value="DIPLOMA TEKNOLOGI PENGELUARAN PERABOT KONTEMPORARI">DIPLOMA TEKNOLOGI PENGELUARAN PERABOT KONTEMPORARI</option>
-                            <option value="DIPLOMA TEKNOLOGI PERKHIDMATAN AIR">DIPLOMA TEKNOLOGI PERKHIDMATAN AIR</option>
-                            <option value="DIPLOMA KOMPETENSI KIMPALAN">DIPLOMA KOMPETENSI KIMPALAN</option>
-                            <option value="SIJIL TEKNOLOGI KEJURUTERAAN BANGUNAN">SIJIL TEKNOLOGI KEJURUTERAAN BANGUNAN</option>
-                            <option value="SIJIL TEKNOLOGI KEJURUTERAAN MEKANIKAL (LUKISAN REKABENTUK)">SIJIL TEKNOLOGI KEJURUTERAAN MEKANIKAL (LUKISAN REKABENTUK)</option>
-                            <option value="SIJIL SENIBINA">SIJIL SENIBINA</option>
-                            <option value="SIJIL TEKNOLOGI FOUNDRI">SIJIL TEKNOLOGI FOUNDRI</option>
+                            <option value="DCP">DIPLOMA KOMPETENSI ELEKTRIK (KUASA)</option>
+                            <option value="DCS">DIPLOMA KOMPETENSI ELEKTRIK (DOMESTIK & INDUSTRI)</option>
+                            <option value="DFD">DIPLOMA TEKNOLOGI KOMPUTER (ANALISA DATA BESAR)</option>
+                            <option value="DGA">DIPLOMA TEKNOLOGI AUTOMOTIF</option>
+                            <option value="DNS">DIPLOMA TEKNOLOGI KEJURUTERAAN (PEMBUATAN PINTAR)</option>
+                            <option value="DTB">DIPLOMA TEKNOLOGI AUTOMATIF (BAIKPULIH & KEMASAN BADAN KENDERAAN)</option>
+                            <option value="DTR">DIPLOMA TEKNOLOGI PENGELUARAN PERABOT KONTEMPORARI</option>
+                            <option value="DTW">DIPLOMA TEKNOLOGI PERKHIDMATAN AIR</option>
+                            <option value="ITW">DIPLOMA KOMPETENSI KIMPALAN</option>
+                            <option value="SBN">SIJIL TEKNOLOGI KEJURUTERAAN BANGUNAN</option>
+                            <option value="SLR">SIJIL TEKNOLOGI KEJURUTERAAN MEKANIKAL (LUKISAN REKABENTUK)</option>
+                            <option value="SSB">SIJIL SENIBINA</option>
+                            <option value="STF">SIJIL TEKNOLOGI FOUNDRI</option>
                         </select>
                     </div>
 
@@ -360,9 +363,16 @@
                     </label>
                 </div>
                 
-                <button type="submit" class="btn-primary-submit">
+                <button type="submit" id="firstTimeSubmitBtn" class="btn-primary-submit">
                     <i class='bx bx-paper-plane'></i> Save & Submit Application
                 </button>
+
+                <div id="editModeControls" class="edit-mode-controls" style="display: none;">
+                    <button type="button" class="btn-secondary" onclick="cancelEdit()">Cancel</button>
+                    <button type="submit" class="btn-primary-submit">
+                        <i class='bx bx-save'></i> Save Changes
+                    </button>
+                </div>
             </div>
 
         </form>
