@@ -495,8 +495,9 @@ body.dark-mode .btn-primary {
 }
 
 #custom-alert-modal .btn-primary {
-    min-width: 130px;
+    min-width: 110px;
     padding: 10px 24px;
+    justify-content: center;
 }
 
 @keyframes alertPop {
