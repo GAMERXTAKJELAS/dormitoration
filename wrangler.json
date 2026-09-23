@@ -9,6 +9,15 @@
       "database_id": "5d249b34-a8d7-4b67-8d8f-3063b2f755de"
     }
   ],
+  "r2_buckets": [
+    {
+      "binding": "PAYSLIP_BUCKET",
+      "bucket_name": "dormitoration"
+    }
+  ],
+  "ai": {
+    "binding": "AI"
+  },
   "triggers": {
     "crons": ["* * * * *"]
   },
