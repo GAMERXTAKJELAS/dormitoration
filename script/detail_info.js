@@ -134,8 +134,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 pekerjaan: getValue('pekerjaanPenjaga2'),
                 pendapatan: getValue('pendapatanPenjaga2')
             } : null,
-            tanggunganAnak: getValue('tanggunganAnak'),
-            slipGajiPDF: pdfBase64String || getStorageData('userData').slipGajiPDF || ""
+            tanggunganAnak: getValue('tanggunganAnak')
         };
 
         const wasEditingExisting = document.getElementById('editModeControls')?.style.display === 'flex';
@@ -525,19 +524,26 @@ function clearDetailFormDraft() {
 /* =========================================================
    PAYSLIP PDF UPLOAD & PREVIEW
    ========================================================= */
-function handlePDFSelection(event) {
+let lastSelectedPdfFile = null;
+
+async function handlePDFSelection(event) {
     const file = event.target.files[0];
     const nameDisplay = document.getElementById('fileNameDisplay');
     const previewContainer = document.getElementById('pdfPreviewContainer');
     const previewFrame = document.getElementById('pdfPreviewFrame');
+    const warningBanner = document.getElementById('pdfWarningBanner');
+
+    if (warningBanner) warningBanner.style.display = 'none';
 
     if (!file || file.type !== "application/pdf") {
         if (nameDisplay) nameDisplay.innerText = "No file selected";
         if (previewContainer) previewContainer.style.display = 'none';
         pdfBase64String = "";
+        lastSelectedPdfFile = null;
         return;
     }
 
+    lastSelectedPdfFile = file;
     if (nameDisplay) nameDisplay.innerText = `📄 ${file.name}`;
 
     const reader = new FileReader();
@@ -547,9 +553,106 @@ function handlePDFSelection(event) {
             previewFrame.src = pdfBase64String;
             previewContainer.style.display = 'block';
         }
+        uploadAndCheckPdf(file);
     };
     reader.readAsDataURL(file);
 }
+
+async function uploadAndCheckPdf(file) {
+    const nameDisplay = document.getElementById('fileNameDisplay');
+    const warningBanner = document.getElementById('pdfWarningBanner');
+    const warningText = document.getElementById('pdfWarningText');
+
+    const userData = getStorageData('userData');
+    const userId = userData.id || userData.user_id;
+    const documentType = document.getElementById('documentType')?.value || 'slip_gaji';
+
+    if (!userId || !pdfBase64String) return;
+
+    if (nameDisplay) nameDisplay.innerText = `📄 ${file.name} (uploading...)`;
+
+    try {
+        const uploadRes = await fetch('/api/student/upload-payslip', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                user_id: userId,
+                document_type: documentType,
+                filename: file.name,
+                base64Data: pdfBase64String
+            })
+        });
+
+        if (!uploadRes.ok) {
+            const errBody = await uploadRes.json().catch(() => ({}));
+            console.error('Upload failed:', errBody);
+            if (nameDisplay) nameDisplay.innerText = `📄 ${file.name} (upload failed — try again)`;
+            return;
+        }
+
+        if (nameDisplay) nameDisplay.innerText = `📄 ${file.name} ✓ uploaded`;
+
+        // AI plausibility check runs in the background — never blocks the student either way
+        const imageBase64 = await renderPdfFirstPageToImageBase64(file);
+        if (!imageBase64) return;
+
+        const checkRes = await fetch('/api/student/check-payslip', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: userId, document_type: documentType, imageBase64 })
+        });
+
+        const verdict = await checkRes.json();
+        if (verdict && verdict.looksValid === false && warningBanner && warningText) {
+            const typeLabel = documentType === 'slip_gaji' ? 'Salary Slip' : 'Sworn Declaration';
+            warningText.innerText = `This doesn't look like a ${typeLabel} — are you sure this is the right file? (${verdict.reason || 'Please double-check.'})`;
+            warningBanner.style.display = 'flex';
+        }
+    } catch (err) {
+        console.error('Payslip upload/check error:', err);
+        if (nameDisplay) nameDisplay.innerText = `📄 ${file.name} (upload failed — try again)`;
+    }
+}
+
+// Renders page 1 of the PDF to a PNG and returns it as raw base64 (no data: prefix),
+// using pdf.js loaded via CDN. Returns null if pdf.js isn't available for any reason —
+// callers treat that as "skip the AI check", never as a failure to block on.
+async function renderPdfFirstPageToImageBase64(file) {
+    try {
+        if (typeof pdfjsLib === 'undefined') return null;
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        const page = await pdf.getPage(1);
+        const viewport = page.getViewport({ scale: 1.5 });
+
+        const canvas = document.createElement('canvas');
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        const ctx = canvas.getContext('2d');
+
+        await page.render({ canvasContext: ctx, viewport }).promise;
+
+        return canvas.toDataURL('image/png').split(',')[1];
+    } catch (err) {
+        console.error('PDF-to-image conversion failed:', err);
+        return null;
+    }
+}
+
+// Re-run the check if the document type changes after a file was already uploaded —
+// otherwise a stale verdict (checked against the wrong expected type) could linger.
+document.addEventListener('DOMContentLoaded', () => {
+    const typeSelect = document.getElementById('documentType');
+    if (typeSelect) {
+        typeSelect.addEventListener('change', () => {
+            const warningBanner = document.getElementById('pdfWarningBanner');
+            if (warningBanner) warningBanner.style.display = 'none';
+            if (lastSelectedPdfFile) uploadAndCheckPdf(lastSelectedPdfFile);
+        });
+    }
+});
 
 function closePdfPreview() {
     const previewContainer = document.getElementById('pdfPreviewContainer');
@@ -750,19 +853,32 @@ function populateForm(data) {
 
     if (data.tanggunganAnak) setInputValue('tanggunganAnak', data.tanggunganAnak);
 
-    // If PDF exists in base64 string format, set preview option
-    const pdfData = data.slipGajiPDF || data.slip_gaji_pdf;
-    if (pdfData && pdfData.startsWith('data:application/pdf')) {
-        pdfBase64String = pdfData;
+    // The PDF itself no longer travels through this JSON payload (it's uploaded
+    // separately to R2) — if this student already has one on file, preview it
+    // by pointing the iframe straight at the serving endpoint.
+    if (data.user_id) {
         const nameDisplay = document.getElementById('fileNameDisplay');
         const previewContainer = document.getElementById('pdfPreviewContainer');
         const previewFrame = document.getElementById('pdfPreviewFrame');
+        const docType = document.getElementById('documentType')?.value || 'slip_gaji';
 
-        if (nameDisplay) nameDisplay.innerText = "📄 Existing Payslip PDF Loaded";
-        if (previewFrame && previewContainer) {
-            previewFrame.src = pdfData;
-            previewContainer.style.display = 'block';
-        }
+        if (nameDisplay) nameDisplay.innerText = "📄 Checking for existing document...";
+
+        fetch(`/api/student/payslip?user_id=${encodeURIComponent(data.user_id)}&document_type=${encodeURIComponent(docType)}`, { method: 'HEAD' })
+            .then(res => {
+                if (res.ok) {
+                    if (nameDisplay) nameDisplay.innerText = "📄 Existing document on file";
+                    if (previewFrame && previewContainer) {
+                        previewFrame.src = `/api/student/payslip?user_id=${encodeURIComponent(data.user_id)}&document_type=${encodeURIComponent(docType)}`;
+                        previewContainer.style.display = 'block';
+                    }
+                } else if (nameDisplay) {
+                    nameDisplay.innerText = "No file selected";
+                }
+            })
+            .catch(() => {
+                if (nameDisplay) nameDisplay.innerText = "No file selected";
+            });
     }
 }
 

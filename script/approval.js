@@ -114,6 +114,7 @@ function renderTable() {
 
         const userIdVal = student.user_id ? student.user_id : 'null';
         const appIdVal = student.application_id ? student.application_id : 'null';
+        const isFlagged = Number(student.flagged_attachment_count) > 0;
 
         // Get SVG image path based on gender or custom profile picture
         const avatarUrl = getDynamicAvatar(student);
@@ -136,9 +137,16 @@ function renderTable() {
             </td>
             <td>${student.program || 'Pending Fill'}</td>
             <td>${student.session_id || '-'}</td>
-            <td><span class="badge ${badgeClass}">${statusLabel}</span></td>
+            <td>
+                <span class="badge ${badgeClass}">${statusLabel}</span>
+                ${isFlagged ? `<span class="badge danger" title="AI flagged an attached document as suspicious" style="margin-left: 6px;"><i class='bx bx-error'></i> Check File</span>` : ''}
+            </td>
             <td>
                 <div class="action-btns">
+                    ${isFlagged ? `
+                    <button class="btn-icon reject" onclick="reviewFlaggedAttachment(${appIdVal})" title="Review flagged attachment">
+                        <i class='bx bx-file-find'></i>
+                    </button>` : ''}
                     <button class="btn-icon view" onclick="viewDetails(${userIdVal}, ${appIdVal})" title="More Details">
                         <i class='bx bx-info-circle'></i>
                     </button>
@@ -153,6 +161,11 @@ function renderTable() {
         `;
         tbody.appendChild(tr);
     });
+}
+
+function reviewFlaggedAttachment(appId) {
+    if (!appId || appId === 'null') return;
+    window.open(`/api/admin/payslip?application_id=${appId}`, '_blank');
 }
 
 function showEmptyTable(message) {

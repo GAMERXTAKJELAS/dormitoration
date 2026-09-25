@@ -85,7 +85,11 @@ export async function handleAdminApplications(request, env, headers) {
           COALESCE(NULLIF(h.session_id, ''), '-') AS session_id,
           COALESCE(NULLIF(h.admin_approval, ''), 'pending') AS status,
           COALESCE(NULLIF(h.submission_status, ''), 'draft') AS submission_status,
-          u.account_status AS user_account_status
+          u.account_status AS user_account_status,
+          (
+            SELECT COUNT(*) FROM application_attachments aa
+            WHERE aa.application_id = h.id AND aa.ai_flagged = 1
+          ) AS flagged_attachment_count
         FROM users u
         LEFT JOIN hostel_applications h ON u.id = h.user_id
         WHERE u.role != 'admin' OR u.role IS NULL

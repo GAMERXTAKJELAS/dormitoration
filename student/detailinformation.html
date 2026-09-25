@@ -9,6 +9,7 @@
     
     <!-- Theme Switcher & Detail Info JS -->
     <script src="/script/theme.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" defer></script>
     <script src="/script/detail_info.js" defer></script>
 </head>
 <body class="dark-mode">
@@ -333,13 +334,27 @@
                         </button>
                     </div>
                     <p class="pdf-note">* Please attach the latest household income documentation. Allowed format: <strong>PDF</strong>.</p>
-                    
+
+                    <div class="input-box" style="margin-bottom: 14px;">
+                        <label>Document Type</label>
+                        <select id="documentType" name="documentType">
+                            <option value="slip_gaji">Salary Slip (Slip Gaji)</option>
+                            <option value="surat_akuan_sumpah">Sworn Declaration (Surat Akuan Sumpah) — Self-Employed</option>
+                        </select>
+                    </div>
+
                     <div class="file-drop-area">
                         <button type="button" class="btn-pdf-select" id="btnPdfSelect">
                             <i class='bx bx-upload'></i> Select PDF File
                         </button>
                         <span id="fileNameDisplay">No file selected</span>
                         <input type="file" id="slipGajiPDF" name="slipGajiPDF" accept="application/pdf" style="display: none;">
+                    </div>
+
+                    <!-- AI plausibility warning — non-blocking, just a heads-up -->
+                    <div id="pdfWarningBanner" class="pdf-warning-banner" style="display: none;">
+                        <i class='bx bx-error'></i>
+                        <span id="pdfWarningText"></span>
                     </div>
 
                     <!-- PDF Live Preview Frame -->

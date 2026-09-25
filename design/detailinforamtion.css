@@ -551,6 +551,24 @@ body.light-mode .top-nav .theme-btn {
     margin: 6px 0 16px 0;
 }
 
+.pdf-warning-banner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid #ef4444;
+    color: #ff6b6b;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    margin-top: 12px;
+}
+
+.pdf-warning-banner i {
+    font-size: 1.3rem;
+    flex-shrink: 0;
+}
+
 .file-drop-area {
     display: flex;
     align-items: center;

@@ -7,6 +7,7 @@ import { handleStudentRoutes } from './script/studenthomepage_backend.js';
 import { handleDashboardRoutes } from './script/dashboard_backend.js';
 import { handleDetailInfoRoutes } from './script/detail_backend.js';
 import { handleHardwareRoutes } from './script/hardware_backend.js';
+import { handlePayslipRoutes } from './script/payslip_backend.js';
 
 export default {
   // 1. Standard HTTP Request Router
@@ -52,6 +53,16 @@ export default {
       if (url.pathname.startsWith('/api/hardware')) {
         const hardwareResponse = await handleHardwareRoutes(request, env, headers);
         if (hardwareResponse) return hardwareResponse;
+      }
+
+      if (
+        url.pathname === '/api/student/upload-payslip' ||
+        url.pathname === '/api/student/check-payslip' ||
+        url.pathname === '/api/student/payslip' ||
+        url.pathname === '/api/admin/payslip'
+      ) {
+        const payslipResponse = await handlePayslipRoutes(request, env, headers);
+        if (payslipResponse) return payslipResponse;
       }
 
       // Handle Detail Information Routes (GET /api/student/details and POST /api/student/update-details)
