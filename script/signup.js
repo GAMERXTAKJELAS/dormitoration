@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!icData.valid) {
             if (messageDiv) {
                 messageDiv.style.color = "#ff4d4d";
-                messageDiv.innerText = "Sila masukkan No. IC yang sah (12 digit).";
+                messageDiv.innerText = "Please enter a valid IC Number (12 digits).";
             }
             return;
         }

@@ -39,7 +39,7 @@ export async function handleAdminDeadlineSettings(request, env, headers) {
 
       if (!value || isNaN(value) || value < 1) {
         return new Response(
-          JSON.stringify({ error: 'Sila masukkan tempoh masa yang sah.' }),
+          JSON.stringify({ error: 'Please enter a valid duration.' }),
           { status: 400, headers }
         );
       }

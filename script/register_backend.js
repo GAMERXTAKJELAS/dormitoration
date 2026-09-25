@@ -26,14 +26,14 @@ export async function handleRegister(request, env, headers) {
     // -------------------------------------------------------------------------
     if (!phone && !email) {
       return new Response(
-        JSON.stringify({ error: 'No. Telefon atau e-mel diperlukan.' }), 
+        JSON.stringify({ error: 'Phone number or email is required.' }), 
         { status: 400, headers }
       );
     }
 
     if (!password) {
       return new Response(
-        JSON.stringify({ error: 'Kata laluan diperlukan.' }), 
+        JSON.stringify({ error: 'Password is required.' }), 
         { status: 400, headers }
       );
     }
@@ -63,7 +63,7 @@ export async function handleRegister(request, env, headers) {
       } else {
         // Active/pending account exists
         return new Response(
-          JSON.stringify({ error: 'Akaun dengan No. Telefon atau e-mel ini telah wujud dan aktif.' }), 
+          JSON.stringify({ error: 'An account with this phone number or email already exists and is active.' }), 
           { status: 409, headers }
         );
       }

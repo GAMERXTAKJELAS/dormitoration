@@ -58,11 +58,11 @@ async function loadActiveStudents() {
             activeStudentsList = data.students || [];
             renderActiveStudentsTable();
         } else {
-            showEmptyTable("Gagal memuatkan senarai pelajar aktif.");
+            showEmptyTable("Failed to load active students directory.");
         }
     } catch (err) {
         console.error("Error loading active students:", err);
-        showEmptyTable(`Ralat Rangkaian: ${err.message}`);
+        showEmptyTable(`Network Error: ${err.message}`);
     }
 }
 
@@ -89,7 +89,7 @@ function renderActiveStudentsTable() {
     });
 
     if (filtered.length === 0) {
-        showEmptyTable("Tiada pelajar aktif dijumpai.");
+        showEmptyTable("No active students found.");
         return;
     }
 
