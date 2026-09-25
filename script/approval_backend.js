@@ -154,7 +154,7 @@ export async function handleAdminApplications(request, env, headers) {
             await env.DB.prepare(`
               INSERT INTO student_rfid (user_id, matriks_number, rfid_card_uid, qr_access_code, assigned_at)
               VALUES (?, ?, ?, ?, ?)
-            `).bind(user_id, '', '', qrCode, nowISO).run();
+            `).bind(user_id, null, null, qrCode, nowISO).run();
           } else if (!existingRfid.qr_access_code || isAccessCodeExpired(existingRfid.assigned_at)) {
             // No code yet, OR the previous one passed the 5-month-2-week window —
             // admin (re-)approving is exactly what reissues a fresh code.
