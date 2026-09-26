@@ -41,11 +41,11 @@ async function loadApplications() {
             console.log("Loaded Students Data:", allStudents);
             renderTable();
         } else {
-            showEmptyTable("Failed to load application data.");
+            showEmptyTable("Gagal memuatkan data permohonan.");
         }
     } catch (err) {
         console.error("Error loading applications:", err);
-        showEmptyTable(`Network Error: ${err.message}`);
+        showEmptyTable(`Ralat Rangkaian: ${err.message}`);
     }
 }
 
@@ -93,7 +93,7 @@ function renderTable() {
     });
 
     if (filtered.length === 0) {
-        showEmptyTable("No student applications found.");
+        showEmptyTable("Tiada permohonan pelajar dijumpai.");
         return;
     }
 
@@ -256,15 +256,15 @@ async function handleCSVUpload(event) {
             const result = await res.json();
 
             if (res.ok) {
-                alert(`CSV upload successful! ${result.insertedCount || 0} student records added/synchronized.`);
+                alert(`Muat naik CSV berjaya! ${result.insertedCount || 0} rekod pelajar telah ditambah/diselaraskan.`);
                 loadApplications();
             } else {
-                alert(`Failed to upload CSV: ${result.error || 'Server error'}`);
+                alert(`Gagal memuat naik CSV: ${result.error || 'Server error'}`);
             }
 
         } catch (err) {
             console.error("Error processing CSV:", err);
-            alert(`Error processing CSV file: ${err.message}`);
+            alert(`Ralat memproses fail CSV: ${err.message}`);
         } finally {
             event.target.value = '';
         }
@@ -324,11 +324,11 @@ function showInfoModal({ title, message, iconClass = 'bx-check-circle', iconColo
 // Update Application Status Action
 async function updateApplicationStatus(userId, appId, newStatus) {
     const isApprove = newStatus !== 'returned';
-    const actionVerb = isApprove ? 'approve' : 'return';
+    const actionText = isApprove ? 'approve' : 'return';
 
     const confirmed = await showConfirmModal({
         title: isApprove ? 'Approve Application?' : 'Return Application?',
-        message: `Are you sure you want to ${actionVerb} this application?`,
+        message: `Are you sure you want to ${actionText} this application?`,
         iconClass: isApprove ? 'bx-check-circle' : 'bx-undo',
         iconColor: isApprove ? 'var(--primary-color)' : '#f2994a',
         confirmText: isApprove ? 'Yes, Approve' : 'Yes, Return',
@@ -353,7 +353,7 @@ async function updateApplicationStatus(userId, appId, newStatus) {
             if (data.qrWarning) {
                 await showInfoModal({
                     title: 'Status Updated — QR Code Issue',
-                    message: `Application status updated successfully, but QR access code could not be generated: ${data.qrWarning}`,
+                    message: `Application status updated successfully, but the QR access code failed to generate: ${data.qrWarning}`,
                     iconClass: 'bx-error',
                     iconColor: '#f2994a'
                 });
@@ -378,7 +378,7 @@ async function updateApplicationStatus(userId, appId, newStatus) {
         } else {
             await showInfoModal({
                 title: 'Update Failed',
-                message: `Failed to update status: ${data.error || 'Server error'}`,
+                message: `Failed to update: ${data.error || 'Server error'}`,
                 iconClass: 'bx-x-circle',
                 iconColor: '#ef4444'
             });
