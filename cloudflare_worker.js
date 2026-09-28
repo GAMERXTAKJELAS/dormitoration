@@ -8,7 +8,7 @@ import { handleDashboardRoutes } from './script/dashboard_backend.js';
 import { handleDetailInfoRoutes } from './script/detail_backend.js';
 import { handleHardwareRoutes } from './script/hardware_backend.js';
 import { handlePayslipRoutes } from './script/payslip_backend.js';
-import { handleAccessVerify } from './script/access_verify.js';
+import { handleAccessVerify, handleDeviceHeartbeat } from './script/access_verify.js';
 
 export default {
   // 1. Standard HTTP Request Router
@@ -50,6 +50,11 @@ export default {
       // ESP32 door unit: verifies a scanned QR access code (device-key protected)
       if (url.pathname === '/api/access/verify' && request.method === 'POST') {
         return await handleAccessVerify(request, env);
+      }
+
+      // ESP32 door unit: "I'm online" ping, auto-registers the room (device-key protected)
+      if (url.pathname === '/api/access/heartbeat' && request.method === 'POST') {
+        return await handleDeviceHeartbeat(request, env);
       }
 
       if (url.pathname.startsWith('/api/admin/applications')) {
