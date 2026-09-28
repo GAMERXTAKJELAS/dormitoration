@@ -4,8 +4,8 @@
 // =====================================================================
 
 // ---- WiFi (secret) ----
-#define WIFI_SSID       "YOUR_WIFI_NAME"
-#define WIFI_PASSWORD   "YOUR_WIFI_PASSWORD"
+#define WIFI_SSID       "hahahaha"
+#define WIFI_PASSWORD   "iTSH1DD3N"
 
 // ---- Website endpoint (not secret, but environment-specific) ----
 #define API_URL         "https://dormitoration.syamsulock0457.workers.dev"
