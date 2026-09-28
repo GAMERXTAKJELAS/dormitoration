@@ -8,6 +8,7 @@ import { handleDashboardRoutes } from './script/dashboard_backend.js';
 import { handleDetailInfoRoutes } from './script/detail_backend.js';
 import { handleHardwareRoutes } from './script/hardware_backend.js';
 import { handlePayslipRoutes } from './script/payslip_backend.js';
+import { handleAccessVerify } from './access_verify.js';
 
 export default {
   // 1. Standard HTTP Request Router
@@ -44,6 +45,10 @@ export default {
 
       if (url.pathname === '/api/admin/settings/deadline') {
         return await handleAdminDeadlineSettings(request, env, headers);
+      }
+
+      if (url.pathname === '/api/access/verify' && request.method === 'POST') {
+        return handleAccessVerify(request, env);
       }
 
       if (url.pathname.startsWith('/api/admin/applications')) {
