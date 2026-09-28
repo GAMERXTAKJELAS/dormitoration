@@ -4,7 +4,7 @@
 //  student_rfid.qr_access_code and answers { "access": true|false }.
 //
 //  Wire it into your router (cloudflare_worker.js):
-//    import { handleAccessVerify } from './access_verify.js';
+//    import { handleAccessVerify } from './script/access_verify.js';
 //    ...
 //    if (url.pathname === '/api/access/verify' && request.method === 'POST') {
 //      return handleAccessVerify(request, env);
