@@ -124,12 +124,14 @@ export async function handleDeviceHeartbeat(request, env) {
         .bind(now, row.id)
         .run();
     } else {
-      // capacity / keycode are left to their column defaults
+      // capacity is left to its column default; keycode has no DB default,
+      // so give it a clear placeholder the admin can overwrite later.
+      const placeholderKeycode = `PENDING-${block}-${room}`;
       const res = await env.DB
         .prepare(
-          'INSERT INTO rooms (block_name, room_number, is_active, created_at, last_seen_at) VALUES (?, ?, 1, ?, ?)'
+          'INSERT INTO rooms (block_name, room_number, keycode, is_active, created_at, last_seen_at) VALUES (?, ?, ?, 1, ?, ?)'
         )
-        .bind(block, room, now, now)
+        .bind(block, room, placeholderKeycode, now, now)
         .run();
       row = { id: res.meta.last_row_id };
       registered = true;
