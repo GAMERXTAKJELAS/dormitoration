@@ -95,10 +95,10 @@
                 <i class='bx bxs-time-five'></i>
             </div>
 
-            <div class="stat-card success">
+            <div class="stat-card success" id="card-hardware">
                 <div class="stat-info">
-                    <h3>0%</h3>
-                    <p>Room Occupancy (Offline)</p>
+                    <h3 id="stat-hardware-pct">0%</h3>
+                    <p id="stat-hardware-label">Room Occupancy (Offline)</p>
                 </div>
                 <i class='bx bxs-door-open'></i>
             </div>
@@ -111,8 +111,8 @@
                     <h2>Hostel Blocks Overview</h2>
                 </div>
 
-                <!-- Auto Arrangement Options (Greyed Out) -->
-                <div class="auto-arrange-box disabled-feature" title="Hardware syncing required for room assignment">
+                <!-- Auto Arrangement Options (Greyed Out until hardware is online) -->
+                <div class="auto-arrange-box disabled-feature" id="auto-arrange-box" title="Hardware syncing required for room assignment">
                     <span class="arrange-label"><i class='bx bx-git-merge'></i> Auto-Arrange By:</span>
                     <label class="arrange-checkbox">
                         <input type="checkbox" disabled> Name
@@ -128,15 +128,17 @@
                     </button>
                 </div>
             </div>
-            
-            <!-- Replaced Block A, B, C cards with No Hardware Online box -->
-            <div class="hardware-offline-card">
-                <div class="offline-icon-wrapper">
-                    <i class='bx bx-wifi-off'></i>
-                </div>
-                <div class="offline-content">
-                    <h3>No Hardware Online</h3>
-                    <p>Smart lock microcontrollers and RFID asset trackers are currently disconnected or unassigned.</p>
+
+            <!-- Filled in by loadDashboardStats(): either the offline card, or a per-room online grid -->
+            <div id="hardware-blocks-container">
+                <div class="hardware-offline-card">
+                    <div class="offline-icon-wrapper">
+                        <i class='bx bx-wifi-off'></i>
+                    </div>
+                    <div class="offline-content">
+                        <h3>No Hardware Online</h3>
+                        <p>Smart lock microcontrollers and RFID asset trackers are currently disconnected or unassigned.</p>
+                    </div>
                 </div>
             </div>
         </section>

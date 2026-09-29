@@ -17,10 +17,31 @@ export async function handleDashboardRoutes(request, env, headers) {
         `SELECT COUNT(*) AS total_active FROM users WHERE role = 'student' AND account_status = 'active'`
       ).first();
 
-      // Count pending applications
+      // Pending applications
       const pendingRes = await env.DB.prepare(
         `SELECT COUNT(*) AS total_pending FROM hostel_applications WHERE admin_approval = 'pending'`
       ).first();
+
+      // Hardware/rooms: a room counts as "online" if it reported within the
+      // last 90 seconds (ESP32 heartbeats every 30s, so this allows for one
+      // missed beat before flipping offline).
+      const ONLINE_WINDOW_SECONDS = 90;
+      const cutoffISO = new Date(Date.now() - ONLINE_WINDOW_SECONDS * 1000).toISOString();
+
+      const { results: onlineRooms = [] } = await env.DB.prepare(
+        `SELECT id, block_name, room_number, last_seen_at
+         FROM rooms
+         WHERE last_seen_at IS NOT NULL AND last_seen_at >= ?
+         ORDER BY block_name, room_number`
+      ).bind(cutoffISO).all();
+
+      const totalRoomsRes = await env.DB.prepare(
+        `SELECT COUNT(*) AS total FROM rooms WHERE is_active = 1`
+      ).first();
+      const totalRooms = totalRoomsRes?.total || 0;
+      const occupancyPct = totalRooms > 0
+        ? Math.round((onlineRooms.length / totalRooms) * 100)
+        : 0;
 
       return new Response(
         JSON.stringify({
@@ -28,7 +49,12 @@ export async function handleDashboardRoutes(request, env, headers) {
           stats: {
             active_students: activeRes?.total_active || 0,
             pending_applications: pendingRes?.total_pending || 0,
-            room_occupancy: 0 // Hardware offline
+            room_occupancy: occupancyPct,
+            hardware: {
+              online_count: onlineRooms.length,
+              total_rooms: totalRooms,
+              rooms: onlineRooms // [{ id, block_name, room_number, last_seen_at }, ...]
+            }
           }
         }),
         { status: 200, headers: { ...headers, "Content-Type": "application/json" } }

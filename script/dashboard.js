@@ -9,6 +9,10 @@ document.addEventListener("DOMContentLoaded", () => {
     loadDashboardStats();
     loadActiveStudents();
 
+    // Refresh hardware/stat cards periodically so "online" status stays current
+    // without the admin needing to reload the page.
+    setInterval(loadDashboardStats, 20000);
+
     const searchInput = document.getElementById("active-student-search");
     if (searchInput) {
         searchInput.addEventListener("input", renderActiveStudentsTable);
@@ -43,10 +47,69 @@ async function loadDashboardStats() {
 
             document.getElementById("stat-active-students").innerText = stats.active_students || 0;
             document.getElementById("stat-pending-apps").innerText = stats.pending_applications || 0;
+
+            renderHardwareStatus(stats.hardware || { online_count: 0, total_rooms: 0, rooms: [] }, stats.room_occupancy || 0);
         }
     } catch (err) {
         console.error("Error fetching stats:", err);
     }
+}
+
+// Update the occupancy stat card and the Hostel Blocks Overview section
+// based on which rooms have reported a heartbeat recently.
+function renderHardwareStatus(hardware, occupancyPct) {
+    const pctEl = document.getElementById("stat-hardware-pct");
+    const labelEl = document.getElementById("stat-hardware-label");
+    const container = document.getElementById("hardware-blocks-container");
+    const arrangeBox = document.getElementById("auto-arrange-box");
+    if (!container) return;
+
+    const online = hardware.rooms || [];
+
+    if (pctEl) pctEl.innerText = `${occupancyPct}%`;
+    if (labelEl) labelEl.innerText = online.length > 0 ? "Hardware Online" : "Room Occupancy (Offline)";
+
+    if (online.length === 0) {
+        container.innerHTML = `
+            <div class="hardware-offline-card">
+                <div class="offline-icon-wrapper">
+                    <i class='bx bx-wifi-off'></i>
+                </div>
+                <div class="offline-content">
+                    <h3>No Hardware Online</h3>
+                    <p>Smart lock microcontrollers and RFID asset trackers are currently disconnected or unassigned.</p>
+                </div>
+            </div>
+        `;
+        if (arrangeBox) arrangeBox.classList.add("disabled-feature");
+        return;
+    }
+
+    // Group by block so each block gets its own mini-card of rooms.
+    const byBlock = {};
+    online.forEach(r => {
+        const block = r.block_name || "Unassigned";
+        (byBlock[block] = byBlock[block] || []).push(r);
+    });
+
+    container.innerHTML = `
+        <div class="hardware-online-grid" style="display:flex; flex-wrap:wrap; gap:16px;">
+            ${Object.entries(byBlock).map(([block, rooms]) => `
+                <div class="hardware-block-card" style="border:1px solid rgba(16,185,129,0.3); border-radius:10px; padding:14px 18px; min-width:180px;">
+                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+                        <i class='bx bx-wifi' style="color:#10b981;"></i>
+                        <strong>Block ${block}</strong>
+                    </div>
+                    <div style="color: var(--text-muted); font-size: 0.9em;">
+                        ${rooms.map(r => `Room ${r.room_number}`).join(', ')}
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+    // Auto-arrange still stays disabled until room_allocations is a real feature;
+    // this only reflects that hardware itself is reachable.
+    if (arrangeBox) arrangeBox.classList.add("disabled-feature");
 }
 
 // Fetch Active Registered Students Directory
