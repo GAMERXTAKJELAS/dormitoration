@@ -22,25 +22,39 @@ export async function handleDashboardRoutes(request, env, headers) {
         `SELECT COUNT(*) AS total_pending FROM hostel_applications WHERE admin_approval = 'pending'`
       ).first();
 
-      // Hardware/rooms: a room counts as "online" if it reported within the
-      // last 90 seconds (ESP32 heartbeats every 30s, so this allows for one
-      // missed beat before flipping offline).
+      // Hardware/rooms: a room counts as "online" if it's flagged active AND
+      // reported within the last 90 seconds (ESP32 heartbeats every 30s, so
+      // this allows one missed beat before a room is treated as offline).
+      // The scheduled() cron sweep flips is_active back to 0 for stale rooms,
+      // so is_active is the persisted signal; the time check is a safety net
+      // for the ~60s window before that sweep next runs.
       const ONLINE_WINDOW_SECONDS = 90;
       const cutoffISO = new Date(Date.now() - ONLINE_WINDOW_SECONDS * 1000).toISOString();
 
-      const { results: onlineRooms = [] } = await env.DB.prepare(
-        `SELECT id, block_name, room_number, last_seen_at
-         FROM rooms
-         WHERE last_seen_at IS NOT NULL AND last_seen_at >= ?
-         ORDER BY block_name, room_number`
-      ).bind(cutoffISO).all();
+      // ASSUMPTION: any room_allocations row for a room counts as "occupied".
+      // Adjust the JOIN condition here once room_allocations.status values
+      // (e.g. cancelled/ended) are actually in use.
+      const { results: rooms = [] } = await env.DB.prepare(
+        `SELECT r.id, r.block_name, r.room_number, r.gender, r.is_active, r.last_seen_at,
+                COUNT(ra.id) AS student_count
+         FROM rooms r
+         LEFT JOIN room_allocations ra ON ra.room_id = r.id
+         GROUP BY r.id
+         ORDER BY r.block_name, r.room_number`
+      ).all();
 
-      const totalRoomsRes = await env.DB.prepare(
-        `SELECT COUNT(*) AS total FROM rooms WHERE is_active = 1`
-      ).first();
-      const totalRooms = totalRoomsRes?.total || 0;
-      const occupancyPct = totalRooms > 0
-        ? Math.round((onlineRooms.length / totalRooms) * 100)
+      const roomsWithStatus = rooms.map(r => ({
+        id: r.id,
+        block_name: r.block_name,
+        room_number: r.room_number,
+        gender: r.gender || 'M',
+        student_count: r.student_count || 0,
+        online: !!r.is_active && !!r.last_seen_at && r.last_seen_at >= cutoffISO
+      }));
+
+      const onlineCount = roomsWithStatus.filter(r => r.online).length;
+      const occupancyPct = roomsWithStatus.length > 0
+        ? Math.round((onlineCount / roomsWithStatus.length) * 100)
         : 0;
 
       return new Response(
@@ -51,9 +65,9 @@ export async function handleDashboardRoutes(request, env, headers) {
             pending_applications: pendingRes?.total_pending || 0,
             room_occupancy: occupancyPct,
             hardware: {
-              online_count: onlineRooms.length,
-              total_rooms: totalRooms,
-              rooms: onlineRooms // [{ id, block_name, room_number, last_seen_at }, ...]
+              online_count: onlineCount,
+              total_rooms: roomsWithStatus.length,
+              rooms: roomsWithStatus // [{ id, block_name, room_number, gender, student_count, online }, ...]
             }
           }
         }),

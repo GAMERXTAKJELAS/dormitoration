@@ -17,6 +17,23 @@ document.addEventListener("DOMContentLoaded", () => {
     if (searchInput) {
         searchInput.addEventListener("input", renderActiveStudentsTable);
     }
+
+    // Auto-arrange: Commit only enables once at least one grouping is picked.
+    // The actual assignment algorithm (capacity, MPP rooms, gender matching,
+    // tie-breaking) isn't built yet, so Commit is intentionally a placeholder
+    // until that's designed - it does not silently pretend to succeed.
+    const arrangeOptions = document.querySelectorAll(".arrange-option");
+    const commitBtn = document.getElementById("btn-commit-arrange");
+    if (arrangeOptions.length && commitBtn) {
+        arrangeOptions.forEach(cb => cb.addEventListener("change", () => {
+            const anyChecked = Array.from(arrangeOptions).some(c => c.checked);
+            commitBtn.disabled = !anyChecked;
+            commitBtn.classList.toggle("disabled", !anyChecked);
+        }));
+        commitBtn.addEventListener("click", () => {
+            alert("Room auto-assignment isn't built yet - the rules (capacity, MPP rooms, gender matching) still need to be finalized.");
+        });
+    }
 });
 
 // Dynamic local SVG avatar selector based on gender or custom profile picture
@@ -55,61 +72,79 @@ async function loadDashboardStats() {
     }
 }
 
-// Update the occupancy stat card and the Hostel Blocks Overview section
-// based on which rooms have reported a heartbeat recently.
+// Update the occupancy stat card and the Hostel Blocks Overview section.
+// Room box colors:
+//   red    -> offline (ESP32 hasn't heartbeated recently)
+//   yellow -> online, no student assigned yet
+//   default (green) / pink -> online with a student, by room.gender
 function renderHardwareStatus(hardware, occupancyPct) {
     const pctEl = document.getElementById("stat-hardware-pct");
     const labelEl = document.getElementById("stat-hardware-label");
     const container = document.getElementById("hardware-blocks-container");
-    const arrangeBox = document.getElementById("auto-arrange-box");
-    if (!container) return;
-
-    const online = hardware.rooms || [];
+    const rooms = hardware.rooms || [];
 
     if (pctEl) pctEl.innerText = `${occupancyPct}%`;
-    if (labelEl) labelEl.innerText = online.length > 0 ? "Hardware Online" : "Room Occupancy (Offline)";
+    if (labelEl) labelEl.innerText = hardware.online_count > 0 ? "Hardware Online" : "Room Occupancy (Offline)";
 
-    if (online.length === 0) {
+    if (!container) return;
+
+    if (rooms.length === 0) {
         container.innerHTML = `
             <div class="hardware-offline-card">
-                <div class="offline-icon-wrapper">
-                    <i class='bx bx-wifi-off'></i>
-                </div>
+                <div class="offline-icon-wrapper"><i class='bx bx-wifi-off'></i></div>
                 <div class="offline-content">
                     <h3>No Hardware Online</h3>
                     <p>Smart lock microcontrollers and RFID asset trackers are currently disconnected or unassigned.</p>
                 </div>
             </div>
         `;
-        if (arrangeBox) arrangeBox.classList.add("disabled-feature");
         return;
     }
 
-    // Group by block so each block gets its own mini-card of rooms.
     const byBlock = {};
-    online.forEach(r => {
-        const block = r.block_name || "Unassigned";
-        (byBlock[block] = byBlock[block] || []).push(r);
-    });
+    rooms.forEach(r => (byBlock[r.block_name || "Unassigned"] = byBlock[r.block_name || "Unassigned"] || []).push(r));
 
     container.innerHTML = `
-        <div class="hardware-online-grid" style="display:flex; flex-wrap:wrap; gap:16px;">
-            ${Object.entries(byBlock).map(([block, rooms]) => `
-                <div class="hardware-block-card" style="border:1px solid rgba(16,185,129,0.3); border-radius:10px; padding:14px 18px; min-width:180px;">
-                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-                        <i class='bx bx-wifi' style="color:#10b981;"></i>
+        <div class="block-grid">
+            ${Object.entries(byBlock).map(([block, blockRooms]) => `
+                <div class="block-card">
+                    <div class="block-card-header">
+                        <i class='bx ${blockRooms.some(r => r.online) ? "bx-wifi" : "bx-wifi-off"}'></i>
                         <strong>Block ${block}</strong>
                     </div>
-                    <div style="color: var(--text-muted); font-size: 0.9em;">
-                        ${rooms.map(r => `Room ${r.room_number}`).join(', ')}
+                    <div class="room-box-grid">
+                        ${blockRooms.map(r => roomBoxHtml(r)).join('')}
                     </div>
                 </div>
             `).join('')}
         </div>
     `;
-    // Auto-arrange still stays disabled until room_allocations is a real feature;
-    // this only reflects that hardware itself is reachable.
-    if (arrangeBox) arrangeBox.classList.add("disabled-feature");
+}
+
+function roomStatusClass(r) {
+    if (!r.online) return "room-offline";
+    if (r.student_count === 0) return "room-empty";
+    return r.gender === 'F' ? "room-occupied-girl" : "room-occupied-boy";
+}
+
+function roomBoxHtml(r) {
+    const statusClass = roomStatusClass(r);
+    const statusText = !r.online ? "Offline" : (r.student_count === 0 ? "No student assigned" : `${r.student_count} student(s)`);
+    return `
+        <div class="room-box ${statusClass}" tabindex="0">
+            <span class="room-number">${r.room_number}</span>
+            <div class="room-hover-card">
+                <strong>Room ${r.room_number}</strong>
+                <p>${statusText}</p>
+                ${r.student_count > 0 ? `
+                    <div class="room-hover-actions">
+                        <button class="btn-room-action" disabled title="Coming soon">Access Codes</button>
+                        <button class="btn-room-action" disabled title="Coming soon">Student Details</button>
+                    </div>
+                ` : ''}
+            </div>
+        </div>
+    `;
 }
 
 // Fetch Active Registered Students Directory

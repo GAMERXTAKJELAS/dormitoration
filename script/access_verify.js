@@ -120,7 +120,7 @@ export async function handleDeviceHeartbeat(request, env) {
     let registered = false;
     if (row) {
       await env.DB
-        .prepare('UPDATE rooms SET last_seen_at = ? WHERE id = ?')
+        .prepare('UPDATE rooms SET last_seen_at = ?, is_active = 1 WHERE id = ?')
         .bind(now, row.id)
         .run();
     } else {

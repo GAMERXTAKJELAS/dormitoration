@@ -112,18 +112,18 @@
                 </div>
 
                 <!-- Auto Arrangement Options (Greyed Out until hardware is online) -->
-                <div class="auto-arrange-box disabled-feature" id="auto-arrange-box" title="Hardware syncing required for room assignment">
+                <div class="auto-arrange-box" id="auto-arrange-box" title="Choose how to group students, then Commit">
                     <span class="arrange-label"><i class='bx bx-git-merge'></i> Auto-Arrange By:</span>
                     <label class="arrange-checkbox">
-                        <input type="checkbox" disabled> Name
+                        <input type="checkbox" class="arrange-option" value="name"> Name
                     </label>
                     <label class="arrange-checkbox">
-                        <input type="checkbox" disabled> Program
+                        <input type="checkbox" class="arrange-option" value="program"> Program
                     </label>
                     <label class="arrange-checkbox">
-                        <input type="checkbox" disabled> Semester
+                        <input type="checkbox" class="arrange-option" value="semester"> Semester
                     </label>
-                    <button class="btn-commit disabled" disabled title="Hardware offline - Cannot commit room layout">
+                    <button class="btn-commit disabled" id="btn-commit-arrange" disabled title="Select at least one option">
                         <i class='bx bx-check-circle'></i> Commit
                     </button>
                 </div>

@@ -112,5 +112,24 @@ export default {
     } catch (err) {
       console.error("[Cron Job Error]:", err.message);
     }
+
+    // Mark rooms offline once their ESP32 hasn't heartbeated for a while.
+    // The heartbeat itself sets is_active back to 1 on reconnect, so this
+    // only ever needs to turn it off, never on.
+    try {
+      const ROOM_OFFLINE_AFTER_SECONDS = 90;
+      const cutoffISO = new Date(Date.now() - ROOM_OFFLINE_AFTER_SECONDS * 1000).toISOString();
+
+      await env.DB.prepare(`
+        UPDATE rooms
+        SET is_active = 0
+        WHERE is_active = 1
+          AND (last_seen_at IS NULL OR last_seen_at < ?)
+      `).bind(cutoffISO).run();
+
+      console.log(`[Cron Job] Stale room hardware flagged offline.`);
+    } catch (err) {
+      console.error("[Cron Job Error - rooms offline sweep]:", err.message);
+    }
   }
 };

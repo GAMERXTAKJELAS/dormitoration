@@ -326,8 +326,95 @@ body {
 .stat-card.success i { color: #10b981; }
 
 /* ==========================================================================
-   6. HOSTEL BLOCKS OVERVIEW & HARDWARE OFFLINE BOX
+   6b. BLOCK CARDS & ROOM BOXES (replaces the flat offline-only view)
    ========================================================================== */
+.block-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.block-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 16px 18px;
+    min-width: 240px;
+}
+
+.block-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    color: var(--text-heading);
+}
+
+.block-card-header i { color: var(--primary-color); font-size: 1.2rem; }
+
+.room-box-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+    gap: 8px;
+}
+
+.room-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 44px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #fff;
+    cursor: default;
+    transition: transform 0.15s ease;
+}
+
+.room-box:hover,
+.room-box:focus { transform: scale(1.08); z-index: 2; }
+
+/* Status colors */
+.room-box.room-offline       { background: #ef4444; }                 /* red - ESP32 disconnected */
+.room-box.room-empty         { background: #f59e0b; color: #1e293b; } /* yellow - online, no student */
+.room-box.room-occupied-boy  { background: var(--primary-color); color: #06301f; } /* default theme, boys */
+.room-box.room-occupied-girl { background: #ec4899; }                 /* pink, girls */
+
+.room-hover-card {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--card-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 10px 12px;
+    min-width: 170px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    text-align: left;
+    white-space: normal;
+}
+
+.room-box:hover .room-hover-card,
+.room-box:focus .room-hover-card { display: block; }
+
+.room-hover-card p { margin: 4px 0 8px; color: var(--text-muted); font-size: 0.85rem; }
+
+.room-hover-actions { display: flex; flex-direction: column; gap: 6px; }
+
+.btn-room-action {
+    font-size: 0.8rem;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background: var(--input-bg);
+    color: var(--text-muted);
+    cursor: not-allowed;
+}
+
 .block-controls-header {
     display: flex;
     justify-content: space-between;
