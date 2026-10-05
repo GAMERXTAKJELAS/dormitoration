@@ -33,6 +33,46 @@
     --footer-bg: #0f172a;            /* Dark Slate Footer Bar */
 }
 
+/* --- CFFY PALETTE (block/room cards only, dark = default) --- */
+:root {
+    --cffy-theme-light-a0: #ffffff;
+    --cffy-theme-dark-a0: #000000;
+
+    --cffy-theme-primary-a0: #169434;
+    --cffy-theme-primary-a10: #3c9f4a;
+    --cffy-theme-primary-a20: #56aa5f;
+
+    --cffy-theme-surface-a0: #121212;
+    --cffy-theme-surface-a10: #252525;
+    --cffy-theme-surface-a20: #393939;
+
+    --cffy-theme-surface-tonal-a0: #161d16;
+    --cffy-theme-surface-tonal-a10: #293029;
+
+    --cffy-theme-success-a0: #22946e;
+    --cffy-theme-warning-a0: #a87a2a;
+    --cffy-theme-danger-a0: #9c2121;
+    --cffy-theme-info-a0: #21498a;
+}
+
+.light-mode {
+    --cffy-theme-primary-a0: #169434;
+    --cffy-theme-primary-a10: #12802c;
+    --cffy-theme-primary-a20: #0d6d24;
+
+    --cffy-theme-surface-a0: #ffffff;
+    --cffy-theme-surface-a10: #f2f2f2;
+    --cffy-theme-surface-a20: #e4e4e4;
+
+    --cffy-theme-surface-tonal-a0: #eaf4eb;
+    --cffy-theme-surface-tonal-a10: #dfe8e0;
+
+    --cffy-theme-success-a0: #22946e;
+    --cffy-theme-warning-a0: #a87a2a;
+    --cffy-theme-danger-a0: #9c2121;
+    --cffy-theme-info-a0: #21498a;
+}
+
 /* ==========================================================================
    2. BASE & RESET STYLES (Supports Full Page Scroll down to Footer)
    ========================================================================== */
@@ -335,10 +375,10 @@ body {
 }
 
 .block-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 14px;
-    padding: 16px 18px;
+    background: var(--cffy-theme-surface-tonal-a0);
+    border: 1.5px solid var(--cffy-theme-primary-a0);
+    border-radius: 16px;
+    padding: 18px 20px;
     min-width: 240px;
 }
 
@@ -346,16 +386,17 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
     color: var(--text-heading);
+    font-size: 0.95rem;
 }
 
-.block-card-header i { color: var(--primary-color); font-size: 1.2rem; }
+.block-card-header i { color: var(--cffy-theme-primary-a0); font-size: 1.15rem; }
 
 .room-box-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
-    gap: 8px;
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 10px;
 }
 
 .room-box {
@@ -363,23 +404,44 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 44px;
-    border-radius: 8px;
+    height: 46px;
+    border-radius: 10px;
+    border: 1.5px solid transparent;
     font-weight: 600;
     font-size: 0.85rem;
-    color: #fff;
     cursor: default;
-    transition: transform 0.15s ease;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .room-box:hover,
-.room-box:focus { transform: scale(1.08); z-index: 2; }
+.room-box:focus {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+    z-index: 2;
+    outline: none;
+}
 
-/* Status colors */
-.room-box.room-offline       { background: #ef4444; }                 /* red - ESP32 disconnected */
-.room-box.room-empty         { background: #f59e0b; color: #1e293b; } /* yellow - online, no student */
-.room-box.room-occupied-boy  { background: var(--primary-color); color: #06301f; } /* default theme, boys */
-.room-box.room-occupied-girl { background: #ec4899; }                 /* pink, girls */
+/* Status colors: strong outline, softly-tinted fill (outlined-chip style) */
+.room-box.room-offline {        /* red - ESP32 disconnected */
+    border-color: var(--cffy-theme-danger-a0);
+    background: color-mix(in srgb, var(--cffy-theme-danger-a0) 18%, var(--cffy-theme-surface-a0));
+    color: var(--cffy-theme-danger-a0);
+}
+.room-box.room-empty {          /* yellow - online, no student */
+    border-color: var(--cffy-theme-warning-a0);
+    background: color-mix(in srgb, var(--cffy-theme-warning-a0) 18%, var(--cffy-theme-surface-a0));
+    color: var(--cffy-theme-warning-a0);
+}
+.room-box.room-occupied-boy {   /* default theme, boys - primary green */
+    border-color: var(--cffy-theme-primary-a0);
+    background: color-mix(in srgb, var(--cffy-theme-primary-a0) 18%, var(--cffy-theme-surface-a0));
+    color: var(--cffy-theme-primary-a0);
+}
+.room-box.room-occupied-girl {  /* pink, girls - not in the cffy palette, kept as an explicit gender accent */
+    border-color: #ec4899;
+    background: color-mix(in srgb, #ec4899 18%, var(--cffy-theme-surface-a0));
+    color: #ec4899;
+}
 
 .room-hover-card {
     display: none;
@@ -387,13 +449,13 @@ body {
     bottom: calc(100% + 8px);
     left: 50%;
     transform: translateX(-50%);
-    background: var(--card-bg);
+    background: var(--cffy-theme-surface-a0);
     color: var(--text-color);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--cffy-theme-surface-a20);
     border-radius: 10px;
     padding: 10px 12px;
     min-width: 170px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
     text-align: left;
     white-space: normal;
 }
@@ -408,9 +470,9 @@ body {
 .btn-room-action {
     font-size: 0.8rem;
     padding: 6px 10px;
-    border-radius: 6px;
-    border: 1px solid var(--border-color);
-    background: var(--input-bg);
+    border-radius: 8px;
+    border: 1px solid var(--cffy-theme-surface-a20);
+    background: var(--cffy-theme-surface-a10);
     color: var(--text-muted);
     cursor: not-allowed;
 }
