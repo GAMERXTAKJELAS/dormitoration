@@ -391,7 +391,8 @@ body {
     font-size: 0.95rem;
 }
 
-.block-card-header i { color: var(--cffy-theme-primary-a0); font-size: 1.15rem; }
+.block-card.block-girl { border-color: #ec4899; }
+.block-card.block-girl .block-card-header strong { color: #ec4899; }
 
 .room-box-grid {
     display: grid;
@@ -421,26 +422,23 @@ body {
     outline: none;
 }
 
-/* Status colors: strong outline, softly-tinted fill (outlined-chip style) */
-.room-box.room-offline {        /* red - ESP32 disconnected */
+/* Status colors: strong outline, softly-tinted fill (outlined-chip style).
+   Same three colors regardless of block gender - gender shows on the block
+   card border instead (see .block-card.block-girl above). */
+.room-box.room-offline {  /* red - ESP32 disconnected */
     border-color: var(--cffy-theme-danger-a0);
     background: color-mix(in srgb, var(--cffy-theme-danger-a0) 18%, var(--cffy-theme-surface-a0));
     color: var(--cffy-theme-danger-a0);
 }
-.room-box.room-empty {          /* yellow - online, no student */
+.room-box.room-standby {  /* yellow - online, room still has space */
     border-color: var(--cffy-theme-warning-a0);
     background: color-mix(in srgb, var(--cffy-theme-warning-a0) 18%, var(--cffy-theme-surface-a0));
     color: var(--cffy-theme-warning-a0);
 }
-.room-box.room-occupied-boy {   /* default theme, boys - primary green */
+.room-box.room-full {     /* green - online, at capacity */
     border-color: var(--cffy-theme-primary-a0);
     background: color-mix(in srgb, var(--cffy-theme-primary-a0) 18%, var(--cffy-theme-surface-a0));
     color: var(--cffy-theme-primary-a0);
-}
-.room-box.room-occupied-girl {  /* pink, girls - not in the cffy palette, kept as an explicit gender accent */
-    border-color: #ec4899;
-    background: color-mix(in srgb, #ec4899 18%, var(--cffy-theme-surface-a0));
-    color: #ec4899;
 }
 
 .room-hover-card {
@@ -476,6 +474,37 @@ body {
     color: var(--text-muted);
     cursor: not-allowed;
 }
+
+/* Legend under the "Hostel Blocks Overview" heading */
+.hardware-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 6px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.legend-item { display: flex; align-items: center; gap: 6px; }
+
+.legend-dot {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    display: inline-block;
+}
+.legend-dot.legend-offline { background: var(--cffy-theme-danger-a0); }
+.legend-dot.legend-standby { background: var(--cffy-theme-warning-a0); }
+.legend-dot.legend-full    { background: var(--cffy-theme-primary-a0); }
+
+.legend-border {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    display: inline-block;
+    border: 2px solid transparent;
+}
+.legend-border.legend-border-girl { border-color: #ec4899; }
 
 .block-controls-header {
     display: flex;

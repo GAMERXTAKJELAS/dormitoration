@@ -73,10 +73,13 @@ async function loadDashboardStats() {
 }
 
 // Update the occupancy stat card and the Hostel Blocks Overview section.
-// Room box colors:
+// Room box colors (status only - same meaning for boy and girl blocks):
 //   red    -> offline (ESP32 hasn't heartbeated recently)
-//   yellow -> online, no student assigned yet
-//   default (green) / pink -> online with a student, by room.gender
+//   yellow -> online, standby (room has space - 0 or partial occupancy)
+//   green  -> online, full (student_count has reached capacity)
+// Gender is shown on the BLOCK card border instead (green = boy, pink = girl),
+// not per room, since a block houses one gender.
+// A block only ever appears once a room inside it has registered via heartbeat.
 function renderHardwareStatus(hardware, occupancyPct) {
     const pctEl = document.getElementById("stat-hardware-pct");
     const labelEl = document.getElementById("stat-hardware-label");
@@ -106,30 +109,38 @@ function renderHardwareStatus(hardware, occupancyPct) {
 
     container.innerHTML = `
         <div class="block-grid">
-            ${Object.entries(byBlock).map(([block, blockRooms]) => `
-                <div class="block-card">
+            ${Object.entries(byBlock).map(([block, blockRooms]) => {
+                // ASSUMPTION: every room in a block shares one gender, so the
+                // block border takes the first room's gender as the block's.
+                const isGirlBlock = blockRooms[0]?.gender === 'F';
+                return `
+                <div class="block-card ${isGirlBlock ? 'block-girl' : ''}">
                     <div class="block-card-header">
-                        <i class='bx ${blockRooms.some(r => r.online) ? "bx-wifi" : "bx-wifi-off"}'></i>
                         <strong>Block ${block}</strong>
                     </div>
                     <div class="room-box-grid">
                         ${blockRooms.map(r => roomBoxHtml(r)).join('')}
                     </div>
                 </div>
-            `).join('')}
+            `;
+            }).join('')}
         </div>
     `;
 }
 
 function roomStatusClass(r) {
     if (!r.online) return "room-offline";
-    if (r.student_count === 0) return "room-empty";
-    return r.gender === 'F' ? "room-occupied-girl" : "room-occupied-boy";
+    const capacity = r.capacity || 0;
+    if (capacity > 0 && r.student_count >= capacity) return "room-full";
+    return "room-standby";
 }
 
 function roomBoxHtml(r) {
     const statusClass = roomStatusClass(r);
-    const statusText = !r.online ? "Offline" : (r.student_count === 0 ? "No student assigned" : `${r.student_count} student(s)`);
+    const capacity = r.capacity || 0;
+    const statusText = !r.online
+        ? "Offline"
+        : (capacity > 0 ? `${r.student_count}/${capacity} students` : `${r.student_count} student(s)`);
     return `
         <div class="room-box ${statusClass}" tabindex="0">
             <span class="room-number">${r.room_number}</span>

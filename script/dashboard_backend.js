@@ -35,7 +35,7 @@ export async function handleDashboardRoutes(request, env, headers) {
       // Adjust the JOIN condition here once room_allocations.status values
       // (e.g. cancelled/ended) are actually in use.
       const { results: rooms = [] } = await env.DB.prepare(
-        `SELECT r.id, r.block_name, r.room_number, r.gender, r.is_active, r.last_seen_at,
+        `SELECT r.id, r.block_name, r.room_number, r.gender, r.capacity, r.is_active, r.last_seen_at,
                 COUNT(ra.id) AS student_count
          FROM rooms r
          LEFT JOIN room_allocations ra ON ra.room_id = r.id
@@ -48,6 +48,7 @@ export async function handleDashboardRoutes(request, env, headers) {
         block_name: r.block_name,
         room_number: r.room_number,
         gender: r.gender || 'M',
+        capacity: r.capacity || 0,
         student_count: r.student_count || 0,
         online: !!r.is_active && !!r.last_seen_at && r.last_seen_at >= cutoffISO
       }));
