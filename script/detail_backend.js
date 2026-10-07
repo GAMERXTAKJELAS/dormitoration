@@ -17,6 +17,58 @@
  *   currently collect a separate guardian address field, so those stay NULL for now.
  */
 
+// Builds a short AI eligibility write-up from the full submitted application
+// (not a document check — that's payslip_backend.js's job). Never throws:
+// a failure here must not break the student's profile save.
+async function generateEligibilitySummary(env, applicationId, body) {
+    if (!env.AI || !applicationId) return;
+
+    const incomeTotal = (parseFloat(body?.penjaga1?.pendapatan) || 0) + (parseFloat(body?.penjaga2?.pendapatan) || 0);
+    const facts = {
+        program: body.program || 'unknown',
+        semester: body.semester || 'unknown',
+        cgpa: body.cgpa || 'not provided',
+        is_mpp: body.isMpp || 'No',
+        dependents: body.tanggunganAnak || 0,
+        household_monthly_income_rm: incomeTotal || 'not provided',
+        guardian1_job: body?.penjaga1?.pekerjaan || 'not provided',
+        guardian2_job: body?.penjaga2?.pekerjaan || 'not provided',
+        reason_for_applying: body.sebabMemohon || 'not provided'
+    };
+
+    try {
+        const aiResponse = await env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
+            messages: [
+                {
+                    role: 'user',
+                    content:
+                        `You are assisting a Malaysian polytechnic (IKM) hostel admissions team. Based ONLY on the ` +
+                        `facts below, judge whether this student has a reasonable case for priority hostel placement ` +
+                        `(students with lower household income, more dependents, MPP/council membership, or a strong ` +
+                        `stated reason are generally stronger cases). This is advisory only, not a final decision. ` +
+                        `Facts: ${JSON.stringify(facts)}\n\n` +
+                        `Reply with ONLY a JSON object, no other text, in exactly this shape: ` +
+                        `{"recommended": true or false, "summary": "2-3 sentence plain-English explanation referencing the facts"}`
+                }
+            ]
+        });
+
+        const raw = aiResponse.response || '';
+        const jsonMatch = raw.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) return;
+
+        const parsed = JSON.parse(jsonMatch[0]);
+        await env.DB.prepare(`
+            UPDATE hostel_applications
+            SET ai_eligibility_recommended = ?, ai_eligibility_summary = ?, ai_eligibility_generated_at = ?
+            WHERE id = ?
+        `).bind(parsed.recommended ? 1 : 0, parsed.summary || '', new Date().toISOString(), applicationId).run();
+    } catch (err) {
+        console.error('Eligibility summary generation failed:', err.message);
+        // Deliberately swallowed — the student's profile save already succeeded.
+    }
+}
+
 export async function handleDetailInfoRoutes(request, env, headers) {
     const url = new URL(request.url);
 
@@ -161,6 +213,8 @@ export async function handleDetailInfoRoutes(request, env, headers) {
                     body.tanggunganAnak || 0, nowISO,
                     body.user_id
                 ).run();
+
+                await generateEligibilitySummary(env, existing.id, body);
             } else {
                 // Fallback for the edge case where no draft row exists yet (e.g. registration had no IC)
                 await env.DB.prepare(`
@@ -180,6 +234,11 @@ export async function handleDetailInfoRoutes(request, env, headers) {
                     penjaga2 ? penjaga2.nama : null, penjaga2 ? penjaga2.ic : null, penjaga2 ? penjaga2.tel : null, penjaga2 ? penjaga2.hubungan : null, penjaga2 ? penjaga2.pekerjaan : null, penjaga2 ? penjaga2.pendapatan : null,
                     body.tanggunganAnak || 0, nowISO, nowISO
                 ).run();
+
+                const newRow = await env.DB.prepare(
+                    `SELECT id FROM hostel_applications WHERE user_id = ? LIMIT 1`
+                ).bind(body.user_id).first();
+                if (newRow) await generateEligibilitySummary(env, newRow.id, body);
             }
 
             return new Response(

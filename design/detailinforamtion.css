@@ -588,9 +588,31 @@ body.light-mode .top-nav .theme-btn {
     gap: 8px;
 }
 
-#fileNameDisplay {
+#fileNameDisplay,
+#fileNameDisplay2 {
     font-size: 0.9rem;
     color: var(--text-color);
+}
+
+.btn-remove-pdf {
+    background: transparent;
+    color: var(--danger-color);
+    border: 1px solid var(--danger-color);
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+}
+
+.btn-remove-pdf:hover { background: rgba(239, 68, 68, 0.12); }
+
+.pdf-upload-divider {
+    border-top: 1px solid var(--border-color);
+    margin: 24px 0 18px 0;
 }
 
 .pdf-preview-wrapper {

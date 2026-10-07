@@ -9,8 +9,13 @@
 
 const DOCUMENT_PROMPTS = {
   slip_gaji: "a Malaysian salary slip ('slip gaji') showing an employee's name, employer, and a salary/wage breakdown",
-  surat_akuan_sumpah: "a Malaysian 'Surat Akuan Sumpah' (statutory declaration / sworn affidavit), typically used by self-employed individuals, usually referencing being sworn before a Commissioner for Oaths"
+  surat_akuan_sumpah: "a Malaysian 'Surat Akuan Sumpah' (statutory declaration / sworn affidavit), typically used by self-employed individuals, usually referencing being sworn before a Commissioner for Oaths",
+  dokumen_sokongan_ketua_program: "a Malaysian 'Dokumen Sokongan Ketua Program' (Program Head support letter) — an official letter or form bearing a program head's/coordinator's endorsement, name, and signature or stamp, supporting a student's hostel application"
 };
+
+// NOTE: dokumen_sokongan_ketua_program is optional — enforced client-side only
+// (detailinformation.html doesn't mark its input "required"). This backend
+// accepts/checks it the same as any other document_type if one is sent.
 
 async function resolveApplicationId(env, userId) {
   const row = await env.DB.prepare(

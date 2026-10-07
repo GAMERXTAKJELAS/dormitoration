@@ -3,7 +3,6 @@
  * File: /script/detailinformation.js
  */
 
-let pdfBase64String = "";
 let currentGuardianCount = 1;
 let lastLoadedData = null;
 
@@ -62,12 +61,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const csvFileInput = document.getElementById('csvFileInput');
     if (csvFileInput) csvFileInput.addEventListener('change', handleCSVUpload);
 
-    const pdfBtn = document.getElementById('btnPdfSelect');
-    const pdfFileInput = document.getElementById('slipGajiPDF');
-    if (pdfBtn && pdfFileInput) {
-        pdfBtn.addEventListener('click', () => pdfFileInput.click());
-        pdfFileInput.addEventListener('change', handlePDFSelection);
-    }
+    initPdfSlot(PRIMARY_SLOT);
+    initPdfSlot(SECONDARY_SLOT);
 
     // 5. Form Submit Handler
     const detailForm = document.getElementById('detailInfoForm');
@@ -152,6 +147,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                 localStorage.setItem('userData', JSON.stringify(newUserData));
 
                 lastLoadedData = { ...updatedDetails, accountStatus: 'submitted' };
+
+                // Details are saved — now persist any PDF the student selected but
+                // hadn't uploaded yet. upload-payslip replaces any prior document of
+                // the same type, so this is also how a PDF swap in edit mode happens.
+                if (msgDiv) msgDiv.innerText = 'Saving document(s)...';
+                const pdfResult = await uploadPendingPdfs(updatedDetails.user_id);
+                if (!pdfResult.ok && msgDiv) {
+                    msgDiv.style.color = '#ff6b6b';
+                    msgDiv.innerText = `Profile saved, but a document failed to upload: ${pdfResult.error}. Please try re-attaching it.`;
+                    return; // stay on the page so the student can retry the PDF
+                }
 
                 if (wasEditingExisting) {
                     if (msgDiv) {
@@ -458,18 +464,34 @@ Object.entries(CSV_FIELD_ALIASES).forEach(([targetKey, aliases]) => {
     CSV_ALIAS_LOOKUP[normalizeHeader(targetKey)] = targetKey; // exact internal key still works too
 });
 
+// Income fields render into <input type="number">. Browsers silently refuse
+// to set .value on a number input to anything non-numeric, so "RM1,200" (a
+// perfectly valid CSV value) would just leave the field blank. Strip the
+// currency prefix and thousands separators down to a plain number string.
+const CURRENCY_FIELD_KEYS = new Set(['penjaga1.pendapatan', 'penjaga2.pendapatan']);
+
+function sanitizeCurrency(value) {
+    const cleaned = value.replace(/[^\d.]/g, ''); // drop "RM", commas, spaces, etc.
+    return cleaned === '' ? '' : cleaned;
+}
+
 function mapCsvRowToFormData(headers, values) {
     const mapped = {};
     const unmatched = [];
 
     headers.forEach((rawHeader, idx) => {
         const targetKey = CSV_ALIAS_LOOKUP[normalizeHeader(rawHeader)];
-        const value = (values[idx] || '').trim();
+        let value = (values[idx] || '').trim();
         if (!value) return;
 
         if (!targetKey) {
             unmatched.push(rawHeader);
             return;
+        }
+
+        if (CURRENCY_FIELD_KEYS.has(targetKey)) {
+            value = sanitizeCurrency(value);
+            if (value === '') return; // nothing numeric left — skip rather than insert blank
         }
 
         if (targetKey.includes('.')) {
@@ -522,79 +544,155 @@ function clearDetailFormDraft() {
 }
 
 /* =========================================================
-   PAYSLIP PDF UPLOAD & PREVIEW
+   PAYSLIP / SUPPORT-LETTER PDF — SELECT, PREVIEW, CHECK, UPLOAD
+   =========================================================
+   Design: selecting a file only previews it locally and runs the (free,
+   non-blocking) AI plausibility check — it does NOT touch R2 yet. The
+   actual /api/student/upload-payslip call only fires once the student
+   clicks Submit/Update, right after their details save successfully.
+   This is what makes "Remove" (task 3) a pure no-network action, and
+   what makes an edit-mode swap (task 4) only replace the stored file
+   when the student actually clicks Update — upload-payslip's existing
+   delete-old-then-insert-new logic (payslip_backend.js) handles the
+   "replace" itself; this file just controls WHEN that call happens.
    ========================================================= */
-let lastSelectedPdfFile = null;
 
-async function handlePDFSelection(event) {
+// One slot's config + its own pending-file state live together in one object,
+// so the primary (dropdown type) and secondary (fixed, optional type) slots
+// run through the exact same logic instead of two near-duplicate copies.
+const PRIMARY_SLOT = {
+    key: 'primary',
+    fileInputId: 'slipGajiPDF',
+    selectBtnId: 'btnPdfSelect',
+    removeBtnId: 'btnRemovePdf',
+    nameDisplayId: 'fileNameDisplay',
+    pendingNoteId: 'pdfPendingNote',
+    warningBannerId: 'pdfWarningBanner',
+    warningTextId: 'pdfWarningText',
+    previewContainerId: 'pdfPreviewContainer',
+    previewFrameId: 'pdfPreviewFrame',
+    getDocumentType: () => document.getElementById('documentType')?.value || 'slip_gaji',
+    typeLabel: (docType) => docType === 'slip_gaji' ? 'Salary Slip' : 'Sworn Declaration',
+    required: true,
+    pendingFile: null
+};
+
+const SECONDARY_SLOT = {
+    key: 'secondary',
+    fileInputId: 'ketuaProgramPDF',
+    selectBtnId: 'btnPdfSelect2',
+    removeBtnId: 'btnRemovePdf2',
+    nameDisplayId: 'fileNameDisplay2',
+    pendingNoteId: 'pdfPendingNote2',
+    warningBannerId: 'pdfWarningBanner2',
+    warningTextId: 'pdfWarningText2',
+    previewContainerId: 'pdfPreviewContainer2',
+    previewFrameId: 'pdfPreviewFrame2',
+    getDocumentType: () => 'dokumen_sokongan_ketua_program',
+    typeLabel: () => 'Program Head Support Letter',
+    required: false,
+    pendingFile: null
+};
+
+function initPdfSlot(slot) {
+    const selectBtn = document.getElementById(slot.selectBtnId);
+    const fileInput = document.getElementById(slot.fileInputId);
+    const removeBtn = document.getElementById(slot.removeBtnId);
+
+    if (selectBtn && fileInput) {
+        selectBtn.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => handlePdfSelection(slot, e));
+    }
+    if (removeBtn) {
+        removeBtn.addEventListener('click', () => removePdfSlot(slot, { clearServerCopy: false }));
+    }
+
+    // Re-run the plausibility check if the document type changes after a file
+    // was already selected — otherwise a stale verdict could linger.
+    if (slot === PRIMARY_SLOT) {
+        const typeSelect = document.getElementById('documentType');
+        if (typeSelect) {
+            typeSelect.addEventListener('change', () => {
+                hideWarning(slot);
+                if (slot.pendingFile) runPlausibilityCheck(slot, slot.pendingFile);
+            });
+        }
+    }
+}
+
+function hideWarning(slot) {
+    const banner = document.getElementById(slot.warningBannerId);
+    if (banner) banner.style.display = 'none';
+}
+
+function handlePdfSelection(slot, event) {
     const file = event.target.files[0];
-    const nameDisplay = document.getElementById('fileNameDisplay');
-    const previewContainer = document.getElementById('pdfPreviewContainer');
-    const previewFrame = document.getElementById('pdfPreviewFrame');
-    const warningBanner = document.getElementById('pdfWarningBanner');
+    const nameDisplay = document.getElementById(slot.nameDisplayId);
+    const previewContainer = document.getElementById(slot.previewContainerId);
+    const previewFrame = document.getElementById(slot.previewFrameId);
+    const removeBtn = document.getElementById(slot.removeBtnId);
+    const pendingNote = document.getElementById(slot.pendingNoteId);
 
-    if (warningBanner) warningBanner.style.display = 'none';
+    hideWarning(slot);
 
     if (!file || file.type !== "application/pdf") {
         if (nameDisplay) nameDisplay.innerText = "No file selected";
         if (previewContainer) previewContainer.style.display = 'none';
-        pdfBase64String = "";
-        lastSelectedPdfFile = null;
+        if (removeBtn) removeBtn.style.display = 'none';
+        if (pendingNote) pendingNote.style.display = 'none';
+        slot.pendingFile = null;
         return;
     }
 
-    lastSelectedPdfFile = file;
-    if (nameDisplay) nameDisplay.innerText = `📄 ${file.name}`;
+    slot.pendingFile = file;
+    if (nameDisplay) nameDisplay.innerText = `📄 ${file.name} (not yet saved)`;
+    if (removeBtn) removeBtn.style.display = 'inline-flex';
+    if (pendingNote) pendingNote.style.display = 'block';
 
     const reader = new FileReader();
     reader.onload = function (e) {
-        pdfBase64String = e.target.result;
         if (previewFrame && previewContainer) {
-            previewFrame.src = pdfBase64String;
+            previewFrame.src = e.target.result;
             previewContainer.style.display = 'block';
         }
-        uploadAndCheckPdf(file);
     };
     reader.readAsDataURL(file);
+
+    runPlausibilityCheck(slot, file);
 }
 
-async function uploadAndCheckPdf(file) {
-    const nameDisplay = document.getElementById('fileNameDisplay');
-    const warningBanner = document.getElementById('pdfWarningBanner');
-    const warningText = document.getElementById('pdfWarningText');
+// Removes the locally-selected file. Since nothing is uploaded until Submit/
+// Update, this never needs to touch the server for a file picked this
+// session. clearServerCopy exists for completeness but isn't used by the
+// Remove button today — the student removes the OLD file by simply
+// attaching a replacement instead, which the submit-time upload swaps in.
+function removePdfSlot(slot, { clearServerCopy }) {
+    const fileInput = document.getElementById(slot.fileInputId);
+    const nameDisplay = document.getElementById(slot.nameDisplayId);
+    const previewContainer = document.getElementById(slot.previewContainerId);
+    const removeBtn = document.getElementById(slot.removeBtnId);
+    const pendingNote = document.getElementById(slot.pendingNoteId);
 
+    slot.pendingFile = null;
+    if (fileInput) fileInput.value = '';
+    if (nameDisplay) nameDisplay.innerText = "No file selected";
+    if (previewContainer) previewContainer.style.display = 'none';
+    if (removeBtn) removeBtn.style.display = 'none';
+    if (pendingNote) pendingNote.style.display = 'none';
+    hideWarning(slot);
+}
+
+async function runPlausibilityCheck(slot, file) {
     const userData = getStorageData('userData');
     const userId = userData.id || userData.user_id;
-    const documentType = document.getElementById('documentType')?.value || 'slip_gaji';
-
-    if (!userId || !pdfBase64String) return;
-
-    if (nameDisplay) nameDisplay.innerText = `📄 ${file.name} (uploading...)`;
+    const documentType = slot.getDocumentType();
+    const warningBanner = document.getElementById(slot.warningBannerId);
+    const warningText = document.getElementById(slot.warningTextId);
+    if (!userId) return;
 
     try {
-        const uploadRes = await fetch('/api/student/upload-payslip', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                user_id: userId,
-                document_type: documentType,
-                filename: file.name,
-                base64Data: pdfBase64String
-            })
-        });
-
-        if (!uploadRes.ok) {
-            const errBody = await uploadRes.json().catch(() => ({}));
-            console.error('Upload failed:', errBody);
-            if (nameDisplay) nameDisplay.innerText = `📄 ${file.name} (upload failed — try again)`;
-            return;
-        }
-
-        if (nameDisplay) nameDisplay.innerText = `📄 ${file.name} ✓ uploaded`;
-
-        // AI plausibility check runs in the background — never blocks the student either way
         const imageBase64 = await renderPdfFirstPageToImageBase64(file);
-        if (!imageBase64) return;
+        if (!imageBase64) return; // pdf.js unavailable — skip silently, never blocks the student
 
         const checkRes = await fetch('/api/student/check-payslip', {
             method: 'POST',
@@ -604,13 +702,12 @@ async function uploadAndCheckPdf(file) {
 
         const verdict = await checkRes.json();
         if (verdict && verdict.looksValid === false && warningBanner && warningText) {
-            const typeLabel = documentType === 'slip_gaji' ? 'Salary Slip' : 'Sworn Declaration';
-            warningText.innerText = `This doesn't look like a ${typeLabel} — are you sure this is the right file? (${verdict.reason || 'Please double-check.'})`;
+            warningText.innerText = `This doesn't look like a ${slot.typeLabel(documentType)} — are you sure this is the right file? (${verdict.reason || 'Please double-check.'})`;
             warningBanner.style.display = 'flex';
         }
     } catch (err) {
-        console.error('Payslip upload/check error:', err);
-        if (nameDisplay) nameDisplay.innerText = `📄 ${file.name} (upload failed — try again)`;
+        console.error('Plausibility check error:', err);
+        // Non-blocking by design — a failed check just means no warning shown.
     }
 }
 
@@ -641,21 +738,56 @@ async function renderPdfFirstPageToImageBase64(file) {
     }
 }
 
-// Re-run the check if the document type changes after a file was already uploaded —
-// otherwise a stale verdict (checked against the wrong expected type) could linger.
-document.addEventListener('DOMContentLoaded', () => {
-    const typeSelect = document.getElementById('documentType');
-    if (typeSelect) {
-        typeSelect.addEventListener('change', () => {
-            const warningBanner = document.getElementById('pdfWarningBanner');
-            if (warningBanner) warningBanner.style.display = 'none';
-            if (lastSelectedPdfFile) uploadAndCheckPdf(lastSelectedPdfFile);
-        });
+// Called once, right after /api/student/update-details succeeds. Uploads
+// whichever slot(s) actually have a pending (not-yet-saved) file. A slot the
+// student never touched this session is left alone — its existing R2 file,
+// if any, stays exactly as it was.
+async function uploadPendingPdfs(userId) {
+    for (const slot of [PRIMARY_SLOT, SECONDARY_SLOT]) {
+        if (!slot.pendingFile) continue;
+
+        const file = slot.pendingFile;
+        const documentType = slot.getDocumentType();
+        const nameDisplay = document.getElementById(slot.nameDisplayId);
+        const pendingNote = document.getElementById(slot.pendingNoteId);
+
+        try {
+            const base64Data = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+
+            const uploadRes = await fetch('/api/student/upload-payslip', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: userId, document_type: documentType, filename: file.name, base64Data })
+            });
+
+            if (!uploadRes.ok) {
+                const errBody = await uploadRes.json().catch(() => ({}));
+                return { ok: false, error: errBody.error || `${slot.typeLabel(documentType)} upload failed` };
+            }
+
+            if (nameDisplay) nameDisplay.innerText = `📄 ${file.name} ✓ saved`;
+            if (pendingNote) pendingNote.style.display = 'none';
+            slot.pendingFile = null; // persisted now — no longer "pending"
+        } catch (err) {
+            console.error('PDF upload error:', err);
+            return { ok: false, error: `${slot.typeLabel(documentType)} upload failed` };
+        }
     }
-});
+    return { ok: true };
+}
 
 function closePdfPreview() {
     const previewContainer = document.getElementById('pdfPreviewContainer');
+    if (previewContainer) previewContainer.style.display = 'none';
+}
+
+function closePdfPreview2() {
+    const previewContainer = document.getElementById('pdfPreviewContainer2');
     if (previewContainer) previewContainer.style.display = 'none';
 }
 
@@ -857,29 +989,50 @@ function populateForm(data) {
     // separately to R2) — if this student already has one on file, preview it
     // by pointing the iframe straight at the serving endpoint.
     if (data.user_id) {
-        const nameDisplay = document.getElementById('fileNameDisplay');
-        const previewContainer = document.getElementById('pdfPreviewContainer');
-        const previewFrame = document.getElementById('pdfPreviewFrame');
-        const docType = document.getElementById('documentType')?.value || 'slip_gaji';
+        loadExistingPdfForSlot(PRIMARY_SLOT, data.user_id, ['slip_gaji', 'surat_akuan_sumpah']);
+        loadExistingPdfForSlot(SECONDARY_SLOT, data.user_id, ['dokumen_sokongan_ketua_program']);
+    }
+}
 
-        if (nameDisplay) nameDisplay.innerText = "📄 Checking for existing document...";
+// Checks each candidate document_type in order (HEAD request) and previews
+// the first one found. For the primary slot this also sets the "Document
+// Type" dropdown to match whichever type is actually on file, so an edit
+// later re-checks/replaces the correct one. Shows "No file selected" if
+// none of the candidates exist yet (nothing uploaded for this slot so far).
+function loadExistingPdfForSlot(slot, userId, candidateTypes) {
+    const nameDisplay = document.getElementById(slot.nameDisplayId);
+    const previewContainer = document.getElementById(slot.previewContainerId);
+    const previewFrame = document.getElementById(slot.previewFrameId);
+    if (nameDisplay) nameDisplay.innerText = "📄 Checking for existing document...";
 
-        fetch(`/api/student/payslip?user_id=${encodeURIComponent(data.user_id)}&document_type=${encodeURIComponent(docType)}`, { method: 'HEAD' })
+    const tryNext = (i) => {
+        if (i >= candidateTypes.length) {
+            if (nameDisplay) nameDisplay.innerText = "No file selected";
+            return;
+        }
+        const docType = candidateTypes[i];
+        const url = `/api/student/payslip?user_id=${encodeURIComponent(userId)}&document_type=${encodeURIComponent(docType)}`;
+
+        fetch(url, { method: 'HEAD' })
             .then(res => {
                 if (res.ok) {
                     if (nameDisplay) nameDisplay.innerText = "📄 Existing document on file";
                     if (previewFrame && previewContainer) {
-                        previewFrame.src = `/api/student/payslip?user_id=${encodeURIComponent(data.user_id)}&document_type=${encodeURIComponent(docType)}`;
+                        previewFrame.src = url;
                         previewContainer.style.display = 'block';
                     }
-                } else if (nameDisplay) {
-                    nameDisplay.innerText = "No file selected";
+                    if (slot === PRIMARY_SLOT) {
+                        const typeSelect = document.getElementById('documentType');
+                        if (typeSelect) typeSelect.value = docType;
+                    }
+                } else {
+                    tryNext(i + 1);
                 }
             })
-            .catch(() => {
-                if (nameDisplay) nameDisplay.innerText = "No file selected";
-            });
-    }
+            .catch(() => tryNext(i + 1));
+    };
+
+    tryNext(0);
 }
 
 function getStorageData(key) {

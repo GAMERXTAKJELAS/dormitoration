@@ -348,8 +348,12 @@
                             <i class='bx bx-upload'></i> Select PDF File
                         </button>
                         <span id="fileNameDisplay">No file selected</span>
+                        <button type="button" class="btn-remove-pdf" id="btnRemovePdf" style="display: none;" title="Remove selected file">
+                            <i class='bx bx-x'></i> Remove
+                        </button>
                         <input type="file" id="slipGajiPDF" name="slipGajiPDF" accept="application/pdf" style="display: none;">
                     </div>
+                    <p class="pdf-note" id="pdfPendingNote" style="display: none;">* This file will be uploaded when you click Submit/Update below — it hasn't been saved yet.</p>
 
                     <!-- AI plausibility warning — non-blocking, just a heads-up -->
                     <div id="pdfWarningBanner" class="pdf-warning-banner" style="display: none;">
@@ -364,6 +368,40 @@
                             <button type="button" class="btn-close-preview" onclick="closePdfPreview()">&times;</button>
                         </div>
                         <iframe id="pdfPreviewFrame" src="" class="pdf-iframe"></iframe>
+                    </div>
+
+                    <!-- Second, optional document: Program Head support letter -->
+                    <div class="pdf-upload-divider"></div>
+                    <div class="pdf-upload-header">
+                        <label class="pdf-upload-label">
+                            <i class='bx bxs-file-pdf'></i> Upload Program Head Support Letter (Dokumen Sokongan Ketua Program) — <em>Optional</em>
+                        </label>
+                    </div>
+                    <p class="pdf-note">* Optional. Attach only if your Program Head has issued a support letter for your application.</p>
+
+                    <div class="file-drop-area">
+                        <button type="button" class="btn-pdf-select" id="btnPdfSelect2">
+                            <i class='bx bx-upload'></i> Select PDF File
+                        </button>
+                        <span id="fileNameDisplay2">No file selected</span>
+                        <button type="button" class="btn-remove-pdf" id="btnRemovePdf2" style="display: none;" title="Remove selected file">
+                            <i class='bx bx-x'></i> Remove
+                        </button>
+                        <input type="file" id="ketuaProgramPDF" name="ketuaProgramPDF" accept="application/pdf" style="display: none;">
+                    </div>
+                    <p class="pdf-note" id="pdfPendingNote2" style="display: none;">* This file will be uploaded when you click Submit/Update below — it hasn't been saved yet.</p>
+
+                    <div id="pdfWarningBanner2" class="pdf-warning-banner" style="display: none;">
+                        <i class='bx bx-error'></i>
+                        <span id="pdfWarningText2"></span>
+                    </div>
+
+                    <div id="pdfPreviewContainer2" class="pdf-preview-wrapper" style="display: none;">
+                        <div class="preview-bar">
+                            <span><i class='bx bx-show'></i> Document Preview</span>
+                            <button type="button" class="btn-close-preview" onclick="closePdfPreview2()">&times;</button>
+                        </div>
+                        <iframe id="pdfPreviewFrame2" src="" class="pdf-iframe"></iframe>
                     </div>
                 </div>
 
