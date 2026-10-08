@@ -117,7 +117,10 @@ export default {
     // The heartbeat itself sets is_active back to 1 on reconnect, so this
     // only ever needs to turn it off, never on.
     try {
-      const ROOM_OFFLINE_AFTER_SECONDS = 90;
+      // Keep in sync with main.cpp's HEARTBEAT_MS (currently 5 min) and
+      // dashboard_backend.js's ONLINE_WINDOW_SECONDS - both should stay at
+      // roughly 2x the heartbeat interval plus a bit of slack.
+      const ROOM_OFFLINE_AFTER_SECONDS = 660; // 11 min
       const cutoffISO = new Date(Date.now() - ROOM_OFFLINE_AFTER_SECONDS * 1000).toISOString();
 
       await env.DB.prepare(`

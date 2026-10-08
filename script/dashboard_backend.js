@@ -23,12 +23,15 @@ export async function handleDashboardRoutes(request, env, headers) {
       ).first();
 
       // Hardware/rooms: a room counts as "online" if it's flagged active AND
-      // reported within the last 90 seconds (ESP32 heartbeats every 30s, so
-      // this allows one missed beat before a room is treated as offline).
+      // reported recently. The ESP32 heartbeats every 5 min (HEARTBEAT_MS in
+      // main.cpp) with a 5s retry on failure, so this window allows one full
+      // missed beat (10 min) plus some slack before a room reads as offline.
+      // Keep this in sync with cloudflare_worker.js's ROOM_OFFLINE_AFTER_SECONDS
+      // and main.cpp's HEARTBEAT_MS if any of the three ever change.
       // The scheduled() cron sweep flips is_active back to 0 for stale rooms,
-      // so is_active is the persisted signal; the time check is a safety net
-      // for the ~60s window before that sweep next runs.
-      const ONLINE_WINDOW_SECONDS = 90;
+      // so is_active is the persisted signal; the time check here is a safety
+      // net for the ~1min window before that sweep next runs.
+      const ONLINE_WINDOW_SECONDS = 660; // 11 min
       const cutoffISO = new Date(Date.now() - ONLINE_WINDOW_SECONDS * 1000).toISOString();
 
       // ASSUMPTION: any room_allocations row for a room counts as "occupied".
