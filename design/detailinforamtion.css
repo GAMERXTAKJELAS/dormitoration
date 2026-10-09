@@ -610,6 +610,26 @@ body.light-mode .top-nav .theme-btn {
 
 .btn-remove-pdf:hover { background: rgba(239, 68, 68, 0.12); }
 
+/* Opens the PDF in a new tab — more reliable across browsers than relying
+   on the embedded iframe preview alone (some browsers won't render a
+   data: URI PDF inside an iframe at all). */
+.btn-view-pdf {
+    background: transparent;
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    text-decoration: none;
+}
+
+.btn-view-pdf:hover { background: rgba(5, 150, 105, 0.12); }
+
 .pdf-upload-divider {
     border-top: 1px solid var(--border-color);
     margin: 24px 0 18px 0;

@@ -571,10 +571,12 @@ const PRIMARY_SLOT = {
     warningTextId: 'pdfWarningText',
     previewContainerId: 'pdfPreviewContainer',
     previewFrameId: 'pdfPreviewFrame',
+    viewLinkId: 'pdfViewLink',
     getDocumentType: () => document.getElementById('documentType')?.value || 'slip_gaji',
     typeLabel: (docType) => docType === 'slip_gaji' ? 'Salary Slip' : 'Sworn Declaration',
     required: true,
-    pendingFile: null
+    pendingFile: null,
+    objectUrl: null
 };
 
 const SECONDARY_SLOT = {
@@ -588,10 +590,12 @@ const SECONDARY_SLOT = {
     warningTextId: 'pdfWarningText2',
     previewContainerId: 'pdfPreviewContainer2',
     previewFrameId: 'pdfPreviewFrame2',
+    viewLinkId: 'pdfViewLink2',
     getDocumentType: () => 'dokumen_sokongan_ketua_program',
     typeLabel: () => 'Program Head Support Letter',
     required: false,
-    pendingFile: null
+    pendingFile: null,
+    objectUrl: null
 };
 
 function initPdfSlot(slot) {
@@ -632,6 +636,7 @@ function handlePdfSelection(slot, event) {
     const previewFrame = document.getElementById(slot.previewFrameId);
     const removeBtn = document.getElementById(slot.removeBtnId);
     const pendingNote = document.getElementById(slot.pendingNoteId);
+    const viewLink = document.getElementById(slot.viewLinkId);
 
     hideWarning(slot);
 
@@ -640,6 +645,7 @@ function handlePdfSelection(slot, event) {
         if (previewContainer) previewContainer.style.display = 'none';
         if (removeBtn) removeBtn.style.display = 'none';
         if (pendingNote) pendingNote.style.display = 'none';
+        if (viewLink) viewLink.style.display = 'none';
         slot.pendingFile = null;
         return;
     }
@@ -648,6 +654,18 @@ function handlePdfSelection(slot, event) {
     if (nameDisplay) nameDisplay.innerText = `📄 ${file.name} (not yet saved)`;
     if (removeBtn) removeBtn.style.display = 'inline-flex';
     if (pendingNote) pendingNote.style.display = 'block';
+
+    // "View PDF" opens the file in a new tab via a blob URL — this is the
+    // reliable way to let the student confirm what they picked. The iframe
+    // preview below is a bonus; some browsers silently refuse to render a
+    // data: URI PDF inside an iframe, which is why a file could "select"
+    // successfully but never visibly show up.
+    if (slot.objectUrl) URL.revokeObjectURL(slot.objectUrl);
+    slot.objectUrl = URL.createObjectURL(file);
+    if (viewLink) {
+        viewLink.href = slot.objectUrl;
+        viewLink.style.display = 'inline-flex';
+    }
 
     const reader = new FileReader();
     reader.onload = function (e) {
@@ -672,13 +690,16 @@ function removePdfSlot(slot, { clearServerCopy }) {
     const previewContainer = document.getElementById(slot.previewContainerId);
     const removeBtn = document.getElementById(slot.removeBtnId);
     const pendingNote = document.getElementById(slot.pendingNoteId);
+    const viewLink = document.getElementById(slot.viewLinkId);
 
     slot.pendingFile = null;
+    if (slot.objectUrl) { URL.revokeObjectURL(slot.objectUrl); slot.objectUrl = null; }
     if (fileInput) fileInput.value = '';
     if (nameDisplay) nameDisplay.innerText = "No file selected";
     if (previewContainer) previewContainer.style.display = 'none';
     if (removeBtn) removeBtn.style.display = 'none';
     if (pendingNote) pendingNote.style.display = 'none';
+    if (viewLink) viewLink.style.display = 'none';
     hideWarning(slot);
 }
 
@@ -1003,11 +1024,13 @@ function loadExistingPdfForSlot(slot, userId, candidateTypes) {
     const nameDisplay = document.getElementById(slot.nameDisplayId);
     const previewContainer = document.getElementById(slot.previewContainerId);
     const previewFrame = document.getElementById(slot.previewFrameId);
+    const viewLink = document.getElementById(slot.viewLinkId);
     if (nameDisplay) nameDisplay.innerText = "📄 Checking for existing document...";
 
     const tryNext = (i) => {
         if (i >= candidateTypes.length) {
             if (nameDisplay) nameDisplay.innerText = "No file selected";
+            if (viewLink) viewLink.style.display = 'none';
             return;
         }
         const docType = candidateTypes[i];
@@ -1020,6 +1043,12 @@ function loadExistingPdfForSlot(slot, userId, candidateTypes) {
                     if (previewFrame && previewContainer) {
                         previewFrame.src = url;
                         previewContainer.style.display = 'block';
+                    }
+                    // Same reliable "open in a new tab" affordance as a freshly
+                    // selected file — points straight at the serving endpoint.
+                    if (viewLink) {
+                        viewLink.href = url;
+                        viewLink.style.display = 'inline-flex';
                     }
                     if (slot === PRIMARY_SLOT) {
                         const typeSelect = document.getElementById('documentType');
