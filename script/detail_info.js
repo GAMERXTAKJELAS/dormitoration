@@ -15,8 +15,25 @@ function setFormFieldsDisabled(disabled) {
     });
 }
 
+// setFormFieldsDisabled only covers plain input/select/textarea — the PDF
+// slots' Select/Remove buttons aren't form controls, so they need their own
+// show/hide here. In view mode: no editing controls, just the "View PDF"
+// confirmation link (set by loadExistingPdfForSlot) so it clearly reads as
+// "here's what you submitted", not an active upload form.
+function setPdfSlotsEditable(editable) {
+    [PRIMARY_SLOT, SECONDARY_SLOT].forEach(slot => {
+        const selectBtn = document.getElementById(slot.selectBtnId);
+        const removeBtn = document.getElementById(slot.removeBtnId);
+        const typeSelect = slot === PRIMARY_SLOT ? document.getElementById('documentType') : null;
+        if (selectBtn) selectBtn.style.display = editable ? 'inline-flex' : 'none';
+        if (!editable && removeBtn) removeBtn.style.display = 'none'; // only re-shown by a fresh selection
+        if (typeSelect) typeSelect.disabled = !editable;
+    });
+}
+
 function enterViewMode() {
     setFormFieldsDisabled(true);
+    setPdfSlotsEditable(false);
     const editBtn = document.getElementById('editProfileBtn');
     const firstTimeBtn = document.getElementById('firstTimeSubmitBtn');
     const editControls = document.getElementById('editModeControls');
@@ -27,6 +44,7 @@ function enterViewMode() {
 
 function enterEditMode() {
     setFormFieldsDisabled(false);
+    setPdfSlotsEditable(true);
     const editBtn = document.getElementById('editProfileBtn');
     const firstTimeBtn = document.getElementById('firstTimeSubmitBtn');
     const editControls = document.getElementById('editModeControls');
@@ -1009,9 +1027,13 @@ function populateForm(data) {
     // The PDF itself no longer travels through this JSON payload (it's uploaded
     // separately to R2) — if this student already has one on file, preview it
     // by pointing the iframe straight at the serving endpoint.
-    if (data.user_id) {
-        loadExistingPdfForSlot(PRIMARY_SLOT, data.user_id, ['slip_gaji', 'surat_akuan_sumpah']);
-        loadExistingPdfForSlot(SECONDARY_SLOT, data.user_id, ['dokumen_sokongan_ketua_program']);
+    // NOTE: data.user_id isn't always the key present — localStorage's cached
+    // user object (and some code paths) use "id" instead. Same fallback this
+    // file already uses everywhere else (see getStorageData callers).
+    const uidForPdfCheck = data.user_id || data.id;
+    if (uidForPdfCheck) {
+        loadExistingPdfForSlot(PRIMARY_SLOT, uidForPdfCheck, ['slip_gaji', 'surat_akuan_sumpah']);
+        loadExistingPdfForSlot(SECONDARY_SLOT, uidForPdfCheck, ['dokumen_sokongan_ketua_program']);
     }
 }
 
