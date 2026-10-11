@@ -672,18 +672,10 @@ function handlePdfSelection(slot, event) {
     if (nameDisplay) nameDisplay.innerText = `📄 ${file.name} (not yet saved)`;
     if (removeBtn) removeBtn.style.display = 'inline-flex';
     if (pendingNote) pendingNote.style.display = 'block';
-
-    // "View PDF" opens the file in a new tab via a blob URL — this is the
-    // reliable way to let the student confirm what they picked. The iframe
-    // preview below is a bonus; some browsers silently refuse to render a
-    // data: URI PDF inside an iframe, which is why a file could "select"
-    // successfully but never visibly show up.
-    if (slot.objectUrl) URL.revokeObjectURL(slot.objectUrl);
-    slot.objectUrl = URL.createObjectURL(file);
-    if (viewLink) {
-        viewLink.href = slot.objectUrl;
-        viewLink.style.display = 'inline-flex';
-    }
+    // No "View" link here by design — it only ever points at the file that's
+    // actually confirmed saved on the server (set in uploadPendingPdfs and
+    // loadExistingPdfForSlot), never at a locally-picked, not-yet-sent file.
+    if (viewLink) viewLink.style.display = 'none';
 
     const reader = new FileReader();
     reader.onload = function (e) {
@@ -789,6 +781,7 @@ async function uploadPendingPdfs(userId) {
         const documentType = slot.getDocumentType();
         const nameDisplay = document.getElementById(slot.nameDisplayId);
         const pendingNote = document.getElementById(slot.pendingNoteId);
+        const viewLink = document.getElementById(slot.viewLinkId);
 
         try {
             const base64Data = await new Promise((resolve, reject) => {
@@ -811,6 +804,14 @@ async function uploadPendingPdfs(userId) {
 
             if (nameDisplay) nameDisplay.innerText = `📄 ${file.name} ✓ saved`;
             if (pendingNote) pendingNote.style.display = 'none';
+            if (viewLink) {
+                // Points at the server endpoint, not a local blob — this is
+                // now confirmed saved, so "View" should show exactly what's
+                // actually retrievable, the same URL loadExistingPdfForSlot
+                // would set on a fresh page load.
+                viewLink.href = `/api/student/payslip?user_id=${encodeURIComponent(userId)}&document_type=${encodeURIComponent(documentType)}`;
+                viewLink.style.display = 'inline-flex';
+            }
             slot.pendingFile = null; // persisted now — no longer "pending"
         } catch (err) {
             console.error('PDF upload error:', err);
