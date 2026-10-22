@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dormitoration | Submit a Report</title>
+    <link rel="stylesheet" href="/design/studentreport.css">
+    <link rel="stylesheet" href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css">
+    <script src="/script/theme.js" defer></script>
+    <script src="/script/logout_logic.js" defer></script>
+    <script src="/script/studentreport.js" defer></script>
+</head>
+<body class="dark-mode">
+
+    <!-- Logout Confirmation Modal (opened by logout_logic.js when the browser Back button is pressed) -->
+    <div id="logout-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Confirm Logout</h2>
+            <p>Are you sure you want to leave the Student Portal?</p>
+            <div class="modal-btns">
+                <button type="button" class="btn-outline" onclick="closeLogoutModal()">Cancel</button>
+                <button type="button" class="btn-danger" onclick="executeLogout()">Yes, Log Out</button>
+            </div>
+        </div>
+    </div>
+
+    <header class="top-nav">
+        <div class="nav-container">
+            <div class="brand">
+                <i class='bx bxs-building-house'></i>
+                <span>Dormitoration</span>
+            </div>
+            <nav class="nav-links">
+                <a href="/student/studenthomepage.html" class="btn-outline">
+                    <i class='bx bx-arrow-back'></i> Back
+                </a>
+                <button id="theme-toggle" class="theme-btn" type="button" aria-label="Toggle Theme">
+                    <i class='bx bx-moon' id="theme-icon"></i>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="page">
+
+        <section class="card">
+            <h1><i class='bx bx-error-circle'></i> Report a Room or Facility Problem</h1>
+            <p class="sub-text">Tell the hostel administration about something that needs fixing, like a broken light, a leak or a faulty door lock.</p>
+
+            <div id="reportMsg" class="message-banner" role="status"></div>
+
+            <form id="reportForm" novalidate>
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="category">Category <span class="req">*</span></label>
+                        <select id="category" name="category" required>
+                            <option value="">-- Select category --</option>
+                            <option value="electrical">Electrical (lights, sockets, wiring)</option>
+                            <option value="plumbing">Plumbing (leak, toilet, water supply)</option>
+                            <option value="furniture">Furniture (bed, cabinet, desk)</option>
+                            <option value="aircond_fan">Fan / Air-conditioning</option>
+                            <option value="door_lock">Door / Lock</option>
+                            <option value="cleanliness">Cleanliness / Pests</option>
+                            <option value="internet">Internet / WiFi</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label for="priority">Priority <span class="req">*</span></label>
+                        <select id="priority" name="priority" required>
+                            <option value="normal" selected>Normal</option>
+                            <option value="low">Low (can wait)</option>
+                            <option value="urgent">Urgent (safety risk or no use of room)</option>
+                        </select>
+                    </div>
+
+                    <div class="field full">
+                        <label for="location">Location <span class="req">*</span></label>
+                        <input type="text" id="location" name="location" maxlength="80" placeholder="e.g. Block A, Room 101, bathroom" required>
+                    </div>
+
+                    <div class="field full">
+                        <label for="title">Title <span class="req">*</span></label>
+                        <input type="text" id="title" name="title" maxlength="100" placeholder="Short summary of the problem" required>
+                    </div>
+
+                    <div class="field full">
+                        <label for="description">Description <span class="req">*</span></label>
+                        <textarea id="description" name="description" rows="5" maxlength="1000" placeholder="What is wrong, since when, and anything else the technician should know" required></textarea>
+                        <small class="counter"><span id="descCount">0</span> / 1000</small>
+                    </div>
+
+                    <div class="field full">
+                        <label>Photo (optional)</label>
+                        <div class="photo-row">
+                            <button type="button" class="btn-outline" id="btnPhotoSelect"><i class='bx bx-camera'></i> Add Photo</button>
+                            <button type="button" class="btn-outline btn-remove" id="btnPhotoRemove" style="display: none;"><i class='bx bx-trash'></i> Remove</button>
+                            <span id="photoName" class="muted">No photo selected</span>
+                            <input type="file" id="photoInput" accept="image/jpeg,image/png,image/webp" style="display: none;">
+                        </div>
+                        <img id="photoPreview" class="photo-preview" alt="Selected photo preview" style="display: none;">
+                        <small class="muted">JPG, PNG or WebP. Large photos are resized automatically before upload.</small>
+                    </div>
+                </div>
+
+                <button type="submit" id="submitBtn" class="btn-primary btn-block">
+                    <i class='bx bx-paper-plane'></i> Submit Report
+                </button>
+            </form>
+        </section>
+
+        <section class="card">
+            <h2><i class='bx bx-list-ul'></i> My Reports</h2>
+            <div id="myReports" class="report-list">
+                <p class="muted">Loading...</p>
+            </div>
+        </section>
+
+    </main>
+
+</body>
+</html>

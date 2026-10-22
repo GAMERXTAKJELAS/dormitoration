@@ -9,6 +9,7 @@ import { handleDetailInfoRoutes } from './script/detail_backend.js';
 import { handleHardwareRoutes } from './script/hardware_backend.js';
 import { handlePayslipRoutes } from './script/payslip_backend.js';
 import { handleAccessVerify, handleDeviceHeartbeat } from './script/access_verify.js';
+import { handleReportRoutes } from './script/report_backend.js';
 
 export default {
   // 1. Standard HTTP Request Router
@@ -79,6 +80,11 @@ export default {
       // Handle Detail Information Routes (GET /api/student/details and POST /api/student/update-details)
       const detailInfoResponse = await handleDetailInfoRoutes(request, env, headers);
       if (detailInfoResponse) return detailInfoResponse;
+
+      if (url.pathname === '/api/student/reports' || url.pathname === '/api/student/report-photo') {
+      const reportResponse = await handleReportRoutes(request, env, headers);
+      if (reportResponse) return reportResponse;
+      }
 
       if (url.pathname.startsWith('/api/student')) {
         const studentResponse = await handleStudentRoutes(request, env, headers);
