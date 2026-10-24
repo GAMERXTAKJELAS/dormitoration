@@ -3,120 +3,178 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dormitoration | Submit a Report</title>
-    <link rel="stylesheet" href="/design/studentreport.css">
-    <link rel="stylesheet" href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css">
+    <title>Dormitoration | Reports</title>
+    
+    <link rel="stylesheet" href="/design/dashboard.css">
+    <link rel="stylesheet" href="/design/report.css">
+    <link rel="stylesheet" href="/design/adminreport.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    
     <script src="/script/theme.js" defer></script>
     <script src="/script/logout_logic.js" defer></script>
-    <script src="/script/studentreport.js" defer></script>
+    <script src="/script/adminreport.js" defer></script>
 </head>
-<body class="dark-mode">
+<body>
 
-    <!-- Logout Confirmation Modal (opened by logout_logic.js when the browser Back button is pressed) -->
-    <div id="logout-modal" class="modal-overlay">
+    <!-- Logout Modal -->
+    <div id="logout-modal" class="modal-overlay" style="display:none;">
         <div class="modal-content">
-            <h2>Confirm Logout</h2>
-            <p>Are you sure you want to leave the Student Portal?</p>
+            <i class='bx bx-log-out-circle' style="font-size: 3rem; color: #ef4444;"></i>
+            <h2>Leave Session?</h2>
+            <p>You are attempting to leave the admin area. Do you want to log out?</p>
             <div class="modal-btns">
-                <button type="button" class="btn-outline" onclick="closeLogoutModal()">Cancel</button>
-                <button type="button" class="btn-danger" onclick="executeLogout()">Yes, Log Out</button>
+                <button class="btn-secondary" onclick="closeLogoutModal()">Cancel</button>
+                <button class="btn-danger" onclick="executeLogout()">Yes, Log Out</button>
             </div>
         </div>
     </div>
 
-    <header class="top-nav">
-        <div class="nav-container">
-            <div class="brand">
-                <i class='bx bxs-building-house'></i>
-                <span>Dormitoration</span>
+    <!-- Report Detail Modal (opens when a row is clicked) -->
+    <div id="detailModal" class="modal-overlay rpt-overlay" style="display:none;">
+        <div class="modal-content rpt-modal" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+            <div class="rpt-modal-head">
+                <div>
+                    <h2 id="detailTitle"></h2>
+                    <div id="detailBadges" class="rpt-badges"></div>
+                </div>
+                <button type="button" class="rpt-close" id="detailCloseX" aria-label="Close"><i class='bx bx-x'></i></button>
             </div>
-            <nav class="nav-links">
-                <a href="/student/studenthomepage.html" class="btn-outline">
-                    <i class='bx bx-arrow-back'></i> Back
-                </a>
-                <button id="theme-toggle" class="theme-btn" type="button" aria-label="Toggle Theme">
-                    <i class='bx bx-moon' id="theme-icon"></i>
-                </button>
-            </nav>
+
+            <div id="detailMeta" class="rpt-meta"></div>
+
+            <h4 class="rpt-section-label">Description</h4>
+            <p id="detailDesc" class="rpt-desc"></p>
+
+            <div id="detailPhotoWrap" style="display:none;">
+                <h4 class="rpt-section-label">Photo</h4>
+                <div id="detailPhoto" class="rpt-photo"></div>
+            </div>
+
+            <div id="detailNoteWrap" style="display:none;">
+                <h4 class="rpt-section-label">Admin note</h4>
+                <p id="detailNote" class="rpt-note"></p>
+            </div>
+
+            <div class="rpt-modal-actions">
+                <button type="button" class="rpt-btn rpt-btn-ghost" id="detailCloseBtn">Close</button>
+                <button type="button" class="rpt-btn rpt-btn-primary" id="detailSolveBtn" style="display:none;"><i class='bx bx-check-circle'></i> Mark as Solved</button>
+                <button type="button" class="rpt-btn rpt-btn-ghost" id="detailReopenBtn" style="display:none;"><i class='bx bx-undo'></i> Reopen</button>
+            </div>
         </div>
-    </header>
+    </div>
 
-    <main class="page">
+    <!-- Solve Confirmation Modal -->
+    <div id="solveModal" class="modal-overlay rpt-overlay rpt-overlay-top" style="display:none;">
+        <div class="modal-content rpt-modal rpt-modal-small" role="dialog" aria-modal="true" aria-labelledby="solveTitle">
+            <i class='bx bx-check-circle' style="font-size: 3rem; color: var(--primary-color);"></i>
+            <h2 id="solveTitle">Mark as solved?</h2>
+            <p id="solveText" class="rpt-solve-text"></p>
+            <label for="solveNote" class="rpt-label">Note for the student (optional)</label>
+            <textarea id="solveNote" class="rpt-textarea" rows="3" maxlength="500" placeholder="e.g. Light bulb replaced on 20 Oct"></textarea>
+            <p id="solveError" class="rpt-error" style="display:none;"></p>
+            <div class="modal-btns">
+                <button type="button" class="rpt-btn rpt-btn-ghost" id="solveCancelBtn">Cancel</button>
+                <button type="button" class="rpt-btn rpt-btn-primary" id="solveConfirmBtn">Mark as Solved</button>
+            </div>
+        </div>
+    </div>
 
-        <section class="card">
-            <h1><i class='bx bx-error-circle'></i> Report a Room or Facility Problem</h1>
-            <p class="sub-text">Tell the hostel administration about something that needs fixing, like a broken light, a leak or a faulty door lock.</p>
+    <div id="rptToast" class="rpt-toast" role="status"></div>
 
-            <div id="reportMsg" class="message-banner" role="status"></div>
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar-nav">
+        <div class="logo-section">
+            <i class='bx bxs-building-house'></i>
+            <span class="text" style="font-weight: bold; margin-left: 20px;">DORMITORY</span>
+        </div>
 
-            <form id="reportForm" novalidate>
-                <div class="form-grid">
-                    <div class="field">
-                        <label for="category">Category <span class="req">*</span></label>
-                        <select id="category" name="category" required>
-                            <option value="">-- Select category --</option>
-                            <option value="electrical">Electrical (lights, sockets, wiring)</option>
-                            <option value="plumbing">Plumbing (leak, toilet, water supply)</option>
-                            <option value="furniture">Furniture (bed, cabinet, desk)</option>
-                            <option value="aircond_fan">Fan / Air-conditioning</option>
-                            <option value="door_lock">Door / Lock</option>
-                            <option value="cleanliness">Cleanliness / Pests</option>
-                            <option value="internet">Internet / WiFi</option>
-                            <option value="other">Other</option>
-                        </select>
-                    </div>
+        <nav class="navbar">
+            <ul class="nav-list">
+                <li><a href="/admin/adminhomepage.html">
+                    <i class='bx bx-home-alt icon'></i>
+                    <span class="text">Home</span>
+                </a></li>
 
-                    <div class="field">
-                        <label for="priority">Priority <span class="req">*</span></label>
-                        <select id="priority" name="priority" required>
-                            <option value="normal" selected>Normal</option>
-                            <option value="low">Low (can wait)</option>
-                            <option value="urgent">Urgent (safety risk or no use of room)</option>
-                        </select>
-                    </div>
+                <li><a href="/admin/dashboard.html">
+                    <i class='bx bxs-dashboard icon'></i>
+                    <span class="text">Dashboard</span>
+                </a></li>
 
-                    <div class="field full">
-                        <label for="location">Location <span class="req">*</span></label>
-                        <input type="text" id="location" name="location" maxlength="80" placeholder="e.g. Block A, Room 101, bathroom" required>
-                    </div>
+                <li><a href="/admin/approval.html">
+                    <i class='bx bxs-check-shield icon'></i>
+                    <span class="text">Approval</span>
+                </a></li>
 
-                    <div class="field full">
-                        <label for="title">Title <span class="req">*</span></label>
-                        <input type="text" id="title" name="title" maxlength="100" placeholder="Short summary of the problem" required>
-                    </div>
+                <li><a href="/admin/report.html" class="active">
+                    <i class='bx bxs-report icon'></i>
+                    <span class="text">Report</span>
+                </a></li>
 
-                    <div class="field full">
-                        <label for="description">Description <span class="req">*</span></label>
-                        <textarea id="description" name="description" rows="5" maxlength="1000" placeholder="What is wrong, since when, and anything else the technician should know" required></textarea>
-                        <small class="counter"><span id="descCount">0</span> / 1000</small>
-                    </div>
+                <li><a href="/admin/setting.html">
+                    <i class='bx bx-cog icon'></i>
+                    <span class="text">Settings</span>
+                </a></li>
+            </ul>
+        </nav>
 
-                    <div class="field full">
-                        <label>Photo (optional)</label>
-                        <div class="photo-row">
-                            <button type="button" class="btn-outline" id="btnPhotoSelect"><i class='bx bx-camera'></i> Add Photo</button>
-                            <button type="button" class="btn-outline btn-remove" id="btnPhotoRemove" style="display: none;"><i class='bx bx-trash'></i> Remove</button>
-                            <span id="photoName" class="muted">No photo selected</span>
-                            <input type="file" id="photoInput" accept="image/jpeg,image/png,image/webp" style="display: none;">
-                        </div>
-                        <img id="photoPreview" class="photo-preview" alt="Selected photo preview" style="display: none;">
-                        <small class="muted">JPG, PNG or WebP. Large photos are resized automatically before upload.</small>
-                    </div>
+        <div class="sidebar-footer" style="position: absolute; bottom: 20px; width: 100%; padding: 0 25px;">
+            <button id="theme-toggle" class="theme-btn" style="background:none; border:none; cursor:pointer; color:var(--text-color); display:flex; align-items:center; gap:20px;">
+                <i class='bx bx-moon' id="theme-icon" style="font-size: 22px;"></i>
+                <span class="text">Theme</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content Box -->
+    <main class="main-box">
+        <header class="report-header">
+            <div>
+                <h1>Facility Reports</h1>
+                <p style="color: var(--text-muted, #64748b); margin-top: 4px; font-size: 0.9rem;">Room and facility problems reported by students. Click a report to see the details and photo.</p>
+            </div>
+            <div class="report-actions">
+                <button class="btn-export" id="btnExport"><i class='bx bx-export'></i> Export CSV</button>
+            </div>
+        </header>
+
+        <!-- Container Card -->
+        <div class="content-card">
+            
+            <!-- Filters Toolbar -->
+            <div class="filter-section">
+                <div class="search-box">
+                    <i class='bx bx-search search-icon'></i>
+                    <input type="text" id="searchInput" placeholder="Search student, title or location..." class="input-field">
                 </div>
 
-                <button type="submit" id="submitBtn" class="btn-primary btn-block">
-                    <i class='bx bx-paper-plane'></i> Submit Report
-                </button>
-            </form>
-        </section>
-
-        <section class="card">
-            <h2><i class='bx bx-list-ul'></i> My Reports</h2>
-            <div id="myReports" class="report-list">
-                <p class="muted">Loading...</p>
+                <div class="rpt-tabs" id="rptTabs" role="tablist">
+                    <button type="button" class="rpt-tab active" data-filter="all" role="tab">All <span class="rpt-count" id="countAll">0</span></button>
+                    <button type="button" class="rpt-tab" data-filter="active" role="tab">Active <span class="rpt-count" id="countActive">0</span></button>
+                    <button type="button" class="rpt-tab" data-filter="inactive" role="tab">Inactive <span class="rpt-count" id="countInactive">0</span></button>
+                </div>
             </div>
-        </section>
 
+            <!-- Table Section -->
+            <div class="table-wrapper">
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Reported</th>
+                            <th>Student</th>
+                            <th>Location</th>
+                            <th>Issue</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th style="text-align: right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportTableBody">
+                        <tr><td colspan="7" class="rpt-empty">Loading reports...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
     </main>
 
 </body>

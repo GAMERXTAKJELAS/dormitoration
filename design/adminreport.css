@@ -1,0 +1,186 @@
+/* Admin facility-reports additions. Loaded AFTER report.css so it never replaces it.
+   Colours come from the same variables dashboard.css defines, so dark and light mode both work. */
+
+/* ---------- Tabs: All / Active / Inactive ---------- */
+.rpt-tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--input-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 4px;
+}
+
+.rpt-tab {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    padding: 8px 16px;
+    border-radius: 7px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: inherit;
+}
+.rpt-tab:hover { color: var(--text-color); }
+.rpt-tab.active { background: var(--primary-color); color: #0b0b0b; }
+body.light-mode .rpt-tab.active { color: #ffffff; }
+
+.rpt-count {
+    font-size: 0.75rem;
+    min-width: 22px;
+    text-align: center;
+    padding: 1px 7px;
+    border-radius: 20px;
+    background: rgba(128, 128, 128, 0.2);
+}
+.rpt-tab.active .rpt-count { background: rgba(0, 0, 0, 0.18); }
+body.light-mode .rpt-tab.active .rpt-count { background: rgba(255, 255, 255, 0.28); }
+
+/* ---------- Table ---------- */
+.table-wrapper { overflow-x: auto; }
+.report-table tbody tr.rpt-row { cursor: pointer; }
+.report-table tbody tr.rpt-row:hover { background: rgba(128, 128, 128, 0.08); }
+.rpt-empty { text-align: center; padding: 34px 12px; color: var(--text-muted); }
+
+.rpt-cell-title { font-weight: 600; }
+.rpt-cell-sub { color: var(--text-muted); font-size: 0.8rem; margin-top: 2px; }
+
+.rpt-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.rpt-badge.open        { background: rgba(255, 165, 0, 0.15);  color: #f59e0b; }
+.rpt-badge.in_progress { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+.rpt-badge.resolved    { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+.rpt-badge.rejected    { background: rgba(148, 163, 184, 0.18); color: #94a3b8; }
+.rpt-badge.p-urgent    { background: rgba(239, 68, 68, 0.15);  color: #ef4444; }
+.rpt-badge.p-normal    { background: rgba(148, 163, 184, 0.15); color: var(--text-muted); }
+.rpt-badge.p-low       { background: rgba(148, 163, 184, 0.1);  color: var(--text-muted); }
+
+/* ---------- Buttons ---------- */
+.rpt-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 9px 16px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    border: 1px solid transparent;
+}
+.rpt-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.rpt-btn-primary { background: var(--primary-color); color: #0b0b0b; }
+body.light-mode .rpt-btn-primary { color: #ffffff; }
+.rpt-btn-primary:hover:not(:disabled) { filter: brightness(1.08); }
+.rpt-btn-ghost { background: transparent; color: var(--text-color); border-color: var(--border-color); }
+.rpt-btn-ghost:hover:not(:disabled) { background: rgba(128, 128, 128, 0.12); }
+.rpt-btn-sm { padding: 6px 12px; font-size: 0.82rem; }
+
+/* ---------- Modals ---------- */
+.rpt-overlay { z-index: 3000; }
+.rpt-overlay-top { z-index: 3100; } /* the solve confirmation sits above the detail modal */
+
+.rpt-modal {
+    max-width: 640px;
+    width: 92%;
+    max-height: 88vh;
+    overflow-y: auto;
+    text-align: left;
+}
+.rpt-modal-small { max-width: 430px; text-align: center; }
+
+.rpt-modal-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
+.rpt-modal-head h2 { margin: 0 0 8px; font-size: 1.25rem; word-break: break-word; }
+.rpt-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+.rpt-close { background: none; border: none; color: var(--text-muted); font-size: 1.8rem; cursor: pointer; line-height: 1; padding: 0; }
+.rpt-close:hover { color: var(--text-color); }
+
+.rpt-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 18px;
+    padding: 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--input-bg);
+    margin-bottom: 4px;
+}
+.rpt-meta dt { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.rpt-meta dd { margin: 2px 0 0; font-size: 0.92rem; word-break: break-word; }
+.rpt-meta div { min-width: 0; }
+
+.rpt-section-label { margin: 18px 0 6px; font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.rpt-desc { margin: 0; white-space: pre-wrap; word-break: break-word; line-height: 1.5; }
+.rpt-note {
+    margin: 0;
+    padding: 10px 12px;
+    border-left: 3px solid var(--primary-color);
+    background: rgba(16, 185, 129, 0.08);
+    border-radius: 0 8px 8px 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.rpt-photo { border: 1px solid var(--border-color); border-radius: 10px; background: var(--input-bg); padding: 8px; text-align: center; }
+.rpt-photo img { max-width: 100%; max-height: 340px; border-radius: 8px; display: block; margin: 0 auto; cursor: zoom-in; }
+.rpt-photo-msg { color: var(--text-muted); font-size: 0.88rem; padding: 18px 0; }
+
+.rpt-modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; flex-wrap: wrap; }
+
+.rpt-solve-text { color: var(--text-muted); margin: 6px 0 16px; }
+.rpt-label { display: block; text-align: left; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; }
+.rpt-textarea {
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--input-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-family: inherit;
+    font-size: 0.92rem;
+    resize: vertical;
+}
+.rpt-textarea:focus { outline: none; border-color: var(--primary-color); }
+.rpt-error { color: #ef4444; font-size: 0.88rem; margin: 10px 0 0; }
+.rpt-modal-small .modal-btns { margin-top: 18px; }
+
+/* ---------- Toast ---------- */
+.rpt-toast {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--card-bg);
+    color: var(--text-color);
+    border: 1px solid var(--primary-color);
+    padding: 11px 20px;
+    border-radius: 10px;
+    font-size: 0.92rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s, transform 0.25s;
+    z-index: 4000;
+}
+.rpt-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.rpt-toast.error { border-color: #ef4444; }
+
+/* ---------- Small screens ---------- */
+@media (max-width: 768px) {
+    .rpt-tabs { width: 100%; }
+    .rpt-tab { flex: 1; justify-content: center; padding: 8px 6px; }
+    .rpt-meta { grid-template-columns: 1fr; }
+    .rpt-toast { bottom: 84px; } /* clear the bottom tab bar */
+}

@@ -37,6 +37,19 @@ export function parsePhotoDataUrl(dataUrl) {
   return { bytes, mime: match[1], ext: PHOTO_EXT[match[1]] };
 }
 
+// Admin endpoints identify the admin by admin_id (same convention as the student endpoints use
+// user_id) and confirm in the database that this user really has role = 'admin'.
+async function requireAdmin(env, adminIdRaw) {
+  const adminId = Number(adminIdRaw);
+  if (!Number.isInteger(adminId) || adminId <= 0) return { error: 'Missing admin_id', status: 400 };
+  const row = await env.DB.prepare(`SELECT id, role FROM users WHERE id = ? LIMIT 1`).bind(adminId).first();
+  if (!row || row.role !== 'admin') return { error: 'Admin access required', status: 403 };
+  return { adminId };
+}
+
+const ACTIVE_SQL = `('open', 'in_progress')`; // "active" = not solved yet; everything else is "inactive"
+const ADMIN_NOTE_MAX = 500;
+
 export async function handleReportRoutes(request, env, corsHeaders) {
   const url = new URL(request.url);
   const method = request.method;
@@ -153,6 +166,144 @@ export async function handleReportRoutes(request, env, corsHeaders) {
     } catch (err) {
       console.error('Report Photo Error:', err.message);
       return new Response('Server error', { status: 500, headers: corsHeaders });
+    }
+  }
+
+  // ================= ADMIN =================
+
+  // ---------- GET /api/admin/reports?admin_id=&filter=all|active|inactive ----------
+  if (method === 'GET' && url.pathname === '/api/admin/reports') {
+    const auth = await requireAdmin(env, url.searchParams.get('admin_id'));
+    if (auth.error) return json({ error: auth.error }, auth.status, corsHeaders);
+
+    const filter = url.searchParams.get('filter') || 'all';
+    let where = '';
+    if (filter === 'active') where = `WHERE r.status IN ${ACTIVE_SQL}`;
+    else if (filter === 'inactive') where = `WHERE r.status NOT IN ${ACTIVE_SQL}`;
+    else if (filter !== 'all') return json({ error: 'filter must be all, active or inactive' }, 400, corsHeaders);
+
+    try {
+      // Unsolved first (urgent before normal before low), solved ones after; newest first within each group.
+      const { results } = await env.DB.prepare(`
+        SELECT r.id, r.category, r.priority, r.location, r.title, r.description, r.status, r.admin_note,
+               (r.photo_key IS NOT NULL) AS has_photo, r.created_at, r.updated_at, r.resolved_at,
+               u.full_name, u.phone, u.email
+        FROM facility_reports r
+        LEFT JOIN users u ON u.id = r.user_id
+        ${where}
+        ORDER BY
+          CASE WHEN r.status IN ${ACTIVE_SQL} THEN 0 ELSE 1 END,
+          CASE WHEN r.status IN ${ACTIVE_SQL}
+               THEN CASE r.priority WHEN 'urgent' THEN 0 WHEN 'normal' THEN 1 ELSE 2 END
+               ELSE 0 END,
+          r.created_at DESC
+        LIMIT 300
+      `).all();
+
+      // Tab counts are always for the whole table, regardless of the selected tab.
+      const totals = await env.DB.prepare(`
+        SELECT COUNT(*) AS total,
+               SUM(CASE WHEN status IN ${ACTIVE_SQL} THEN 1 ELSE 0 END) AS active
+        FROM facility_reports
+      `).first();
+      const total = (totals && totals.total) || 0;
+      const active = (totals && totals.active) || 0;
+
+      return json({ reports: results || [], counts: { all: total, active, inactive: total - active } }, 200, corsHeaders);
+    } catch (err) {
+      console.error('Admin Report List Error:', err.message);
+      return json({ error: 'Failed to load reports' }, 500, corsHeaders);
+    }
+  }
+
+  // ---------- GET /api/admin/report-photo?admin_id=&report_id= ----------
+  if (method === 'GET' && url.pathname === '/api/admin/report-photo') {
+    const auth = await requireAdmin(env, url.searchParams.get('admin_id'));
+    if (auth.error) return new Response(auth.error, { status: auth.status, headers: corsHeaders });
+
+    const reportId = Number(url.searchParams.get('report_id'));
+    if (!Number.isInteger(reportId) || reportId <= 0) return new Response('Bad request', { status: 400, headers: corsHeaders });
+
+    try {
+      const row = await env.DB.prepare(`SELECT photo_key FROM facility_reports WHERE id = ? LIMIT 1`).bind(reportId).first();
+      if (!row || !row.photo_key) return new Response('Not found', { status: 404, headers: corsHeaders });
+
+      const object = await env.PAYSLIP_BUCKET.get(row.photo_key);
+      if (!object) return new Response('Not found', { status: 404, headers: corsHeaders });
+
+      return new Response(object.body, {
+        status: 200,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': (object.httpMetadata && object.httpMetadata.contentType) || 'image/jpeg',
+          'Cache-Control': 'private, max-age=300'
+        }
+      });
+    } catch (err) {
+      console.error('Admin Report Photo Error:', err.message);
+      return new Response('Server error', { status: 500, headers: corsHeaders });
+    }
+  }
+
+  // ---------- PATCH /api/admin/reports/status  { admin_id, report_id, status: 'resolved' | 'open', admin_note? } ----------
+  if (method === 'PATCH' && url.pathname === '/api/admin/reports/status') {
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return json({ error: 'Invalid request body' }, 400, corsHeaders);
+    }
+
+    const auth = await requireAdmin(env, body.admin_id);
+    if (auth.error) return json({ error: auth.error }, auth.status, corsHeaders);
+
+    const reportId = Number(body.report_id);
+    if (!Number.isInteger(reportId) || reportId <= 0) return json({ error: 'Missing report_id' }, 400, corsHeaders);
+    if (body.status !== 'resolved' && body.status !== 'open') {
+      return json({ error: "status must be 'resolved' or 'open'" }, 400, corsHeaders);
+    }
+
+    // admin_note: leave untouched if not sent; an empty string clears it
+    let noteProvided = false;
+    let note = null;
+    if (body.admin_note !== undefined && body.admin_note !== null) {
+      noteProvided = true;
+      note = String(body.admin_note).trim();
+      if (note.length > ADMIN_NOTE_MAX) return json({ error: `Note is too long (max ${ADMIN_NOTE_MAX} characters)` }, 400, corsHeaders);
+      if (note === '') note = null;
+    }
+
+    try {
+      const existing = await env.DB.prepare(
+        `SELECT id, status, admin_note FROM facility_reports WHERE id = ? LIMIT 1`
+      ).bind(reportId).first();
+      if (!existing) return json({ error: 'Report not found' }, 404, corsHeaders);
+
+      const nowISO = new Date().toISOString();
+      const newNote = noteProvided ? note : existing.admin_note;
+      const resolvedAt = body.status === 'resolved' ? nowISO : null;
+
+      await env.DB.prepare(`
+        UPDATE facility_reports
+        SET status = ?, admin_note = ?, resolved_at = ?, updated_at = ?
+        WHERE id = ?
+      `).bind(body.status, newNote, resolvedAt, nowISO, reportId).run();
+
+      // Audit trail — never allowed to fail the actual update
+      try {
+        await env.DB.prepare(`INSERT INTO admin_logs (admin_id, action, details, timestamp) VALUES (?, ?, ?, ?)`)
+          .bind(auth.adminId, body.status === 'resolved' ? 'report_resolved' : 'report_reopened', `facility report #${reportId}`, nowISO).run();
+      } catch (logErr) {
+        console.error('Admin log insert failed:', logErr.message);
+      }
+
+      return json({
+        success: true,
+        report: { id: reportId, status: body.status, admin_note: newNote, resolved_at: resolvedAt }
+      }, 200, corsHeaders);
+    } catch (err) {
+      console.error('Admin Report Status Error:', err.message);
+      return json({ error: 'Failed to update report', details: err.message }, 500, corsHeaders);
     }
   }
 
