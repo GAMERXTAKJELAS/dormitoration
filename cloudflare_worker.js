@@ -81,9 +81,16 @@ export default {
       const detailInfoResponse = await handleDetailInfoRoutes(request, env, headers);
       if (detailInfoResponse) return detailInfoResponse;
 
-      if (url.pathname === '/api/student/reports' || url.pathname === '/api/student/report-photo') {
-      const reportResponse = await handleReportRoutes(request, env, headers);
-      if (reportResponse) return reportResponse;
+      // Facility reports: student form + admin review page
+      if (
+        url.pathname === '/api/student/reports' ||
+        url.pathname === '/api/student/report-photo' ||
+        url.pathname === '/api/admin/reports' ||
+        url.pathname === '/api/admin/reports/status' ||
+        url.pathname === '/api/admin/report-photo'
+      ) {
+        const reportResponse = await handleReportRoutes(request, env, headers);
+        if (reportResponse) return reportResponse;
       }
 
       if (url.pathname.startsWith('/api/student')) {
