@@ -7,10 +7,12 @@
     
     <link rel="stylesheet" href="/design/dashboard.css">
     <link rel="stylesheet" href="/design/report.css">
+    <link rel="stylesheet" href="/design/adminreport.css">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     
     <script src="/script/theme.js" defer></script>
     <script src="/script/logout_logic.js" defer></script>
+    <script src="/script/adminreport.js" defer></script>
 </head>
 <body>
 
@@ -26,6 +28,58 @@
             </div>
         </div>
     </div>
+
+    <!-- Report Detail Modal (opens when a row is clicked) -->
+    <div id="detailModal" class="modal-overlay rpt-overlay" style="display:none;">
+        <div class="modal-content rpt-modal" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+            <div class="rpt-modal-head">
+                <div>
+                    <h2 id="detailTitle"></h2>
+                    <div id="detailBadges" class="rpt-badges"></div>
+                </div>
+                <button type="button" class="rpt-close" id="detailCloseX" aria-label="Close"><i class='bx bx-x'></i></button>
+            </div>
+
+            <div id="detailMeta" class="rpt-meta"></div>
+
+            <h4 class="rpt-section-label">Description</h4>
+            <p id="detailDesc" class="rpt-desc"></p>
+
+            <div id="detailPhotoWrap" style="display:none;">
+                <h4 class="rpt-section-label">Photo</h4>
+                <div id="detailPhoto" class="rpt-photo"></div>
+            </div>
+
+            <div id="detailNoteWrap" style="display:none;">
+                <h4 class="rpt-section-label">Admin note</h4>
+                <p id="detailNote" class="rpt-note"></p>
+            </div>
+
+            <div class="rpt-modal-actions">
+                <button type="button" class="rpt-btn rpt-btn-ghost" id="detailCloseBtn">Close</button>
+                <button type="button" class="rpt-btn rpt-btn-primary" id="detailSolveBtn" style="display:none;"><i class='bx bx-check-circle'></i> Mark as Solved</button>
+                <button type="button" class="rpt-btn rpt-btn-ghost" id="detailReopenBtn" style="display:none;"><i class='bx bx-undo'></i> Reopen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Solve Confirmation Modal -->
+    <div id="solveModal" class="modal-overlay rpt-overlay rpt-overlay-top" style="display:none;">
+        <div class="modal-content rpt-modal rpt-modal-small" role="dialog" aria-modal="true" aria-labelledby="solveTitle">
+            <i class='bx bx-check-circle' style="font-size: 3rem; color: var(--primary-color);"></i>
+            <h2 id="solveTitle">Mark as solved?</h2>
+            <p id="solveText" class="rpt-solve-text"></p>
+            <label for="solveNote" class="rpt-label">Note for the student (optional)</label>
+            <textarea id="solveNote" class="rpt-textarea" rows="3" maxlength="500" placeholder="e.g. Light bulb replaced on 20 Oct"></textarea>
+            <p id="solveError" class="rpt-error" style="display:none;"></p>
+            <div class="modal-btns">
+                <button type="button" class="rpt-btn rpt-btn-ghost" id="solveCancelBtn">Cancel</button>
+                <button type="button" class="rpt-btn rpt-btn-primary" id="solveConfirmBtn">Mark as Solved</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="rptToast" class="rpt-toast" role="status"></div>
 
     <!-- Sidebar Navigation -->
     <aside class="sidebar-nav">
@@ -75,11 +129,11 @@
     <main class="main-box">
         <header class="report-header">
             <div>
-                <h1>Activity Reports</h1>
-                <p style="color: var(--text-muted, #64748b); margin-top: 4px; font-size: 0.9rem;">View and manage dormitory access logs and check-in history.</p>
+                <h1>Facility Reports</h1>
+                <p style="color: var(--text-muted, #64748b); margin-top: 4px; font-size: 0.9rem;">Room and facility problems reported by students. Click a report to see the details and photo.</p>
             </div>
             <div class="report-actions">
-                <button class="btn-export"><i class='bx bx-export'></i> Export CSV</button>
+                <button class="btn-export" id="btnExport"><i class='bx bx-export'></i> Export CSV</button>
             </div>
         </header>
 
@@ -90,17 +144,13 @@
             <div class="filter-section">
                 <div class="search-box">
                     <i class='bx bx-search search-icon'></i>
-                    <input type="text" placeholder="Search student or ID..." class="input-field">
+                    <input type="text" id="searchInput" placeholder="Search student, title or location..." class="input-field">
                 </div>
 
-                <div class="filter-controls">
-                    <select class="filter-dropdown">
-                        <option value="all">All Action</option>
-                        <option value="entry">Entry</option>
-                        <option value="exit">Exit</option>
-                    </select>
-
-                    <input type="date" class="filter-date">
+                <div class="rpt-tabs" id="rptTabs" role="tablist">
+                    <button type="button" class="rpt-tab active" data-filter="all" role="tab">All <span class="rpt-count" id="countAll">0</span></button>
+                    <button type="button" class="rpt-tab" data-filter="active" role="tab">Active <span class="rpt-count" id="countActive">0</span></button>
+                    <button type="button" class="rpt-tab" data-filter="inactive" role="tab">Inactive <span class="rpt-count" id="countInactive">0</span></button>
                 </div>
             </div>
 
@@ -109,35 +159,17 @@
                 <table class="report-table">
                     <thead>
                         <tr>
-                            <th>Date & Time</th>
-                            <th>Student Name</th>
-                            <th>Student ID</th>
-                            <th>Action</th>
-                            <th style="text-align: right;">Status</th>
+                            <th>Reported</th>
+                            <th>Student</th>
+                            <th>Location</th>
+                            <th>Issue</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th style="text-align: right;">Action</th>
                         </tr>
                     </thead>
-                    <tbody>
-<!--                         <tr>
-                            <td>2026-03-03 | 08:45 AM</td>
-                            <td>John Doe</td>
-                            <td>STD-9901</td>
-                            <td><span class="action-tag entry">Entry</span></td>
-                            <td style="text-align: right;"><span class="badge-success">Verified</span></td>
-                        </tr>
-                        <tr>
-                            <td>2026-03-03 | 09:12 AM</td>
-                            <td>Sarah Connor</td>
-                            <td>STD-4402</td>
-                            <td><span class="action-tag exit">Exit</span></td>
-                            <td style="text-align: right;"><span class="badge-success">Verified</span></td>
-                        </tr>
-                        <tr>
-                            <td>2026-03-02 | 11:30 PM</td>
-                            <td>Alex Mercer</td>
-                            <td>STD-1105</td>
-                            <td><span class="action-tag entry">Entry</span></td>
-                            <td style="text-align: right;"><span class="badge-warning">Late Entry</span></td>
-                        </tr> -->
+                    <tbody id="reportTableBody">
+                        <tr><td colspan="7" class="rpt-empty">Loading reports...</td></tr>
                     </tbody>
                 </table>
             </div>
