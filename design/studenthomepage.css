@@ -121,6 +121,7 @@ body.light-mode .nav-avatar-img {
 /* --- SCROLL SNAP CONTAINER --- */
 .scroll-container {
     height: 100vh;
+    height: 100dvh;
     overflow-y: scroll;
     scroll-snap-type: y mandatory;
     scroll-behavior: smooth;
@@ -133,12 +134,13 @@ body.light-mode .nav-avatar-img {
 }
 
 .home-section {
-    height: 100vh;
+    min-height: 100vh;
+    min-height: 100dvh; /* real visible height on mobile browsers */
     display: flex;
     justify-content: center;
     align-items: center;
     scroll-snap-align: start;
-    padding: 70px 10% 0;
+    padding: 90px 10% 40px;
     box-sizing: border-box;
 }
 
@@ -508,5 +510,35 @@ body.dark-mode .btn-primary {
     to {
         transform: scale(1);
         opacity: 1;
+    }
+}
+
+/* --- MOBILE LAYOUT FIX (student portal) --- */
+@media (max-width: 768px) {
+    .scroll-container {
+        scroll-snap-type: y proximity; /* mandatory traps tall content on phones */
+    }
+    .home-section {
+        padding: 90px 16px 30px;
+        align-items: flex-start;
+    }
+    .info-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    .info-card, .error-card, .pending-card {
+        padding: 20px;
+    }
+    .room-no {
+        font-size: 1.8rem;
+        overflow-wrap: anywhere;
+    }
+    .passcode p {
+        font-size: 1.6rem;
+        letter-spacing: 3px;
+    }
+    .status-header {
+        flex-wrap: wrap;
+        margin-bottom: 20px;
     }
 }

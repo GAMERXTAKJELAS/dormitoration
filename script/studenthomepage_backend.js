@@ -93,9 +93,33 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
         }
       }
 
+      // Room assigned to this student (room_allocations -> hostel_applications -> rooms).
+      // Wrapped in its own try/catch so a room lookup problem never breaks the status response.
+      let roomDetails = null;
+      if (normalizedStatus === 'approved') {
+        try {
+          const roomRow = await env.DB.prepare(`
+            SELECT r.block_name, r.room_number
+            FROM room_allocations ra
+            JOIN hostel_applications ha ON ha.id = ra.application_id
+            JOIN rooms r ON r.id = ra.room_id
+            WHERE ha.user_id = ?
+            ORDER BY ra.assigned_at DESC
+            LIMIT 1
+          `).bind(userId).first();
+
+          if (roomRow) {
+            roomDetails = { block: roomRow.block_name, room_number: roomRow.room_number };
+          }
+        } catch (roomErr) {
+          console.error('Room lookup error:', roomErr.message);
+        }
+      }
+
       return new Response(JSON.stringify({
         status: normalizedStatus,
         reason: data.appeal_reason || null,
+        roomDetails,
         user: {
           id: data.user_id,
           username: data.username || 'N/A',
