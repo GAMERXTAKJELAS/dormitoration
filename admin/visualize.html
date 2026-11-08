@@ -8,8 +8,8 @@
     <link rel="stylesheet" href="/design/dashboard.css">
     <link rel="stylesheet" href="/design/visualize.css">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <!-- Chart.js CDN for Analytics & Scatter Plots -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chart.js (pinned so a new release can never change how the page behaves) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
     <!-- Page Scripts -->
     <script src="/script/theme.js" defer></script>
     <script src="/script/logout_logic.js" defer></script>
@@ -82,70 +82,146 @@
     <!-- Main Content Area -->
     <main class="main-box">
 <div class="page-content-wrapper">
-        <header class="dash-header">
-            <h1>Data Visualization & System Analytics</h1>
-            <p>Priority allocation distribution metrics and real-time hardware status feeds.</p>
+        <header class="dash-header viz-header">
+            <div>
+                <h1>Data Visualization & System Analytics</h1>
+                <p>Door usage, hardware status and anomalies, built from real scans only (Malaysia time).</p>
+            </div>
+            <div class="viz-controls">
+                <div class="range-tabs" id="rangeTabs" role="tablist" aria-label="Time range">
+                    <button type="button" class="range-tab" data-range="today" role="tab">Today</button>
+                    <button type="button" class="range-tab active" data-range="7d" role="tab">7 days</button>
+                    <button type="button" class="range-tab" data-range="30d" role="tab">30 days</button>
+                </div>
+                <button type="button" id="refreshBtn" class="btn-secondary viz-refresh"><i class='bx bx-refresh'></i> Refresh</button>
+                <span id="updatedAt" class="viz-updated"></span>
+            </div>
         </header>
 
-        <!-- Dynamic Visualization Grid -->
+        <div id="vizError" class="viz-error" role="alert" style="display: none;"></div>
+
+        <!-- Summary numbers -->
+        <section class="kpi-grid" aria-label="Summary">
+            <div class="kpi-card">
+                <span class="kpi-label">Scans</span>
+                <strong class="kpi-value" id="kpiTotal">&ndash;</strong>
+                <span class="kpi-sub">in the selected period</span>
+            </div>
+            <div class="kpi-card">
+                <span class="kpi-label">Success rate</span>
+                <strong class="kpi-value" id="kpiRate">&ndash;</strong>
+                <span class="kpi-sub">granted out of all scans</span>
+            </div>
+            <div class="kpi-card">
+                <span class="kpi-label">Denied scans</span>
+                <strong class="kpi-value" id="kpiDenied">&ndash;</strong>
+                <span class="kpi-sub">in the selected period</span>
+            </div>
+            <div class="kpi-card">
+                <span class="kpi-label">Door units online</span>
+                <strong class="kpi-value" id="kpiRooms">&ndash;</strong>
+                <span class="kpi-sub">out of units that ever connected</span>
+            </div>
+        </section>
+
+        <!-- Charts -->
         <div class="charts-grid">
-           <!-- Smart Lock Access Usage Chart -->
-<div class="chart-card full-width">
-    <div class="chart-header">
-        <h3><i class='bx bx-key'></i> Smart Lock Access Method Usage</h3>
-        <span class="subtext" style="color: var(--text-muted); font-size: 0.85rem;">Total unlock triggers by access type</span>
-    </div>
-    <div class="chart-container">
-        <canvas id="smartLockUsageChart"></canvas>
-    </div>
-</div>
-
-            <div id="custom-analytics-container" class="full-width" style="display: none;"></div>
-        </div>
-
-        <!-- Hardware System Terminal Section -->
-        <section class="section-container" style="margin-bottom: 35px;">
-            <div class="table-header-bar">
-                <div>
-                    <h2>Hardware System Logs</h2>
-                    <p class="subtext">Real-time status feed from smart lock microcontrollers, RFID scanners, and server sync nodes.</p>
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3><i class='bx bx-bar-chart-alt-2'></i> Usage by Access Method</h3>
+                    <span class="subtext">Granted and denied scans</span>
                 </div>
-                <button class="btn-secondary" onclick="clearHardwareLogs()" style="font-size: 0.82rem; padding: 6px 12px;">
-                    <i class='bx bx-trash'></i> Clear Feed
-                </button>
+                <div class="chart-container">
+                    <canvas id="methodChart" aria-label="Bar chart of granted and denied scans per access method"></canvas>
+                    <div class="chart-empty" id="methodEmpty" style="display: none;"></div>
+                </div>
             </div>
 
-            <div class="terminal-card">
-                <div class="terminal-header">
-                    <div class="terminal-dots">
-                        <span class="dot red"></span>
-                        <span class="dot yellow"></span>
-                        <span class="dot green"></span>
-                    </div>
-                    <span>DORMITORY-HW-NODE-01 // LIVE_FEED</span>
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3><i class='bx bx-time-five'></i> Scans per Hour</h3>
+                    <span class="subtext">Hour of day, Malaysia time</span>
                 </div>
-                <div class="terminal-logs" id="hardware-logs-container">
-                    <div class="log-entry">
-                        <span class="log-time">[16:50:01]</span>
-                        <span class="log-tag info">[SYS]</span>
-                        <span class="log-msg">Hardware monitor initialized. Polling microcontrollers...</span>
-                    </div>
-                    <div class="log-entry">
-                        <span class="log-time">[16:50:05]</span>
-                        <span class="log-tag warn">[ESP32-A1]</span>
-                        <span class="log-msg">Smart Lock Controller Block A Offline - No heartbeat response.</span>
-                    </div>
-                    <div class="log-entry">
-                        <span class="log-time">[16:50:12]</span>
-                        <span class="log-tag danger">[RFID-BUS]</span>
-                        <span class="log-msg">Serial bus communication timeout on Gateway Port /dev/ttyUSB0.</span>
-                    </div>
-                    <div class="log-entry">
-                        <span class="log-time">[16:50:20]</span>
-                        <span class="log-tag success">[D1-SYNC]</span>
-                        <span class="log-msg">Cloudflare D1 Database mirror active. Student records synchronized.</span>
-                    </div>
+                <div class="chart-container">
+                    <canvas id="hourlyChart" aria-label="Stacked bar chart of scans per hour of the day"></canvas>
+                    <div class="chart-empty" id="hourlyEmpty" style="display: none;"></div>
                 </div>
+            </div>
+
+            <div class="chart-card full-width">
+                <div class="chart-header">
+                    <h3><i class='bx bx-scatter-chart'></i> When Are Doors Used?</h3>
+                    <span class="subtext">One dot per scan. Red diamonds are denied scans.</span>
+                </div>
+                <div class="chart-container chart-tall">
+                    <canvas id="scatterChart" aria-label="Scatter chart of scan times of day, one row per access method"></canvas>
+                    <div class="chart-empty" id="scatterEmpty" style="display: none;"></div>
+                </div>
+                <p class="chart-note" id="scatterNote" style="display: none;"></p>
+            </div>
+        </div>
+
+        <!-- Hardware status -->
+        <section class="viz-section">
+            <div class="viz-section-head">
+                <h2>Hardware Status</h2>
+                <p class="subtext">A door unit is online if it sent a heartbeat recently. Refreshes every 20 seconds.</p>
+            </div>
+            <div class="hw-grid">
+                <div class="hw-panel">
+                    <h3>Door units</h3>
+                    <div id="hwUnits" class="hw-list"><p class="muted-line">Loading...</p></div>
+                </div>
+                <div class="hw-panel">
+                    <h3>Online / offline history</h3>
+                    <div id="hwHistory" class="hw-list"><p class="muted-line">Loading...</p></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Anomalies -->
+        <section class="viz-section">
+            <div class="viz-section-head">
+                <h2>Anomalies</h2>
+                <p class="subtext" id="ruleSummary">Loading rules...</p>
+            </div>
+            <div class="anomaly-grid">
+                <div class="anomaly-card">
+                    <div class="anomaly-title"><i class='bx bx-moon'></i> Unusual hours <span class="count-badge" id="countUnusual">0</span></div>
+                    <div class="anomaly-list" id="listUnusual"></div>
+                </div>
+                <div class="anomaly-card">
+                    <div class="anomaly-title"><i class='bx bx-error-circle'></i> Bursts of denied scans <span class="count-badge" id="countBursts">0</span></div>
+                    <div class="anomaly-list" id="listBursts"></div>
+                </div>
+                <div class="anomaly-card">
+                    <div class="anomaly-title"><i class='bx bx-wifi-off'></i> Silent door units <span class="count-badge" id="countSilent">0</span></div>
+                    <div class="anomaly-list" id="listSilent"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Usage log -->
+        <section class="viz-section" style="margin-bottom: 35px;">
+            <div class="viz-section-head">
+                <h2>Door Usage Log</h2>
+                <p class="subtext" id="logNote">Latest scans in the selected period.</p>
+            </div>
+            <div class="viz-table-wrap">
+                <table class="viz-table">
+                    <thead>
+                        <tr>
+                            <th>Time (Malaysia)</th>
+                            <th>Door</th>
+                            <th>Method</th>
+                            <th>Student / card</th>
+                            <th>Outcome</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logBody">
+                        <tr><td colspan="5" class="muted-cell">Loading...</td></tr>
+                    </tbody>
+                </table>
             </div>
         </section>
     </div>

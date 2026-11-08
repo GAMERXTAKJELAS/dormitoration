@@ -12,6 +12,10 @@
 //    npx wrangler secret put DEVICE_API_KEY
 //    Local dev: add  DEVICE_API_KEY=test-key  to a .dev.vars file
 //
+//  Every scan is also written to access_logs (for the Data Visualize page) and every
+//  online/offline change to device_events. Logging never changes the door's answer and
+//  a logging failure is swallowed.
+//
 //  ASSUMPTIONS to check against your project:
 //    - D1 binding is named DB
 //    - assigned_at is a date string Date() can parse
@@ -60,9 +64,67 @@ function isExpired(assignedAt) {
 }
 
 // ---------------------------------------------------------------------
-//  POST /api/access/verify
+//  Logging helpers (used by both handlers below)
 // ---------------------------------------------------------------------
-export async function handleAccessVerify(request, env) {
+const ALLOWED_METHODS = ['qr', 'rfid', 'keycode', 'exit'];   // same names the charts use
+const DEDUPE_SECONDS = 10;   // the GM65 can re-read one code several times; log it once
+
+// Writes one row to access_logs. Skips the row if an identical scan (same door, method,
+// outcome and person/code) was already logged in the last DEDUPE_SECONDS.
+async function logScan(env, e) {
+  try {
+    let roomId = null;
+    if (ROOM_ID_RE.test(e.block) && ROOM_ID_RE.test(e.room)) {
+      const r = await env.DB
+        .prepare('SELECT id FROM rooms WHERE block_name = ? AND room_number = ?')
+        .bind(e.block, e.room)
+        .first();
+      if (r) roomId = r.id;
+    }
+
+    // Only for an unknown code: its last 4 characters, never the whole credential
+    const hint = !e.userId && e.code ? e.code.slice(-4) : null;
+    const ok = e.granted ? 1 : 0;
+    const now = Date.now();
+    const nowISO = new Date(now).toISOString();
+    const sinceISO = new Date(now - DEDUPE_SECONDS * 1000).toISOString();
+
+    await env.DB
+      .prepare(
+        `INSERT INTO access_logs (room_id, user_id, method, success, reason, code_hint, attempted_at)
+         SELECT ?, ?, ?, ?, ?, ?, ?
+         WHERE NOT EXISTS (
+           SELECT 1 FROM access_logs
+           WHERE room_id IS ? AND method = ? AND success = ? AND user_id IS ? AND code_hint IS ?
+             AND attempted_at >= ?
+         )`
+      )
+      .bind(roomId, e.userId, e.method, ok, e.reason, hint, nowISO,
+            roomId, e.method, ok, e.userId, hint, sinceISO)
+      .run();
+  } catch (err) {
+    console.error('Access log insert failed:', err.message);
+  }
+}
+
+// Writes one row to device_events (online / offline history). Never throws.
+async function recordDeviceEvent(env, roomId, event, detail, whenISO) {
+  try {
+    await env.DB
+      .prepare('INSERT INTO device_events (room_id, event, occurred_at, detail) VALUES (?, ?, ?, ?)')
+      .bind(roomId, event, whenISO, detail)
+      .run();
+  } catch (err) {
+    console.error('Device event insert failed:', err.message);
+  }
+}
+
+// ---------------------------------------------------------------------
+//  POST /api/access/verify
+//  Body: { "code": "...", and optionally "block", "room", "method" }
+//  The extra fields only feed the log; the decision still depends on "code" alone.
+// ---------------------------------------------------------------------
+export async function handleAccessVerify(request, env, ctx) {
   const denied = checkDeviceKey(request, env);
   if (denied) return denied;
 
@@ -76,14 +138,38 @@ export async function handleAccessVerify(request, env) {
   if (!code || code.length > MAX_CODE_LEN) return json({ access: false }, 400);
 
   const row = await env.DB
-    .prepare('SELECT assigned_at FROM student_rfid WHERE qr_access_code = ?')
+    .prepare('SELECT user_id, assigned_at FROM student_rfid WHERE qr_access_code = ?')
     .bind(code)
     .first();
 
-  // Same answer for "not found" and "expired": no hints to a prober
-  if (!row || isExpired(row.assigned_at)) return json({ access: false });
+  // Same answer for "not found" and "expired": no hints to a prober.
+  // The reason is kept in the admin-only access log, never sent back to the device.
+  let granted = false;
+  let reason = 'unknown_code';
+  if (row) {
+    if (isExpired(row.assigned_at)) {
+      reason = 'expired';
+    } else {
+      granted = true;
+      reason = 'ok';
+    }
+  }
 
-  return json({ access: true });
+  const rawMethod = typeof body.method === 'string' ? body.method.trim().toLowerCase() : '';
+  const logging = logScan(env, {
+    block: typeof (body.block ?? body.block_name) === 'string' ? (body.block ?? body.block_name).trim() : '',
+    room: typeof (body.room ?? body.room_number) === 'string' ? (body.room ?? body.room_number).trim() : '',
+    method: ALLOWED_METHODS.includes(rawMethod) ? rawMethod : 'qr',
+    granted,
+    reason,
+    userId: row ? row.user_id : null,
+    code
+  });
+  // Don't make the door wait for the log write
+  if (ctx && typeof ctx.waitUntil === 'function') ctx.waitUntil(logging);
+  else await logging;
+
+  return json({ access: granted });
 }
 
 // ---------------------------------------------------------------------
@@ -113,12 +199,17 @@ export async function handleDeviceHeartbeat(request, env) {
 
   try {
     let row = await env.DB
-      .prepare('SELECT id FROM rooms WHERE block_name = ? AND room_number = ?')
+      .prepare('SELECT id, is_active, last_seen_at FROM rooms WHERE block_name = ? AND room_number = ?')
       .bind(block, room)
       .first();
 
     let registered = false;
+    let cameOnline = false;
+    let eventDetail = '';
     if (row) {
+      // Offline (or never seen) until now -> this heartbeat is an "online" change
+      cameOnline = !row.is_active || !row.last_seen_at;
+      eventDetail = row.last_seen_at ? `Back online (last heartbeat ${row.last_seen_at})` : 'First connection';
       await env.DB
         .prepare('UPDATE rooms SET last_seen_at = ?, is_active = 1 WHERE id = ?')
         .bind(now, row.id)
@@ -135,7 +226,11 @@ export async function handleDeviceHeartbeat(request, env) {
         .run();
       row = { id: res.meta.last_row_id };
       registered = true;
+      cameOnline = true;
+      eventDetail = 'First connection (room registered)';
     }
+
+    if (cameOnline) await recordDeviceEvent(env, row.id, 'online', eventDetail, now);
 
     return json({ ok: true, room_id: row.id, registered });
   } catch (err) {

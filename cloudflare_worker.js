@@ -10,6 +10,7 @@ import { handleHardwareRoutes } from './script/hardware_backend.js';
 import { handlePayslipRoutes } from './script/payslip_backend.js';
 import { handleAccessVerify, handleDeviceHeartbeat } from './script/access_verify.js';
 import { handleReportRoutes } from './script/report_backend.js';
+import { handleVisualizeRoutes } from './script/visualize_backend.js';
 
 export default {
   // 1. Standard HTTP Request Router
@@ -50,7 +51,7 @@ export default {
 
       // ESP32 door unit: verifies a scanned QR access code (device-key protected)
       if (url.pathname === '/api/access/verify' && request.method === 'POST') {
-        return await handleAccessVerify(request, env);
+        return await handleAccessVerify(request, env, ctx);
       }
 
       // ESP32 door unit: "I'm online" ping, auto-registers the room (device-key protected)
@@ -81,16 +82,18 @@ export default {
       const detailInfoResponse = await handleDetailInfoRoutes(request, env, headers);
       if (detailInfoResponse) return detailInfoResponse;
 
-      // Facility reports: student form + admin review page
+      // Data Visualize page + its unusual-hours setting (admin only)
       if (
-        url.pathname === '/api/student/reports' ||
-        url.pathname === '/api/student/report-photo' ||
-        url.pathname === '/api/admin/reports' ||
-        url.pathname === '/api/admin/reports/status' ||
-        url.pathname === '/api/admin/report-photo'
+        url.pathname.startsWith('/api/admin/visualize') ||
+        url.pathname === '/api/admin/settings/anomaly-hours'
       ) {
-        const reportResponse = await handleReportRoutes(request, env, headers);
-        if (reportResponse) return reportResponse;
+        const visualizeResponse = await handleVisualizeRoutes(request, env, headers);
+        if (visualizeResponse) return visualizeResponse;
+      }
+
+      if (url.pathname === '/api/student/reports' || url.pathname === '/api/student/report-photo') {
+      const reportResponse = await handleReportRoutes(request, env, headers);
+      if (reportResponse) return reportResponse;
       }
 
       if (url.pathname.startsWith('/api/student')) {
@@ -136,12 +139,35 @@ export default {
       const ROOM_OFFLINE_AFTER_SECONDS = 660; // 11 min
       const cutoffISO = new Date(Date.now() - ROOM_OFFLINE_AFTER_SECONDS * 1000).toISOString();
 
-      await env.DB.prepare(`
-        UPDATE rooms
-        SET is_active = 0
-        WHERE is_active = 1
-          AND (last_seen_at IS NULL OR last_seen_at < ?)
-      `).bind(cutoffISO).run();
+      try {
+        // Record each unit that just went silent (history on the Data Visualize page), in the
+        // same transaction as the flip so no event is written for a unit that came back in
+        // between. Rooms that never connected (last_seen_at IS NULL) are flipped as before
+        // but get no event.
+        await env.DB.batch([
+          env.DB.prepare(`
+            INSERT INTO device_events (room_id, event, occurred_at, detail)
+            SELECT id, 'offline', ?, 'No heartbeat since ' || last_seen_at
+            FROM rooms
+            WHERE is_active = 1 AND last_seen_at IS NOT NULL AND last_seen_at < ?
+          `).bind(nowISO, cutoffISO),
+          env.DB.prepare(`
+            UPDATE rooms
+            SET is_active = 0
+            WHERE is_active = 1
+              AND (last_seen_at IS NULL OR last_seen_at < ?)
+          `).bind(cutoffISO)
+        ]);
+      } catch (batchErr) {
+        // e.g. device_events has not been created yet: still do the original offline sweep
+        console.error("[Cron Job] offline event logging failed, sweeping without it:", batchErr.message);
+        await env.DB.prepare(`
+          UPDATE rooms
+          SET is_active = 0
+          WHERE is_active = 1
+            AND (last_seen_at IS NULL OR last_seen_at < ?)
+        `).bind(cutoffISO).run();
+      }
 
       console.log(`[Cron Job] Stale room hardware flagged offline.`);
     } catch (err) {

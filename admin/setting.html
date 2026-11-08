@@ -190,6 +190,31 @@
                 </div>
             </div>
 
+            <!-- Unusual Hours (anomaly rule used by the Data Visualize page) -->
+            <div class="settings-card" id="anomaly-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class='bx bx-moon'></i>
+                        <h2>Unusual Hours Rule</h2>
+                    </div>
+                </div>
+                <p style="color: var(--text-muted, #64748b); font-size: 0.88rem; margin-bottom: 16px;">
+                    Door scans inside these time windows (Malaysia time) are flagged as anomalies on the Data Visualize page. A window can cross midnight, for example 23:00 to 05:00.
+                </p>
+
+                <div id="anomaly-windows" class="window-list"></div>
+                <p id="anomaly-default-note" class="rule-hint" style="display: none;"></p>
+                <p id="anomaly-msg" class="setting-msg" role="status"></p>
+
+                <div class="setting-footer anomaly-footer">
+                    <button type="button" id="anomaly-add-btn" class="btn-ghost"><i class='bx bx-plus'></i> Add window</button>
+                    <div class="anomaly-footer-right">
+                        <button type="button" id="anomaly-reset-btn" class="btn-ghost">Use default</button>
+                        <button type="button" id="anomaly-save-btn" class="btn-primary">Save windows</button>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </main>
 
