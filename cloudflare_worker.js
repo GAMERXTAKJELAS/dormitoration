@@ -95,7 +95,13 @@ export default {
         if (visualizeResponse) return visualizeResponse;
       }
 
-      if (url.pathname === '/api/student/reports' || url.pathname === '/api/student/report-photo') {
+      if (
+        url.pathname === '/api/student/reports' ||
+        url.pathname === '/api/student/report-photo' ||
+        url.pathname === '/api/admin/reports' ||
+        url.pathname === '/api/admin/reports/status' ||
+        url.pathname === '/api/admin/report-photo'
+      ) {
       const reportResponse = await handleReportRoutes(request, env, headers);
       if (reportResponse) return reportResponse;
       }
