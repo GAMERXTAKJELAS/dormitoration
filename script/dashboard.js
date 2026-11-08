@@ -4,6 +4,7 @@
  */
 
 let activeStudentsList = [];
+let activeRoomFilter = null; // { id, label } when 'Student Details' was clicked on a room
 let dashboardRooms = [];   // rooms from /stats, used by the Assign pop-up
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -143,18 +144,18 @@ function roomBoxHtml(r) {
     const statusText = !r.online
         ? "Offline"
         : (capacity > 0 ? `${r.student_count}/${capacity} students` : `${r.student_count} student(s)`);
+    const hasStudents = (r.student_count || 0) > 0;
     return `
         <div class="room-box ${statusClass}" tabindex="0">
-            <span class="room-number">${r.room_number}</span>
+            <span class="room-number">${escapeHtml(r.room_number)}</span>
             <div class="room-hover-card">
-                <strong>Room ${r.room_number}</strong>
-                <p>${statusText}</p>
-                ${r.student_count > 0 ? `
-                    <div class="room-hover-actions">
-                        <button class="btn-room-action" disabled title="Coming soon">Access Codes</button>
-                        <button class="btn-room-action" disabled title="Coming soon">Student Details</button>
-                    </div>
-                ` : ''}
+                <strong>Room ${escapeHtml(r.room_number)}</strong>
+                <p>${escapeHtml(statusText)}</p>
+                <div class="room-hover-actions">
+                    <button class="btn-room-action" disabled title="Coming soon">Access Codes</button>
+                    <button class="btn-room-action btn-room-details" ${hasStudents ? `onclick="filterStudentsByRoom(${Number(r.id)})"` : 'disabled'}
+                            title="${hasStudents ? 'Show the students in this room' : 'No students in this room yet'}">Student Details</button>
+                </div>
             </div>
         </div>
     `;
@@ -186,6 +187,7 @@ function renderActiveStudentsTable() {
     tbody.innerHTML = "";
 
     const filtered = activeStudentsList.filter(student => {
+        if (activeRoomFilter && student.room_id !== activeRoomFilter.id) return false;
         const name = (student.full_name || "").toLowerCase();
         const email = (student.email || "").toLowerCase();
         const phone = (student.phone || "").toLowerCase();
@@ -199,8 +201,10 @@ function renderActiveStudentsTable() {
                matric.includes(searchVal);
     });
 
+    updateRoomFilterBanner();
+
     if (filtered.length === 0) {
-        showEmptyTable("No active students found.");
+        showEmptyTable(activeRoomFilter ? "No students are assigned to this room." : "No active students found.");
         return;
     }
 
@@ -354,7 +358,10 @@ async function postJson(path, payload) {
     });
     let data = {};
     try { data = await res.json(); } catch (e) { /* non-JSON error page */ }
-    if (!res.ok) throw new Error(data.error || data.details || `Request failed (${res.status})`);
+    if (!res.ok) {
+        const base = data.error || `Request failed (${res.status})`;
+        throw new Error(data.details ? `${base} - ${data.details}` : base);
+    }
     return data;
 }
 
@@ -505,4 +512,34 @@ async function runAutoArrange(picked, btn) {
     } catch (err) {
         showInfoModal('Auto-arrange failed', err.message);
     }
+}
+
+// ---------- Room "Student Details" -> filter the Active Registered Students list ----------
+function filterStudentsByRoom(roomId) {
+    const room = dashboardRooms.find(r => r.id === roomId);
+    if (!room) return;
+    activeRoomFilter = { id: room.id, label: `Block ${room.block_name} / ${room.room_number}` };
+    renderActiveStudentsTable();
+
+    const table = document.getElementById("active-students-tbody");
+    const section = table ? table.closest(".section-container") : null;
+    if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function clearRoomFilter() {
+    activeRoomFilter = null;
+    renderActiveStudentsTable();
+}
+
+function updateRoomFilterBanner() {
+    const banner = document.getElementById("room-filter-banner");
+    if (!banner) return;
+    if (!activeRoomFilter) {
+        banner.hidden = true;
+        banner.innerHTML = "";
+        return;
+    }
+    banner.hidden = false;
+    banner.innerHTML = `<span>Showing students in <strong>${escapeHtml(activeRoomFilter.label)}</strong></span>
+                        <button type="button" class="btn-clear-filter" onclick="clearRoomFilter()">Show all students</button>`;
 }
