@@ -4,7 +4,7 @@ import { handleAdminStats } from './script/adminpage_backend.js';
 import { handleAdminDeadlineSettings } from './script/settings_backend.js';
 import { handleAdminApplications } from './script/approval_backend.js';
 import { handleStudentRoutes } from './script/studenthomepage_backend.js';
-import { handleDashboardRoutes } from './script/dashboard_backend.js';
+import { handleDashboardRoutes, handleSystemLogs } from './script/dashboard_backend.js';
 import { handleDetailInfoRoutes } from './script/detail_backend.js';
 import { handleHardwareRoutes } from './script/hardware_backend.js';
 import { handlePayslipRoutes } from './script/payslip_backend.js';
@@ -43,6 +43,10 @@ export default {
 
       if (url.pathname.startsWith('/api/admin/dashboard')) {
         return await handleDashboardRoutes(request, env, headers);
+      }
+
+      if (url.pathname === '/api/admin/settings/system-logs' && request.method === 'GET') {
+        return await handleSystemLogs(request, env, headers);
       }
 
       if (url.pathname === '/api/admin/settings/deadline') {

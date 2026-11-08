@@ -4,6 +4,7 @@
  */
 
 let activeStudentsList = [];
+let dashboardRooms = [];   // rooms from /stats, used by the Assign pop-up
 
 document.addEventListener("DOMContentLoaded", () => {
     loadDashboardStats();
@@ -18,10 +19,9 @@ document.addEventListener("DOMContentLoaded", () => {
         searchInput.addEventListener("input", renderActiveStudentsTable);
     }
 
-    // Auto-arrange: Commit only enables once at least one grouping is picked.
-    // The actual assignment algorithm (capacity, MPP rooms, gender matching,
-    // tie-breaking) isn't built yet, so Commit is intentionally a placeholder
-    // until that's designed - it does not silently pretend to succeed.
+    // Auto-arrange: Commit only enables once at least one option is picked.
+    // Students WITHOUT a room are sorted (semester > program > name, only the ticked
+    // ones apply) and placed room by room; boys and girls use their own rooms.
     const arrangeOptions = document.querySelectorAll(".arrange-option");
     const commitBtn = document.getElementById("btn-commit-arrange");
     if (arrangeOptions.length && commitBtn) {
@@ -31,7 +31,8 @@ document.addEventListener("DOMContentLoaded", () => {
             commitBtn.classList.toggle("disabled", !anyChecked);
         }));
         commitBtn.addEventListener("click", () => {
-            alert("Room auto-assignment isn't built yet - the rules (capacity, MPP rooms, gender matching) still need to be finalized.");
+            const picked = Array.from(arrangeOptions).filter(c => c.checked).map(c => c.value);
+            confirmAutoArrange(picked);
         });
     }
 });
@@ -65,6 +66,7 @@ async function loadDashboardStats() {
             document.getElementById("stat-active-students").innerText = stats.active_students || 0;
             document.getElementById("stat-pending-apps").innerText = stats.pending_applications || 0;
 
+            dashboardRooms = (stats.hardware && stats.hardware.rooms) || [];
             renderHardwareStatus(stats.hardware || { online_count: 0, total_rooms: 0, rooms: [] }, stats.room_occupancy || 0);
         }
     } catch (err) {
@@ -212,6 +214,16 @@ function renderActiveStudentsTable() {
         const userIdVal = student.user_id ? student.user_id : 'null';
         const appIdVal = student.application_id ? student.application_id : 'null';
 
+        // Room state: yellow = on hold (no room), green = boy assigned, pink = girl assigned
+        const g = normGender(student.gender);
+        const hasRoom = !!student.room_id;
+        const roomLabel = hasRoom ? `Block ${student.room_block} / ${student.room_number}` : '';
+        const btnClass = !hasRoom ? 'room-hold' : (g === 'F' ? 'room-girl' : 'room-boy');
+        const btnTitle = hasRoom ? `${roomLabel} - click to change or remove` : 'On hold (no room yet) - click to assign a room';
+        const chip = hasRoom
+            ? `<span class="room-chip ${btnClass}">${escapeHtml(roomLabel)}</span>`
+            : `<span class="room-chip room-hold">On hold - no room</span>`;
+
         tr.innerHTML = `
             <td>
                 <div style="display: flex; align-items: center; gap: 12px;">
@@ -223,7 +235,8 @@ function renderActiveStudentsTable() {
                     />
                     <div>
                         <strong style="color: var(--text-color);">${student.full_name || 'N/A'}</strong><br>
-                        <small style="color: var(--text-muted);">${student.email || '-'}</small>
+                        <small style="color: var(--text-muted);">${student.email || '-'}</small><br>
+                        ${chip}
                     </div>
                 </div>
             </td>
@@ -235,7 +248,7 @@ function renderActiveStudentsTable() {
                 <button class="btn-action-icon" onclick="viewStudentDetails(${userIdVal}, ${appIdVal})" title="View Details">
                     <i class='bx bx-info-circle'></i>
                 </button>
-                <button class="btn-action-icon disabled" disabled title="Hardware Offline - Cannot Assign Room Block">
+                <button class="btn-action-icon ${btnClass}" onclick="openAssignModal(${appIdVal})" title="${escapeHtml(btnTitle)}">
                     <i class='bx bx-door-open'></i>
                 </button>
             </td>
@@ -261,4 +274,235 @@ function showEmptyTable(message) {
 function viewStudentDetails(userId, appId) {
     const targetQuery = (userId && userId !== 'null') ? `id=${userId}` : `app_id=${appId}`;
     window.location.href = `/admin/application_details.html?${targetQuery}`;
+}
+
+// ==========================================================================
+// ROOM ASSIGNMENT (manual Assign pop-up + auto-arrange Commit)
+// ==========================================================================
+function getAdminId() {
+    try {
+        const u = JSON.parse(localStorage.getItem("userData") || "{}");
+        return u.id || u.user_id || null;
+    } catch (e) {
+        return null;
+    }
+}
+
+function escapeHtml(v) {
+    return String(v == null ? '' : v)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// Lelaki / Male / L -> 'M', Perempuan / Female / P -> 'F', anything else -> null
+function normGender(g) {
+    const v = String(g || '').toLowerCase().trim();
+    if (['perempuan', 'female', 'wanita', 'p', 'f'].includes(v)) return 'F';
+    if (['lelaki', 'male', 'l', 'm'].includes(v)) return 'M';
+    return null;
+}
+
+function roomGenderOf(room) {
+    return String(room.gender || 'M').toUpperCase().startsWith('F') ? 'F' : 'M';
+}
+
+// Small reusable pop-up
+function showModal({ title, bodyHtml, buttons }) {
+    closeModal();
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.id = 'dash-modal';
+    overlay.innerHTML = `
+        <div class="modal-content dash-modal-content">
+            <h2>${escapeHtml(title)}</h2>
+            <div class="dash-modal-body">${bodyHtml}</div>
+            <div class="modal-btns" id="dash-modal-btns"></div>
+        </div>`;
+    document.body.appendChild(overlay);
+
+    const btnBox = overlay.querySelector('#dash-modal-btns');
+    (buttons || []).forEach(b => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = b.cls || 'btn-secondary';
+        btn.textContent = b.label;
+        btn.addEventListener('click', () => b.onClick ? b.onClick(btn) : closeModal());
+        btnBox.appendChild(btn);
+    });
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+    return overlay;
+}
+
+function closeModal() {
+    const old = document.getElementById('dash-modal');
+    if (old) old.remove();
+}
+
+function showInfoModal(title, message) {
+    showModal({
+        title,
+        bodyHtml: `<p>${escapeHtml(message)}</p>`,
+        buttons: [{ label: 'OK', cls: 'btn-commit', onClick: closeModal }]
+    });
+}
+
+async function postJson(path, payload) {
+    const res = await fetch(path, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    });
+    let data = {};
+    try { data = await res.json(); } catch (e) { /* non-JSON error page */ }
+    if (!res.ok) throw new Error(data.error || data.details || `Request failed (${res.status})`);
+    return data;
+}
+
+// ---------- Manual assign / change / remove ----------
+function openAssignModal(applicationId) {
+    const student = activeStudentsList.find(s => s.application_id === applicationId);
+    if (!student) return;
+
+    const g = normGender(student.gender);
+    if (!g) {
+        showInfoModal('Gender missing', `${student.full_name || 'This student'} has no gender on record, so a room cannot be chosen.`);
+        return;
+    }
+
+    // Rooms for this gender only. Free spaces exclude this student's own current room spot.
+    const rooms = dashboardRooms
+        .filter(r => roomGenderOf(r) === g)
+        .map(r => {
+            const taken = (r.student_count || 0) - (r.id === student.room_id ? 1 : 0);
+            return { ...r, free: (r.capacity || 0) - taken };
+        });
+
+    if (rooms.length === 0) {
+        showInfoModal('No rooms available', `No ${g === 'F' ? 'girls' : 'boys'} rooms are registered in the system yet.`);
+        return;
+    }
+
+    const blocks = [...new Set(rooms.map(r => r.block_name))];
+    const startBlock = student.room_id ? student.room_block : blocks[0];
+
+    const overlay = showModal({
+        title: student.room_id ? 'Change Room' : 'Assign Room',
+        bodyHtml: `
+            <p class="dash-modal-sub"><strong>${escapeHtml(student.full_name || 'Student')}</strong>
+               &middot; ${g === 'F' ? 'Girl' : 'Boy'} &middot; ${escapeHtml(student.program || '-')}
+               ${student.semester ? '&middot; Sem ' + escapeHtml(student.semester) : ''}</p>
+            ${student.room_id ? `<p class="dash-modal-sub">Current: Block ${escapeHtml(student.room_block)} / ${escapeHtml(student.room_number)}</p>` : ''}
+            <label class="dash-label">Block</label>
+            <select id="assign-block" class="dash-select">
+                ${blocks.map(b => `<option value="${escapeHtml(b)}" ${b === startBlock ? 'selected' : ''}>Block ${escapeHtml(b)}</option>`).join('')}
+            </select>
+            <label class="dash-label">Room</label>
+            <select id="assign-room" class="dash-select"></select>
+            <p id="assign-msg" class="dash-msg"></p>`,
+        buttons: [
+            { label: 'Cancel', cls: 'btn-secondary', onClick: closeModal },
+            ...(student.room_id ? [{ label: 'Remove Room', cls: 'btn-danger', onClick: () => removeRoom(student) }] : []),
+            { label: 'Assign', cls: 'btn-commit', onClick: (btn) => submitAssign(student, btn) }
+        ]
+    });
+
+    const blockSel = overlay.querySelector('#assign-block');
+    const roomSel = overlay.querySelector('#assign-room');
+
+    function fillRooms() {
+        const inBlock = rooms.filter(r => r.block_name === blockSel.value);
+        roomSel.innerHTML = inBlock.map(r => {
+            const full = r.free <= 0;
+            const label = `${r.room_number} - ${Math.max(r.free, 0)}/${r.capacity || 0} free${r.online ? '' : ' (door offline)'}${full ? ' - FULL' : ''}`;
+            const selected = r.id === student.room_id ? 'selected' : '';
+            return `<option value="${r.id}" ${full ? 'disabled' : ''} ${selected}>${escapeHtml(label)}</option>`;
+        }).join('');
+        // If nothing is selected (e.g. first rooms are full), pick the first free one
+        if (roomSel.selectedOptions.length === 0 || roomSel.selectedOptions[0].disabled) {
+            const firstFree = Array.from(roomSel.options).find(o => !o.disabled);
+            if (firstFree) firstFree.selected = true;
+        }
+    }
+    blockSel.addEventListener('change', fillRooms);
+    fillRooms();
+}
+
+async function submitAssign(student, btn) {
+    const roomSel = document.getElementById('assign-room');
+    const msg = document.getElementById('assign-msg');
+    const roomId = roomSel && roomSel.value ? Number(roomSel.value) : null;
+    if (!roomId) { if (msg) msg.textContent = 'Please choose a room with free space.'; return; }
+
+    btn.disabled = true;
+    try {
+        await postJson('/api/admin/dashboard/assign', {
+            admin_id: getAdminId(),
+            application_id: student.application_id,
+            room_id: roomId
+        });
+        closeModal();
+        await Promise.all([loadDashboardStats(), loadActiveStudents()]);
+    } catch (err) {
+        btn.disabled = false;
+        if (msg) msg.textContent = err.message;
+    }
+}
+
+async function removeRoom(student) {
+    try {
+        await postJson('/api/admin/dashboard/unassign', {
+            admin_id: getAdminId(),
+            application_id: student.application_id
+        });
+        closeModal();
+        await Promise.all([loadDashboardStats(), loadActiveStudents()]);
+    } catch (err) {
+        const msg = document.getElementById('assign-msg');
+        if (msg) msg.textContent = err.message;
+    }
+}
+
+// ---------- Auto-arrange (Commit) ----------
+function confirmAutoArrange(picked) {
+    const waiting = activeStudentsList.filter(s => !s.room_id).length;
+    if (waiting === 0) {
+        showInfoModal('Nothing to arrange', 'Every active student already has a room.');
+        return;
+    }
+
+    const order = ['semester', 'program', 'name'].filter(k => picked.includes(k))
+        .map(k => k.charAt(0).toUpperCase() + k.slice(1)).join(' \u2192 ');
+
+    showModal({
+        title: 'Commit Auto-Arrange?',
+        bodyHtml: `<p><strong>${waiting}</strong> student(s) without a room will be placed, sorted by <strong>${escapeHtml(order)}</strong>.
+                   Students who already have a room are not touched. Boys and girls are placed in their own rooms.</p>`,
+        buttons: [
+            { label: 'Cancel', cls: 'btn-secondary', onClick: closeModal },
+            { label: 'Commit', cls: 'btn-commit', onClick: (btn) => runAutoArrange(picked, btn) }
+        ]
+    });
+}
+
+async function runAutoArrange(picked, btn) {
+    btn.disabled = true;
+    btn.textContent = 'Working...';
+    try {
+        const r = await postJson('/api/admin/dashboard/auto-arrange', {
+            admin_id: getAdminId(),
+            sort_by: picked
+        });
+        await Promise.all([loadDashboardStats(), loadActiveStudents()]);
+
+        const lines = [`${r.assigned} student(s) assigned.`];
+        if (r.unplaced > 0) lines.push(`${r.unplaced} could not be placed (no free room for their gender) and stay on hold.`);
+        if (r.skipped_no_gender > 0) lines.push(`${r.skipped_no_gender} skipped because their gender is missing.`);
+        showModal({
+            title: 'Auto-Arrange Done',
+            bodyHtml: lines.map(l => `<p>${escapeHtml(l)}</p>`).join(''),
+            buttons: [{ label: 'OK', cls: 'btn-commit', onClick: closeModal }]
+        });
+    } catch (err) {
+        showInfoModal('Auto-arrange failed', err.message);
+    }
 }

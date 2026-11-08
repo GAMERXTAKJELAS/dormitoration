@@ -159,11 +159,11 @@ export async function handleDetailInfoRoutes(request, env, headers) {
                 return new Response(JSON.stringify({ error: 'Missing user_id' }), { status: 400, headers });
             }
 
-            // Validate intake semester scope (Semesters 2 to 6)
+            // Validate intake semester scope (Semesters 2 to 10)
             const sem = parseInt(body.semester, 10);
-            if (isNaN(sem) || sem < 2 || sem > 6) {
+            if (isNaN(sem) || sem < 2 || sem > 10) {
                 return new Response(
-                    JSON.stringify({ error: 'Hostel application is only available for intake Semesters 2 to 6.' }),
+                    JSON.stringify({ error: 'Hostel application is only available for intake Semesters 2 to 10.' }),
                     { status: 400, headers }
                 );
             }

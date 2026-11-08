@@ -90,10 +90,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         e.preventDefault();
 
         const semesterVal = parseInt(getValue('semester'), 10);
-        if (isNaN(semesterVal) || semesterVal < 2 || semesterVal > 6) {
+        if (isNaN(semesterVal) || semesterVal < 2 || semesterVal > 10) {
             if (msgDiv) {
                 msgDiv.style.color = '#ff6b6b';
-                msgDiv.innerText = 'Application is restricted to students in Semester 2 to 6 for the next intake.';
+                msgDiv.innerText = 'Application is restricted to students in Semester 2 to 10 for the next intake.';
             }
             return;
         }
@@ -845,7 +845,7 @@ const modalContentMap = {
     },
     sectionB: {
         title: "Section B: Academic Information Guidance",
-        body: "Select your enrolled diploma program and current semester (Semesters 2 to 6). If you are an active member of the Student Representative Council (MPP), select 'Yes'."
+        body: "Select your enrolled diploma program and current semester (Semesters 2 to 10). If you are an active member of the Student Representative Council (MPP), select 'Yes'."
     },
     sectionC: {
         title: "Section C: Parent & Guardian Guidance",

@@ -70,6 +70,64 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // ---- System Activity Logs (admin actions + door scans, newest first) ----
+    async function loadSystemLogs() {
+        const body = document.getElementById("system-log-body");
+        if (!body) return;
+        const adminId = getAdminId();
+        if (!adminId) {
+            body.innerHTML = '<tr><td colspan="4" style="text-align:center;">Please log in as an admin to see logs.</td></tr>';
+            return;
+        }
+        try {
+            const res = await fetch("/api/admin/settings/system-logs?admin_id=" + encodeURIComponent(adminId));
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Failed to load logs");
+
+            body.innerHTML = "";
+            if (!data.logs || data.logs.length === 0) {
+                body.innerHTML = '<tr><td colspan="4" style="text-align:center; color: var(--text-muted, #64748b);">No activity recorded yet.</td></tr>';
+                return;
+            }
+
+            const labels = { success: "Success", danger: "Denied", info: "Admin" };
+            data.logs.forEach(l => {
+                const tr = document.createElement("tr");
+                const when = new Date(l.time);
+                const timeText = isNaN(when.getTime())
+                    ? String(l.time || "-")
+                    : when.toLocaleString("en-MY", { timeZone: "Asia/Kuala_Lumpur", hour12: false });
+
+                const cells = [timeText, l.event, l.actor];
+                cells.forEach(t => {
+                    const td = document.createElement("td");
+                    td.textContent = t;
+                    tr.appendChild(td);
+                });
+
+                const statusTd = document.createElement("td");
+                statusTd.style.textAlign = "right";
+                const tag = document.createElement("span");
+                tag.className = "status-tag " + (["success", "danger", "info"].includes(l.status) ? l.status : "info");
+                tag.textContent = labels[l.status] || "Info";
+                statusTd.appendChild(tag);
+                tr.appendChild(statusTd);
+
+                body.appendChild(tr);
+            });
+        } catch (err) {
+            body.innerHTML = "";
+            const tr = document.createElement("tr");
+            const td = document.createElement("td");
+            td.colSpan = 4;
+            td.style.textAlign = "center";
+            td.textContent = "Could not load logs: " + err.message;
+            tr.appendChild(td);
+            body.appendChild(tr);
+        }
+    }
+    loadSystemLogs();
+
     function showAnomalyMsg(text, kind) {
         anomalyMsg.textContent = text || "";
         anomalyMsg.className = "setting-msg" + (kind ? " " + kind : "");

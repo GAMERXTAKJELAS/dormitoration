@@ -835,3 +835,45 @@ body {
     font-size: 0.85rem;
     border-top: 2px solid var(--primary-color);
 }
+
+/* ==========================================================================
+   10. ROOM ASSIGNMENT (student list colors + assign pop-up)
+   yellow = on hold (no room) | green = boy assigned | pink = girl assigned
+   ========================================================================== */
+.btn-action-icon.room-hold { color: #eab308; border-color: #eab308; background: rgba(234, 179, 8, 0.14); }
+.btn-action-icon.room-boy  { color: #10b981; border-color: #10b981; background: rgba(16, 185, 129, 0.14); }
+.btn-action-icon.room-girl { color: #ec4899; border-color: #ec4899; background: rgba(236, 72, 153, 0.14); }
+.btn-action-icon.room-hold:hover { background: #eab308; color: #111827; }
+.btn-action-icon.room-boy:hover  { background: #10b981; color: #ffffff; }
+.btn-action-icon.room-girl:hover { background: #ec4899; color: #ffffff; }
+
+.room-chip {
+    display: inline-block;
+    margin-top: 4px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    border: 1px solid transparent;
+}
+.room-chip.room-hold { color: #eab308; border-color: #eab308; background: rgba(234, 179, 8, 0.12); }
+.room-chip.room-boy  { color: #10b981; border-color: #10b981; background: rgba(16, 185, 129, 0.12); }
+.room-chip.room-girl { color: #ec4899; border-color: #ec4899; background: rgba(236, 72, 153, 0.12); }
+
+.dash-modal-content { text-align: left; max-width: 440px; }
+.dash-modal-content h2 { margin-top: 0; }
+.dash-modal-content .dash-modal-body p { margin-bottom: 12px; }
+.dash-modal-content .modal-btns { margin-top: 20px; justify-content: flex-end; flex-wrap: wrap; }
+.dash-modal-content .btn-commit { padding: 10px 20px; font-size: 0.9rem; }
+.dash-modal-sub { margin-bottom: 6px !important; color: var(--text-color) !important; }
+.dash-label { display: block; margin: 12px 0 6px; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); }
+.dash-select {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--input-border);
+    background: var(--input-bg);
+    color: var(--text-color);
+    font-size: 0.95rem;
+}
+.dash-msg { min-height: 1.2em; margin: 12px 0 0 !important; color: #ef4444 !important; font-size: 0.85rem !important; }

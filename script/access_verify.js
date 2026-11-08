@@ -142,16 +142,48 @@ export async function handleAccessVerify(request, env, ctx) {
     .bind(code)
     .first();
 
-  // Same answer for "not found" and "expired": no hints to a prober.
-  // The reason is kept in the admin-only access log, never sent back to the device.
+  // The door unit must say which room it guards (BLOCK_NAME / ROOM_NUMBER in secrets.h).
+  const doorBlock = typeof (body.block ?? body.block_name) === 'string' ? (body.block ?? body.block_name).trim() : '';
+  const doorRoom = typeof (body.room ?? body.room_number) === 'string' ? (body.room ?? body.room_number).trim() : '';
+
+  // Same answer (access:false) for every failure: no hints to a prober.
+  // The real reason is kept in the admin-only access log (Settings > System Activity Logs).
   let granted = false;
   let reason = 'unknown_code';
   if (row) {
     if (isExpired(row.assigned_at)) {
       reason = 'expired';
+    } else if (!ROOM_ID_RE.test(doorBlock) || !ROOM_ID_RE.test(doorRoom)) {
+      reason = 'no_room_info';
     } else {
-      granted = true;
-      reason = 'ok';
+      const doorRow = await env.DB
+        .prepare('SELECT id FROM rooms WHERE block_name = ? AND room_number = ?')
+        .bind(doorBlock, doorRoom)
+        .first();
+
+      if (!doorRow) {
+        reason = 'room_not_registered';
+      } else {
+        // The student's current room (latest allocation)
+        const alloc = await env.DB
+          .prepare(`SELECT ra.room_id
+                    FROM room_allocations ra
+                    JOIN hostel_applications ha ON ha.id = ra.application_id
+                    WHERE ha.user_id = ?
+                    ORDER BY ra.assigned_at DESC, ra.id DESC
+                    LIMIT 1`)
+          .bind(row.user_id)
+          .first();
+
+        if (!alloc) {
+          reason = 'not_allocated';
+        } else if (alloc.room_id !== doorRow.id) {
+          reason = 'wrong_room';
+        } else {
+          granted = true;
+          reason = 'ok';
+        }
+      }
     }
   }
 
