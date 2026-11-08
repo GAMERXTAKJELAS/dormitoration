@@ -115,10 +115,17 @@ export async function handleDashboardRoutes(request, env, headers) {
         `SELECT COUNT(*) AS total_active FROM users WHERE role = 'student' AND account_status = 'active'`
       ).first();
 
-      // Pending applications
-      const pendingRes = await env.DB.prepare(
-        `SELECT COUNT(*) AS total_pending FROM hostel_applications WHERE admin_approval = 'pending'`
-      ).first();
+      // Pending applications - counted exactly the way the Approval page lists them
+      // (non-admin users, a missing/blank status counts as 'pending'), so the number
+      // on this card always matches what the Pending tab shows. Orphan rows in
+      // hostel_applications (no matching user) are ignored.
+      const pendingRes = await env.DB.prepare(`
+        SELECT COUNT(*) AS total_pending
+        FROM users u
+        LEFT JOIN hostel_applications h ON u.id = h.user_id
+        WHERE (u.role != 'admin' OR u.role IS NULL)
+          AND COALESCE(NULLIF(h.admin_approval, ''), 'pending') = 'pending'
+      `).first();
 
       // Hardware/rooms: a room counts as "online" if it's flagged active AND
       // reported recently. The ESP32 heartbeats every 5 min (HEARTBEAT_MS in
