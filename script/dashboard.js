@@ -68,7 +68,7 @@ async function loadDashboardStats() {
             document.getElementById("stat-pending-apps").innerText = stats.pending_applications || 0;
 
             dashboardRooms = (stats.hardware && stats.hardware.rooms) || [];
-            renderHardwareStatus(stats.hardware || { online_count: 0, total_rooms: 0, rooms: [] }, stats.room_occupancy || 0);
+            renderHardwareStatus(stats.hardware || { online_count: 0, total_rooms: 0, rooms: [] }, stats.room_occupancy || 0, stats.occupancy || null);
         }
     } catch (err) {
         console.error("Error fetching stats:", err);
@@ -83,14 +83,18 @@ async function loadDashboardStats() {
 // Gender is shown on the BLOCK card border instead (green = boy, pink = girl),
 // not per room, since a block houses one gender.
 // A block only ever appears once a room inside it has registered via heartbeat.
-function renderHardwareStatus(hardware, occupancyPct) {
+function renderHardwareStatus(hardware, occupancyPct, occupancy) {
     const pctEl = document.getElementById("stat-hardware-pct");
     const labelEl = document.getElementById("stat-hardware-label");
     const container = document.getElementById("hardware-blocks-container");
     const rooms = hardware.rooms || [];
 
     if (pctEl) pctEl.innerText = `${occupancyPct}%`;
-    if (labelEl) labelEl.innerText = hardware.online_count > 0 ? "Hardware Online" : "Room Occupancy (Offline)";
+    if (labelEl) {
+        labelEl.innerText = occupancy
+            ? `Room Occupancy (${occupancy.occupied} / ${occupancy.total})`
+            : "Room Occupancy";
+    }
 
     if (!container) return;
 

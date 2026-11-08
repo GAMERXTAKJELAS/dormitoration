@@ -162,8 +162,13 @@ export async function handleDashboardRoutes(request, env, headers) {
       }));
 
       const onlineCount = roomsWithStatus.filter(r => r.online).length;
-      const occupancyPct = roomsWithStatus.length > 0
-        ? Math.round((onlineCount / roomsWithStatus.length) * 100)
+
+      // Room occupancy = students assigned to rooms / total capacity of the registered rooms
+      // (same calculation as the admin home page).
+      const totalCapacity = roomsWithStatus.reduce((sum, r) => sum + (r.capacity || 0), 0);
+      const occupiedBeds = roomsWithStatus.reduce((sum, r) => sum + (r.student_count || 0), 0);
+      const occupancyPct = totalCapacity > 0
+        ? Math.round((occupiedBeds / totalCapacity) * 100)
         : 0;
 
       return new Response(
@@ -173,6 +178,7 @@ export async function handleDashboardRoutes(request, env, headers) {
             active_students: activeRes?.total_active || 0,
             pending_applications: pendingRes?.total_pending || 0,
             room_occupancy: occupancyPct,
+            occupancy: { occupied: occupiedBeds, total: totalCapacity, percentage: occupancyPct },
             hardware: {
               online_count: onlineCount,
               total_rooms: roomsWithStatus.length,
