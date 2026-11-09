@@ -33,6 +33,16 @@ function enterViewMode() {
     if (editBtn) editBtn.style.display = '';
     if (firstTimeBtn) firstTimeBtn.style.display = 'none';
     if (editControls) editControls.style.display = 'none';
+
+    // Show embedded PDF viewer iframe in Read Mode for uploaded files
+    ALL_SLOTS.forEach(slot => {
+        const previewContainer = document.getElementById(slot.previewContainerId);
+        const previewFrame = document.getElementById(slot.previewFrameId);
+        if (slot.hasExistingFile && slot.existingUrl) {
+            if (previewFrame) previewFrame.src = slot.existingUrl;
+            if (previewContainer) previewContainer.style.display = 'block';
+        }
+    });
 }
 
 function enterEditMode() {
@@ -44,6 +54,12 @@ function enterEditMode() {
     if (editBtn) editBtn.style.display = 'none';
     if (firstTimeBtn) firstTimeBtn.style.display = 'none';
     if (editControls) editControls.style.display = 'flex';
+
+    // Hide PDF preview frames when in Edit Mode
+    ALL_SLOTS.forEach(slot => {
+        const previewContainer = document.getElementById(slot.previewContainerId);
+        if (previewContainer) previewContainer.style.display = 'none';
+    });
 }
 
 function cancelEdit() {
@@ -104,7 +120,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             namaPelajar: getValue('namaPelajar'),
             noIC: getValue('noIC'),
     
-            // Grab automatically parsed background values
             tarikhLahir: autoParsedDetails.tarikhLahir,
             umur: autoParsedDetails.umur,
             jantina: autoParsedDetails.jantina,
@@ -637,7 +652,9 @@ const PRIMARY_SLOT = {
     typeLabel: () => 'Salary Slip',
     required: true,
     pendingFile: null,
-    objectUrl: null
+    objectUrl: null,
+    hasExistingFile: false,
+    existingUrl: null
 };
 
 const SECONDARY_SLOT = {
@@ -656,7 +673,9 @@ const SECONDARY_SLOT = {
     typeLabel: () => 'Program Head Support Letter',
     required: false,
     pendingFile: null,
-    objectUrl: null
+    objectUrl: null,
+    hasExistingFile: false,
+    existingUrl: null
 };
 
 function makeDocSlot(n, key, fileInputId, docType, label, required, help) {
@@ -675,7 +694,9 @@ function makeDocSlot(n, key, fileInputId, docType, label, required, help) {
         getDocumentType: () => docType,
         typeLabel: () => label,
         pendingFile: null,
-        objectUrl: null
+        objectUrl: null,
+        hasExistingFile: false,
+        existingUrl: null
     };
 }
 
@@ -770,7 +791,6 @@ function handlePdfSelection(slot, event) {
     const file = event.target.files[0];
     const nameDisplay = document.getElementById(slot.nameDisplayId);
     const previewContainer = document.getElementById(slot.previewContainerId);
-    const previewFrame = document.getElementById(slot.previewFrameId);
     const removeBtn = document.getElementById(slot.removeBtnId);
     const pendingNote = document.getElementById(slot.pendingNoteId);
     const viewLink = document.getElementById(slot.viewLinkId);
@@ -793,14 +813,8 @@ function handlePdfSelection(slot, event) {
     if (pendingNote) pendingNote.style.display = 'block';
     if (viewLink) viewLink.style.display = 'none';
 
-    const reader = new FileReader();
-    reader.onload = function (e) {
-        if (previewFrame && previewContainer) {
-            previewFrame.src = e.target.result;
-            previewContainer.style.display = 'block';
-        }
-    };
-    reader.readAsDataURL(file);
+    // Keep iframe container hidden while editing
+    if (previewContainer) previewContainer.style.display = 'none';
 
     runPlausibilityCheck(slot, file);
 }
@@ -908,10 +922,13 @@ async function uploadPendingPdfs(userId) {
                 return { ok: false, error: errBody.error || `${slot.typeLabel(documentType)} upload failed` };
             }
 
+            slot.hasExistingFile = true;
+            slot.existingUrl = `/api/student/payslip?user_id=${encodeURIComponent(userId)}&document_type=${encodeURIComponent(documentType)}`;
+
             if (nameDisplay) nameDisplay.innerText = `📄 ${file.name} ✓ saved`;
             if (pendingNote) pendingNote.style.display = 'none';
             if (viewLink) {
-                viewLink.href = `/api/student/payslip?user_id=${encodeURIComponent(userId)}&document_type=${encodeURIComponent(documentType)}`;
+                viewLink.href = slot.existingUrl;
                 viewLink.style.display = 'inline-flex';
             }
             slot.pendingFile = null;
@@ -1135,6 +1152,9 @@ function loadExistingPdfForSlot(slot, userId, candidateTypes) {
         if (i >= candidateTypes.length) {
             if (nameDisplay) nameDisplay.innerText = "No file selected";
             if (viewLink) viewLink.style.display = 'none';
+            slot.hasExistingFile = false;
+            slot.existingUrl = null;
+            if (previewContainer) previewContainer.style.display = 'none';
             return;
         }
         const docType = candidateTypes[i];
@@ -1143,14 +1163,20 @@ function loadExistingPdfForSlot(slot, userId, candidateTypes) {
         fetch(url, { method: 'HEAD' })
             .then(res => {
                 if (res.ok) {
+                    slot.hasExistingFile = true;
+                    slot.existingUrl = url;
                     if (nameDisplay) nameDisplay.innerText = "📄 Existing document on file";
-                    if (previewFrame && previewContainer) {
-                        previewFrame.src = url;
-                        previewContainer.style.display = 'block';
-                    }
                     if (viewLink) {
                         viewLink.href = url;
                         viewLink.style.display = 'inline-flex';
+                    }
+
+                    const isEditMode = document.getElementById('editModeControls')?.style.display === 'flex';
+                    if (!isEditMode && previewFrame && previewContainer) {
+                        previewFrame.src = url;
+                        previewContainer.style.display = 'block';
+                    } else if (previewContainer) {
+                        previewContainer.style.display = 'none';
                     }
                 } else {
                     tryNext(i + 1);
