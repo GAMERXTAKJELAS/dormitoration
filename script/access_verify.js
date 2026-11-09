@@ -130,7 +130,7 @@ export async function handleAccessVerify(request, env, ctx) {
 
     if (!alloc) {
       reason = 'not_allocated';
-    } else if (alloc.status !== 'ACTIVE') {
+    } else if (!alloc.status || alloc.status.toLowerCase() !== 'active') {
       reason = 'allocation_inactive';
     } else if (alloc.block_name === doorBlock && alloc.room_number === doorRoom) {
       granted = true;
