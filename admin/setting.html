@@ -1,17 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dormitoration | Settings</title>
-    
+
     <link rel="stylesheet" href="/design/dashboard.css">
     <link rel="stylesheet" href="/design/settings.css">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    
+
     <script src="/script/theme.js" defer></script>
     <script src="/script/logout_logic.js" defer></script>
 </head>
+
 <body>
 
     <!-- Logout Modal -->
@@ -37,34 +39,35 @@
         <nav class="navbar">
             <ul class="nav-list">
                 <li><a href="/admin/adminhomepage.html">
-                    <i class='bx bx-home-alt icon'></i>
-                    <span class="text">Home</span>
-                </a></li>
+                        <i class='bx bx-home-alt icon'></i>
+                        <span class="text">Home</span>
+                    </a></li>
 
                 <li><a href="/admin/dashboard.html">
-                    <i class='bx bxs-dashboard icon'></i>
-                    <span class="text">Dashboard</span>
-                </a></li>
+                        <i class='bx bxs-dashboard icon'></i>
+                        <span class="text">Dashboard</span>
+                    </a></li>
 
                 <li><a href="/admin/approval.html">
-                    <i class='bx bxs-check-shield icon'></i>
-                    <span class="text">Approval</span>
-                </a></li>
+                        <i class='bx bxs-check-shield icon'></i>
+                        <span class="text">Approval</span>
+                    </a></li>
 
                 <li><a href="/admin/report.html">
-                    <i class='bx bxs-report icon'></i>
-                    <span class="text">Report</span>
-                </a></li>
+                        <i class='bx bxs-report icon'></i>
+                        <span class="text">Report</span>
+                    </a></li>
 
                 <li><a href="/admin/setting.html" class="active">
-                    <i class='bx bx-cog icon'></i>
-                    <span class="text">Settings</span>
-                </a></li>
+                        <i class='bx bx-cog icon'></i>
+                        <span class="text">Settings</span>
+                    </a></li>
             </ul>
         </nav>
 
         <div class="sidebar-footer" style="position: absolute; bottom: 20px; width: 100%; padding: 0 25px;">
-            <button id="theme-toggle" class="theme-btn" style="background:none; border:none; cursor:pointer; color:var(--text-color); display:flex; align-items:center; gap:20px;">
+            <button id="theme-toggle" class="theme-btn"
+                style="background:none; border:none; cursor:pointer; color:var(--text-color); display:flex; align-items:center; gap:20px;">
                 <i class='bx bx-moon' id="theme-icon" style="font-size: 22px;"></i>
                 <span class="text">Theme</span>
             </button>
@@ -75,11 +78,12 @@
     <main class="main-box">
         <div class="page-header">
             <h1>System Settings</h1>
-            <p style="color: var(--text-muted, #64748b); margin-top: 4px; font-size: 0.9rem;">Manage your dormitory IoT nodes, system controls, and access logs.</p>
+            <p style="color: var(--text-muted, #64748b); margin-top: 4px; font-size: 0.9rem;">Manage your dormitory IoT
+                nodes, system controls, and access logs.</p>
         </div>
 
         <div class="settings-grid">
-            
+
             <!-- System Activity Logs -->
             <div class="settings-card log-card">
                 <div class="card-header">
@@ -89,7 +93,7 @@
                     </div>
                     <button class="btn-small">Clear Logs</button>
                 </div>
-            
+
                 <div class="table-wrapper">
                     <table class="log-table">
                         <thead>
@@ -101,7 +105,10 @@
                             </tr>
                         </thead>
                         <tbody id="system-log-body">
-                            <tr><td colspan="4" style="text-align:center; color: var(--text-muted, #64748b);">Loading activity...</td></tr>
+                            <tr>
+                                <td colspan="4" style="text-align:center; color: var(--text-muted, #64748b);">Loading
+                                    activity...</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -119,7 +126,7 @@
                     Download your system logs as CSV or JSON for offline reporting and archive analysis.
                 </p>
                 <div class="button-group">
-                    <button class="btn-primary"><i class='bx bx-export'></i> Export CSV</button>
+                    <button id="export-csv-btn" class="btn-primary"><i class='bx bx-export'></i> Export CSV</button>
                 </div>
             </div>
 
@@ -159,7 +166,8 @@
                     </div>
                 </div>
                 <p style="color: var(--text-muted, #64748b); font-size: 0.88rem; margin-bottom: 20px;">
-                    Set the default timeframe new temporary student accounts have before their registration window expires.
+                    Set the default timeframe new temporary student accounts have before their registration window
+                    expires.
                 </p>
 
                 <div class="form-group">
@@ -188,7 +196,8 @@
                     </div>
                 </div>
                 <p style="color: var(--text-muted, #64748b); font-size: 0.88rem; margin-bottom: 16px;">
-                    Door scans inside these time windows (Malaysia time) are flagged as anomalies on the Data Visualize page. A window can cross midnight, for example 23:00 to 05:00.
+                    Door scans inside these time windows (Malaysia time) are flagged as anomalies on the Data Visualize
+                    page. A window can cross midnight, for example 23:00 to 05:00.
                 </p>
 
                 <div id="anomaly-windows" class="window-list"></div>
@@ -196,7 +205,8 @@
                 <p id="anomaly-msg" class="setting-msg" role="status"></p>
 
                 <div class="setting-footer anomaly-footer">
-                    <button type="button" id="anomaly-add-btn" class="btn-ghost"><i class='bx bx-plus'></i> Add window</button>
+                    <button type="button" id="anomaly-add-btn" class="btn-ghost"><i class='bx bx-plus'></i> Add
+                        window</button>
                     <div class="anomaly-footer-right">
                         <button type="button" id="anomaly-reset-btn" class="btn-ghost">Use default</button>
                         <button type="button" id="anomaly-save-btn" class="btn-primary">Save windows</button>
@@ -209,4 +219,5 @@
 
     <script src="/script/settings.js"></script>
 </body>
+
 </html>

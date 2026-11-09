@@ -72,6 +72,8 @@
 /* --- LOG TABLE & TAGS --- */
 .table-wrapper {
     width: 100%;
+    max-height: 280px; /* Limits height to ~5 rows and enables vertical scroll */
+    overflow-y: auto;
     overflow-x: auto;
     margin-top: 10px;
 }
@@ -83,32 +85,23 @@
     text-align: left;
 }
 
-.log-table th, 
-.log-table td {
-    padding: 12px 14px;
-    border-bottom: 1px solid var(--border-color, #f1f5f9);
-    vertical-align: middle;
-}
-
 .log-table th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
     color: var(--text-muted, #64748b);
     font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.8px;
     font-weight: 700;
-    background: var(--body-color, #f8fafc);
+    background: var(--card-bg, #ffffff);
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border-color, #f1f5f9);
+    vertical-align: middle;
 }
 
-.log-table td {
-    color: var(--text-color);
-}
-
-.status-tag {
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    display: inline-block;
+.dark-mode .log-table th {
+    background: var(--card-bg, #1e293b);
 }
 
 .status-tag.success { background: rgba(16, 185, 129, 0.15); color: #059669; }

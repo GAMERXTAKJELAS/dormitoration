@@ -128,6 +128,58 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     loadSystemLogs();
 
+    // ---- Export System Activity Logs to CSV ----
+    const exportCsvBtn = document.getElementById("export-csv-btn");
+    if (exportCsvBtn) {
+        exportCsvBtn.addEventListener("click", async () => {
+            const adminId = getAdminId();
+            if (!adminId) {
+                alert("Please log in as an admin first.");
+                return;
+            }
+
+            try {
+                const res = await fetch("/api/admin/settings/system-logs?admin_id=" + encodeURIComponent(adminId));
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || "Failed to fetch logs");
+
+                if (!data.logs || data.logs.length === 0) {
+                    alert("No activity logs available to export.");
+                    return;
+                }
+
+                // CSV Headers matching log table columns
+                const headers = ["Timestamp", "Event", "User / Node", "Status"];
+                const rows = data.logs.map(l => {
+                    const when = new Date(l.time);
+                    const timeText = isNaN(when.getTime())
+                        ? String(l.time || "-")
+                        : when.toLocaleString("en-MY", { timeZone: "Asia/Kuala_Lumpur", hour12: false });
+
+                    return [
+                        `"${timeText.replace(/"/g, '""')}"`,
+                        `"${(l.event || "").replace(/"/g, '""')}"`,
+                        `"${(l.actor || "").replace(/"/g, '""')}"`,
+                        `"${(l.status || "").replace(/"/g, '""')}"`
+                    ].join(",");
+                });
+
+                const csvContent = [headers.join(","), ...rows].join("\n");
+                const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.setAttribute("href", url);
+                link.setAttribute("download", `system_activity_logs_${new Date().toISOString().slice(0, 10)}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            } catch (err) {
+                alert("Could not export CSV: " + err.message);
+            }
+        });
+    }
+
     function showAnomalyMsg(text, kind) {
         anomalyMsg.textContent = text || "";
         anomalyMsg.className = "setting-msg" + (kind ? " " + kind : "");
