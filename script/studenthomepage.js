@@ -53,7 +53,7 @@ function closeCustomAlert() {
 }
 
 // ==========================================
-// AVATAR HELPER & UPLOAD
+// AVATAR HELPER & R2 UPLOAD
 // ==========================================
 function getDynamicAvatar(student) {
     if (!student) return '/image/default_Male.svg';
@@ -91,7 +91,7 @@ async function handleAvatarUpload(e) {
     }
 
     try {
-        // Compress & resize image to 300x300 JPEG base64 string
+        // Compress image to 300x300 JPEG base64 before uploading to R2
         const base64Data = await resizeImageToBase64(file, 300, 300, 0.85);
 
         const response = await fetch('/api/student/upload-avatar', {
@@ -105,17 +105,18 @@ async function handleAvatarUpload(e) {
             throw new Error(result.error || 'Failed to upload profile picture.');
         }
 
-        // Update local state and UI elements dynamically
-        const updatedUser = { ...userData, profile_picture: base64Data };
+        // Cache URL with cache-busting timestamp for immediate UI refresh
+        const freshAvatarUrl = `${result.avatar_url}&t=${Date.now()}`;
+        const updatedUser = { ...userData, profile_picture: freshAvatarUrl };
         localStorage.setItem('userData', JSON.stringify(updatedUser));
 
         const profileAvatar = document.getElementById('profileAvatar');
         const navHeaderAvatar = document.getElementById('navHeaderAvatar');
 
-        if (profileAvatar) profileAvatar.src = base64Data;
-        if (navHeaderAvatar) navHeaderAvatar.src = base64Data;
+        if (profileAvatar) profileAvatar.src = freshAvatarUrl;
+        if (navHeaderAvatar) navHeaderAvatar.src = freshAvatarUrl;
 
-        showCustomAlert('Profile picture updated successfully!', 'success');
+        showCustomAlert('Profile picture uploaded to R2 successfully!', 'success');
     } catch (err) {
         console.error('Avatar upload error:', err);
         showCustomAlert(`Error uploading avatar: ${err.message}`, 'error');

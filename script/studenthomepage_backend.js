@@ -5,7 +5,34 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
   const url = new URL(request.url);
   const method = request.method;
 
-  // GET: Student Status & Reason
+  // GET: Serve Student Avatar Image directly from Cloudflare R2
+  if (method === 'GET' && url.pathname === '/api/student/avatar') {
+    const userId = url.searchParams.get('user_id');
+    if (!userId) {
+      return new Response('User ID required', { status: 400, headers: corsHeaders });
+    }
+
+    try {
+      const objectKey = `avatars/avatar_${userId}.jpg`;
+      const object = await env.PAYSLIP_BUCKET.get(objectKey);
+
+      if (!object) {
+        return new Response('Avatar not found', { status: 404, headers: corsHeaders });
+      }
+
+      const headers = new Headers(corsHeaders);
+      headers.set('Content-Type', object.httpMetadata?.contentType || 'image/jpeg');
+      headers.set('Cache-Control', 'public, max-age=3600');
+      headers.set('ETag', object.httpEtag);
+
+      return new Response(object.body, { headers });
+    } catch (err) {
+      console.error('R2 Avatar Fetch Error:', err.message);
+      return new Response('Error retrieving avatar', { status: 500, headers: corsHeaders });
+    }
+  }
+
+  // GET: Student Status & Details
   if (method === 'GET' && url.pathname === '/api/student/status') {
     const userId = url.searchParams.get('user_id');
 
@@ -94,7 +121,6 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
         }
       }
 
-      // Room assigned to this student (room_allocations -> hostel_applications -> rooms).
       let roomDetails = null;
       if (normalizedStatus === 'approved') {
         try {
@@ -144,7 +170,7 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
     }
   }
 
-  // POST: Upload Profile Picture Avatar
+  // POST: Upload Profile Picture Avatar to Cloudflare R2
   if (method === 'POST' && url.pathname === '/api/student/upload-avatar') {
     try {
       const { user_id, profile_picture } = await request.json();
@@ -156,26 +182,47 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
         });
       }
 
+      // 1. Extract raw Base64 buffer
+      const base64Parts = profile_picture.split(',');
+      const base64Data = base64Parts.length > 1 ? base64Parts[1] : base64Parts[0];
+      const binaryStr = atob(base64Data);
+      const buffer = new Uint8Array(binaryStr.length);
+      for (let i = 0; i < binaryStr.length; i++) {
+        buffer[i] = binaryStr.charCodeAt(i);
+      }
+
+      // 2. Put binary file into R2 bucket (PAYSLIP_BUCKET)
+      const objectKey = `avatars/avatar_${user_id}.jpg`;
+      await env.PAYSLIP_BUCKET.put(objectKey, buffer, {
+        httpMetadata: { contentType: 'image/jpeg' }
+      });
+
+      // 3. Store local R2 endpoint URL in D1 users table
+      const avatarUrl = `/api/student/avatar?user_id=${user_id}`;
       await env.DB.prepare(`
         UPDATE users 
         SET profile_picture = ?, updated_at = ?
         WHERE id = ?
-      `).bind(profile_picture, new Date().toISOString(), user_id).run();
+      `).bind(avatarUrl, new Date().toISOString(), user_id).run();
 
-      return new Response(JSON.stringify({ success: true, message: 'Profile picture updated successfully.' }), {
+      return new Response(JSON.stringify({ 
+        success: true, 
+        avatar_url: avatarUrl,
+        message: 'Profile picture uploaded to R2 successfully.' 
+      }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     } catch (err) {
-      console.error('Upload Avatar Error:', err.message);
-      return new Response(JSON.stringify({ error: 'Failed to update profile picture', details: err.message }), {
+      console.error('R2 Avatar Upload Error:', err.message);
+      return new Response(JSON.stringify({ error: 'Failed to upload profile picture to R2', details: err.message }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
   }
 
-  // POST: Delete User Account ONLY (Retaining hostel_applications history)
+  // POST: Delete User Account ONLY
   if (method === 'POST' && url.pathname === '/api/student/delete-account') {
     try {
       const { user_id } = await request.json();
@@ -208,7 +255,7 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
     }
   }
 
-  // POST: Update simple biodata (username, email, phone) from the Account modal
+  // POST: Update simple biodata
   if (method === 'POST' && url.pathname === '/api/student/update-account') {
     try {
       const { user_id, username, email, phone } = await request.json();
@@ -239,7 +286,6 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
       });
     } catch (err) {
       console.error('Update Account Error:', err.message);
-
       const isDuplicate = /unique/i.test(err.message);
       const friendlyMessage = isDuplicate
         ? 'That username or email is already in use by another account.'
@@ -252,7 +298,7 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
     }
   }
 
-  // GET: Student's stable unique access code
+  // GET: Access QR code
   if (method === 'GET' && url.pathname === '/api/student/qr-code') {
     const userId = url.searchParams.get('user_id');
 
