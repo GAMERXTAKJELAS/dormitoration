@@ -625,9 +625,9 @@ const SECONDARY_SLOT = {
     objectUrl: null
 };
 
-// ---- The other upload slots. Two are IMPORTANT (salary slip above + sworn declaration);
-// the rest are optional. The AI hostel review reads all of them. A missing important
-// document never blocks the submission - it only lowers the chance of being accepted.
+// ---- The other upload slots. The salary slip (above) and the sworn declaration are two ways
+// to prove income: ONE is enough. The rest are optional. The AI hostel review reads all of them.
+// Missing documents never block the submission - they only lower the chance of being accepted.
 function makeDocSlot(n, key, fileInputId, docType, label, required, help) {
     return {
         key, n, label, help, required,
@@ -655,8 +655,9 @@ Object.assign(SECONDARY_SLOT, {
 });
 
 const SWORN_SLOT = makeDocSlot(3, 'sworn', 'swornDeclarationPDF', 'surat_akuan_sumpah',
-    'Sworn Declaration (Surat Akuan Sumpah)', true,
-    '* Important: attach your parent/guardian\'s sworn declaration of income (Surat Akuan Sumpah). If it is missing your application is still sent, but the chance of being accepted is much lower.');
+    'Sworn Declaration (Surat Akuan Sumpah)', false,
+    '* Income proof: use this if your parent/guardian has no payslip (for example self-employed). One of the salary slip or the sworn declaration is enough; uploading both gives a more reliable review.');
+SWORN_SLOT.tag = 'Income proof (if no payslip)';
 const MYKAD_SLOT = makeDocSlot(4, 'mykad', 'mykadPDF', 'salinan_mykad',
     'MyKad Copy', false,
     '* Optional. A clear copy of your MyKad (front side).');
@@ -679,7 +680,7 @@ function buildDocSlots() {
             <div class="pdf-upload-divider"></div>
             <div class="pdf-upload-header">
                 <label class="pdf-upload-label">
-                    <i class='bx bxs-file-pdf'></i> Upload ${slot.label} — <em>${slot.required ? 'Important' : 'Optional'}</em>
+                    <i class='bx bxs-file-pdf'></i> Upload ${slot.label} — <em>${slot.tag || (slot.required ? 'Important' : 'Optional')}</em>
                 </label>
             </div>
             <p class="pdf-note">${slot.help}</p>
@@ -944,7 +945,7 @@ const modalContentMap = {
     },
     payslip: {
         title: "Payslip Upload Guidance",
-        body: "Upload PDF documents for your application. The salary slip and the sworn declaration are important: if one is missing your application is still sent, but the chance of being accepted is much lower. The MyKad copy, program head letter and other documents (for example a Dean's Award certificate) are optional."
+        body: "Upload PDF documents for your application. Upload a salary slip OR, if there is no payslip, a sworn declaration as proof of income (one is enough). If neither is uploaded your application is still sent, but the chance of being accepted is much lower. The MyKad copy, program head letter and other documents (for example a Dean's Award certificate) are optional."
     }
 };
 

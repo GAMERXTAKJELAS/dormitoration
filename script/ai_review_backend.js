@@ -18,14 +18,14 @@
  *   MPP member (form says Yes)                           -> 100 %, always
  *   Start at 40
  *   Household income <= B40 limit (RM5,860, editable)    -> +30   (above the limit: -20)
- *   Salary slip / Sworn declaration (the 2 important):
- *       read OK +10 | received but unreadable +3 | wrong document -5 | missing -15
+ *   Income proof = Salary slip OR Sworn declaration (one is enough):
+ *       at least one read OK +15 (both read OK +20) | received but unreadable +3 | wrong document -5
+ *       none uploaded at all -25 and the score is limited to 25 %
  *   Document income agrees with the form (within 15 %)   -> +4 each (disagrees: -20 each)
  *   (B40 test uses the HIGHER of form income and document income)
  *   MyKad copy: IC matches the form +4 | differs -25 | optional, no penalty if missing
  *   Program Head letter read OK                          -> +4
  *   Dean's Award (approved document, e.g. in "Other")    -> +10
- *   Cap: 1 important document missing -> max 40 | both missing -> max 25
  *   Verdict: >= 80 Recommended | 50-79 Needs review | < 50 Not recommended
  *   NOT included yet: distance from home (noted for later).
  */
@@ -33,7 +33,8 @@
 const VISION_MODEL = '@cf/meta/llama-3.2-11b-vision-instruct';
 const TEXT_MODEL = '@cf/meta/llama-3.1-8b-instruct';
 
-export const REQUIRED_DOCS = ['slip_gaji', 'surat_akuan_sumpah'];
+// Salary slip and sworn declaration are two ways to prove income: ONE of them is enough.
+export const INCOME_PROOF_DOCS = ['slip_gaji', 'surat_akuan_sumpah'];
 export const OPTIONAL_DOCS = ['salinan_mykad', 'dokumen_sokongan_ketua_program', 'dokumen_lain'];
 
 export const DOC_LABELS = {
@@ -209,21 +210,32 @@ export function computeReview({ app, user, docs, b40Limit }) {
     score -= 20;
   }
 
-  // ---- the 2 important documents ----------------------------------------
-  let missingRequired = 0;
-  for (const type of REQUIRED_DOCS) {
-    const d = docs[type] || { state: 'missing' };
-    const label = DOC_LABELS[type];
-    if (d.state === 'ok') { add(label, +10, `${label} received and read successfully.`); score += 10; }
-    else if (d.state === 'unreadable') {
-      add(label, +3, `${label} was received but the AI could not read it${d.reason ? ' (' + d.reason + ')' : ''}. Please check it manually.`);
-      score += 3; manualCheck = true;
-    } else if (d.state === 'invalid') {
-      add(label, -5, `The uploaded file does not look like a ${label}${d.reason ? ' (' + d.reason + ')' : ''}.`);
+  // ---- income proof: salary slip OR sworn declaration (one is enough) ------------
+  const proofs = INCOME_PROOF_DOCS.map(type => ({ type, label: DOC_LABELS[type], d: docs[type] || { state: 'missing', data: {}, reason: '' } }));
+  const okProofs = proofs.filter(x => x.d.state === 'ok');
+  let noProofAtAll = false;
+
+  if (okProofs.length > 0) {
+    const pts = okProofs.length === 2 ? 20 : 15;
+    add('Income proof', pts, okProofs.length === 2
+      ? 'Both the salary slip and the sworn declaration were received and read, so the income is well supported.'
+      : `${okProofs[0].label} received and read (one income proof is enough).`);
+    score += pts;
+    // A second file that could not be used is only a note - the other proof already covers it
+    proofs.filter(x => x.d.state === 'unreadable' || x.d.state === 'invalid').forEach(x =>
+      add(x.label, 0, `${x.label} was received but could not be used${x.d.reason ? ' (' + x.d.reason + ')' : ''}. Not needed, because the other income proof was accepted.`));
+  } else {
+    const received = proofs.filter(x => x.d.state !== 'missing');
+    if (received.length === 0) {
+      add('Income proof', -25, 'No income proof was uploaded (neither a salary slip nor a sworn declaration).');
+      score -= 25; noProofAtAll = true;
+    } else if (received.every(x => x.d.state === 'invalid')) {
+      add('Income proof', -5, `The uploaded ${received.map(x => x.label).join(' and ')} does not look like the right document${received[0].d.reason ? ' (' + received[0].d.reason + ')' : ''}.`);
       score -= 5; manualCheck = true;
     } else {
-      add(label, -15, `${label} was not uploaded.`);
-      score -= 15; missingRequired++;
+      const why = received.map(x => `${x.label}: ${x.d.reason || 'could not be read'}`).join('; ');
+      add('Income proof', +3, `An income proof was received but the AI could not read it (${why}). Please check it manually.`);
+      score += 3; manualCheck = true;
     }
   }
 
@@ -277,11 +289,8 @@ export function computeReview({ app, user, docs, b40Limit }) {
 
   // ---- caps and MPP ----------------------------------------------------------
   score = Math.max(0, Math.min(100, Math.round(score)));
-  if (missingRequired === 1) {
-    if (score > 40) { add('Missing important document', 0, 'One of the two important documents is missing, so the score is limited to 40%.'); }
-    score = Math.min(score, 40);
-  } else if (missingRequired >= 2) {
-    if (score > 25) { add('Missing important documents', 0, 'Both important documents are missing, so the score is limited to 25%.'); }
+  if (noProofAtAll) {
+    if (score > 25) add('No income proof', 0, 'No salary slip or sworn declaration was uploaded, so the score is limited to 25%.');
     score = Math.min(score, 25);
   }
 
@@ -305,7 +314,7 @@ async function loadB40Limit(env) {
 
 function buildDocStates(attachments, reads) {
   const states = {};
-  for (const type of [...REQUIRED_DOCS, ...OPTIONAL_DOCS]) {
+  for (const type of [...INCOME_PROOF_DOCS, ...OPTIONAL_DOCS]) {
     const att = attachments.find(a => a.document_type === type);
     if (!att) { states[type] = { state: 'missing', reason: '', data: {} }; continue; }
 
@@ -378,10 +387,13 @@ export async function runAiReview(env, userId) {
   };
   review.summary = await narrate(env, review, facts);
 
-  review.documents = [...REQUIRED_DOCS, ...OPTIONAL_DOCS].map(type => ({
-    type, label: DOC_LABELS[type], required: REQUIRED_DOCS.includes(type),
-    state: docs[type].state, note: docs[type].reason || ''
-  }));
+  review.documents = [...INCOME_PROOF_DOCS, ...OPTIONAL_DOCS].map(type => {
+    const isProof = INCOME_PROOF_DOCS.includes(type);
+    let state = docs[type].state;
+    // a missing salary slip / sworn declaration does not matter when the other one was accepted
+    if (isProof && state === 'missing' && INCOME_PROOF_DOCS.some(t => t !== type && docs[t].state === 'ok')) state = 'not_needed';
+    return { type, label: DOC_LABELS[type], kind: isProof ? 'income_proof' : 'optional', state, note: docs[type].reason || '' };
+  });
 
   const nowISO = new Date().toISOString();
   await env.DB.prepare(`

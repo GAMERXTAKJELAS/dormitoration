@@ -236,7 +236,8 @@
         ok: ['Received and read', 'ok'],
         unreadable: ['Received - AI could not read it', 'warn'],
         invalid: ['Does not look like the right document', 'bad'],
-        missing: ['Not uploaded', 'bad']
+        missing: ['Not uploaded', 'bad'],
+        not_needed: ['Not uploaded - other income proof accepted', '']
     };
 
     function renderAiCard() {
@@ -332,10 +333,12 @@
         const docList = el('ul', 'dd-ai-list');
         (review.documents || []).forEach(d => {
             const li = el('li');
-            const [text, k] = DOC_STATE_TEXT[d.state] || [d.state, ''];
+            let [text, k] = DOC_STATE_TEXT[d.state] || [d.state, ''];
+            // an optional document that was simply not uploaded is not a problem
+            if (d.state === 'missing' && d.kind === 'optional') { text = 'Not uploaded'; k = ''; }
             li.appendChild(el('span', 'dd-badge ' + k, text));
             const note = el('span', 'dd-ai-note');
-            note.appendChild(el('strong', null, d.label + (d.required ? ' (important)' : ' (optional)')));
+            note.appendChild(el('strong', null, d.label + (d.kind === 'income_proof' ? ' (income proof - one is enough)' : ' (optional)')));
             if (d.note && d.state !== 'ok') note.appendChild(document.createTextNode(' - ' + d.note));
             li.appendChild(note);
             docList.appendChild(li);
