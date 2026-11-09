@@ -172,8 +172,10 @@ export async function handleDeviceHeartbeat(request, env) {
     return json({ ok: false, error: 'bad_json' }, 400);
   }
 
-  const block = typeof body.block === 'string' ? body.block.trim() : '';
-  const room  = typeof body.room  === 'string' ? body.room.trim()  : '';
+  const block  = typeof body.block  === 'string' ? body.block.trim()  : '';
+  const room   = typeof body.room   === 'string' ? body.room.trim()   : '';
+  const gender = typeof body.gender === 'string' ? body.gender.trim().toUpperCase() : 'M';
+
   if (!ROOM_ID_RE.test(block) || !ROOM_ID_RE.test(room)) {
     return json({ ok: false, error: 'bad_block_or_room' }, 400);
   }
@@ -200,14 +202,14 @@ export async function handleDeviceHeartbeat(request, env) {
       const placeholderKeycode = `PENDING-${block}-${room}`;
       const res = await env.DB
         .prepare(
-          'INSERT INTO rooms (block_name, room_number, keycode, is_active, created_at, last_seen_at) VALUES (?, ?, ?, 1, ?, ?)'
+          'INSERT INTO rooms (block_name, room_number, keycode, is_active, created_at, last_seen_at, gender) VALUES (?, ?, ?, 1, ?, ?, ?)'
         )
-        .bind(block, room, placeholderKeycode, now, now)
+        .bind(block, room, placeholderKeycode, now, now, gender)
         .run();
       row = { id: res.meta.last_row_id };
       registered = true;
       cameOnline = true;
-      eventDetail = 'First connection (room registered)';
+      eventDetail = `First connection (room registered as gender ${gender})`;
     }
 
     if (cameOnline) await recordDeviceEvent(env, row.id, 'online', eventDetail, now);
