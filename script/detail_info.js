@@ -34,7 +34,7 @@ function enterViewMode() {
     if (firstTimeBtn) firstTimeBtn.style.display = 'none';
     if (editControls) editControls.style.display = 'none';
 
-    // Show embedded PDF viewer iframe in Read Mode for uploaded files
+    // Display embedded PDF iframe viewer in Read Mode for verified documents
     ALL_SLOTS.forEach(slot => {
         const previewContainer = document.getElementById(slot.previewContainerId);
         const previewFrame = document.getElementById(slot.previewFrameId);
@@ -813,7 +813,6 @@ function handlePdfSelection(slot, event) {
     if (pendingNote) pendingNote.style.display = 'block';
     if (viewLink) viewLink.style.display = 'none';
 
-    // Keep iframe container hidden while editing
     if (previewContainer) previewContainer.style.display = 'none';
 
     runPlausibilityCheck(slot, file);
@@ -1146,26 +1145,27 @@ function loadExistingPdfForSlot(slot, userId, candidateTypes) {
     const previewContainer = document.getElementById(slot.previewContainerId);
     const previewFrame = document.getElementById(slot.previewFrameId);
     const viewLink = document.getElementById(slot.viewLinkId);
-    if (nameDisplay) nameDisplay.innerText = "📄 Checking for existing document...";
+    if (nameDisplay) nameDisplay.innerText = "📄 Checking document status...";
 
     const tryNext = (i) => {
         if (i >= candidateTypes.length) {
             if (nameDisplay) nameDisplay.innerText = "No file selected";
             if (viewLink) viewLink.style.display = 'none';
+            if (previewContainer) previewContainer.style.display = 'none';
             slot.hasExistingFile = false;
             slot.existingUrl = null;
-            if (previewContainer) previewContainer.style.display = 'none';
             return;
         }
         const docType = candidateTypes[i];
         const url = `/api/student/payslip?user_id=${encodeURIComponent(userId)}&document_type=${encodeURIComponent(docType)}`;
 
-        fetch(url, { method: 'HEAD' })
+        // Use GET request method to prevent 405 Method Not Allowed errors on serverless API routes
+        fetch(url, { method: 'GET' })
             .then(res => {
                 if (res.ok) {
                     slot.hasExistingFile = true;
                     slot.existingUrl = url;
-                    if (nameDisplay) nameDisplay.innerText = "📄 Existing document on file";
+                    if (nameDisplay) nameDisplay.innerText = "📄 Document Attached & Verified";
                     if (viewLink) {
                         viewLink.href = url;
                         viewLink.style.display = 'inline-flex';
