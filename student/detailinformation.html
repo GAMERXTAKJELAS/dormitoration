@@ -331,21 +331,13 @@
                 <div class="pdf-upload-box">
                     <div class="pdf-header">
                         <label class="pdf-label">
-                            <i class='bx bxs-file-pdf'></i> Upload Salary Slip / Income Statement (PDF Only)
+                            <i class='bx bxs-file-pdf'></i> Upload Salary Slip (Slip Gaji) — <em>Important</em>
                         </label>
                         <button type="button" class="btn-info-icon pdf-info-btn" onclick="openInfoModal('payslip')">
                             <i class='bx bx-info-circle'></i>
                         </button>
                     </div>
-                    <p class="pdf-note">* Please attach the latest household income documentation. Allowed format: <strong>PDF</strong>.</p>
-
-                    <div class="input-box" style="margin-bottom: 14px;">
-                        <label>Document Type</label>
-                        <select id="documentType" name="documentType">
-                            <option value="slip_gaji">Salary Slip (Slip Gaji)</option>
-                            <option value="surat_akuan_sumpah">Sworn Declaration (Surat Akuan Sumpah) — Self-Employed</option>
-                        </select>
-                    </div>
+                    <p class="pdf-note">* Important: attach the latest salary slip of your parent/guardian. Allowed format: <strong>PDF</strong>. If an important document is missing your application is still sent, but the chance of being accepted is much lower.</p>
 
                     <div class="file-drop-area">
                         <button type="button" class="btn-pdf-select" id="btnPdfSelect">
@@ -377,42 +369,8 @@
                         <iframe id="pdfPreviewFrame" src="" class="pdf-iframe"></iframe>
                     </div>
 
-                    <!-- Second, optional document: Program Head support letter -->
-                    <div class="pdf-upload-divider"></div>
-                    <div class="pdf-upload-header">
-                        <label class="pdf-upload-label">
-                            <i class='bx bxs-file-pdf'></i> Upload Program Head Support Letter (Dokumen Sokongan Ketua Program) — <em>Optional</em>
-                        </label>
-                    </div>
-                    <p class="pdf-note">* Optional. Attach only if your Program Head has issued a support letter for your application.</p>
-
-                    <div class="file-drop-area">
-                        <button type="button" class="btn-pdf-select" id="btnPdfSelect2">
-                            <i class='bx bx-upload'></i> Select PDF File
-                        </button>
-                        <span id="fileNameDisplay2">No file selected</span>
-                        <button type="button" class="btn-remove-pdf" id="btnRemovePdf2" style="display: none;" title="Remove selected file">
-                            <i class='bx bx-x'></i> Remove
-                        </button>
-                        <a href="#" id="pdfViewLink2" class="btn-view-pdf" style="display: none;" target="_blank" rel="noopener">
-                            <i class='bx bx-show'></i> View PDF
-                        </a>
-                        <input type="file" id="ketuaProgramPDF" name="ketuaProgramPDF" accept="application/pdf" style="display: none;">
-                    </div>
-                    <p class="pdf-note" id="pdfPendingNote2" style="display: none;">* This file will be uploaded when you click Submit/Update below — it hasn't been saved yet.</p>
-
-                    <div id="pdfWarningBanner2" class="pdf-warning-banner" style="display: none;">
-                        <i class='bx bx-error'></i>
-                        <span id="pdfWarningText2"></span>
-                    </div>
-
-                    <div id="pdfPreviewContainer2" class="pdf-preview-wrapper" style="display: none;">
-                        <div class="preview-bar">
-                            <span><i class='bx bx-show'></i> Document Preview</span>
-                            <button type="button" class="btn-close-preview" onclick="closePdfPreview2()">&times;</button>
-                        </div>
-                        <iframe id="pdfPreviewFrame2" src="" class="pdf-iframe"></iframe>
-                    </div>
+                    <!-- Other documents (Sworn Declaration, MyKad, Program Head letter, Other) are built by detail_info.js -->
+                    <div id="extraDocSlots"></div>
                 </div>
 
             </div>
