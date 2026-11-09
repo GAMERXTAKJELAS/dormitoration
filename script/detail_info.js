@@ -1,6 +1,6 @@
 /**
  * Dormitoration - Detail Information Script
- * File: /script/detailinformation.js
+ * File: /script/detail_info.js
  */
 
 let currentGuardianCount = 1;
@@ -10,22 +10,17 @@ function setFormFieldsDisabled(disabled) {
     const form = document.getElementById('detailInfoForm');
     if (!form) return;
     form.querySelectorAll('input, select, textarea, button.btn-add-guardian, button.btn-remove-guardian').forEach(el => {
-        if (el.type === 'submit') return; // visibility of submit buttons is handled separately
+        if (el.type === 'submit') return;
         el.disabled = disabled;
     });
 }
 
-// setFormFieldsDisabled only covers plain input/select/textarea — the PDF
-// slots' Select/Remove buttons aren't form controls, so they need their own
-// show/hide here. In view mode: no editing controls, just the "View PDF"
-// confirmation link (set by loadExistingPdfForSlot) so it clearly reads as
-// "here's what you submitted", not an active upload form.
 function setPdfSlotsEditable(editable) {
     ALL_SLOTS.forEach(slot => {
         const selectBtn = document.getElementById(slot.selectBtnId);
         const removeBtn = document.getElementById(slot.removeBtnId);
         if (selectBtn) selectBtn.style.display = editable ? 'inline-flex' : 'none';
-        if (!editable && removeBtn) removeBtn.style.display = 'none'; // only re-shown by a fresh selection
+        if (!editable && removeBtn) removeBtn.style.display = 'none';
     });
 }
 
@@ -164,19 +159,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 lastLoadedData = { ...updatedDetails, accountStatus: 'submitted' };
 
-                // Details are saved — now persist any PDF the student selected but
-                // hadn't uploaded yet. upload-payslip replaces any prior document of
-                // the same type, so this is also how a PDF swap in edit mode happens.
                 if (msgDiv) msgDiv.innerText = 'Saving document(s)...';
                 const pdfResult = await uploadPendingPdfs(updatedDetails.user_id);
                 if (!pdfResult.ok && msgDiv) {
                     msgDiv.style.color = '#ff6b6b';
                     msgDiv.innerText = `Profile saved, but a document failed to upload: ${pdfResult.error}. Please try re-attaching it.`;
-                    return; // stay on the page so the student can retry the PDF
+                    return;
                 }
 
-                // Application + documents are saved -> start the AI hostel review in the background.
-                // Fire-and-forget: the student never waits for it, and a failure never blocks the submission.
                 try {
                     fetch('/api/student/run-ai-review', {
                         method: 'POST',
@@ -221,7 +211,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 });
 
-// Store calculated values in memory
 let autoParsedDetails = {
     tarikhLahir: '',
     umur: '',
@@ -254,7 +243,6 @@ function parseMalaysianIC(icString) {
         age--;
     }
 
-    // Save values directly in background state instead of DOM inputs
     autoParsedDetails.tarikhLahir = `${fullYear}-${monthStr}-${dayStr}`;
     autoParsedDetails.umur = age;
     autoParsedDetails.jantina = (lastDigit % 2 !== 0) ? 'Lelaki' : 'Perempuan';
@@ -343,7 +331,7 @@ function removeGuardianCard(cardId) {
     if (!list) return;
 
     const cards = list.querySelectorAll('.guardian-card');
-    if (cards.length <= 1) return; // Always keep at least 1 guardian box
+    if (cards.length <= 1) return;
 
     const card = document.getElementById(cardId);
     if (card) card.remove();
@@ -376,7 +364,7 @@ function updateGuardianRemoveButtons() {
 }
 
 /* =========================================================
-   CSV AUTO-FILL & FIELD MAPPING
+   CSV AUTO-FILL & FIELD MAPPING (Strict Syamsul_Nazir.csv Schema)
    ========================================================= */
 function handleCSVUpload(event) {
     const file = event.target.files[0];
@@ -404,14 +392,14 @@ function handleCSVUpload(event) {
         const { mapped, unmatched } = mapCsvRowToFormData(headers, values);
 
         if (Object.keys(mapped).length === 0) {
-            showDetailMessage('None of the CSV columns were recognized. Check your column names and try again.', true);
+            showDetailMessage('None of the CSV columns were recognized. Ensure headers match the required CSV format.', true);
             return;
         }
 
         populateForm(mapped);
         saveDetailFormDraft(mapped);
 
-        let msg = `CSV imported — ${Object.keys(mapped).length} field(s) auto-filled.`;
+        let msg = `CSV imported successfully — ${Object.keys(mapped).length} field(s) auto-filled.`;
         if (unmatched.length > 0) {
             msg += ` Skipped unrecognized column(s): ${unmatched.join(', ')}.`;
         }
@@ -420,7 +408,6 @@ function handleCSVUpload(event) {
     reader.readAsText(file);
 }
 
-// Splits one CSV line into fields, respecting "quoted, commas, inside quotes"
 function parseCsvLine(line) {
     const result = [];
     let cur = '';
@@ -442,8 +429,6 @@ function parseCsvLine(line) {
     return result;
 }
 
-// Lowercases, strips apostrophes/underscores/extra spaces so header matching
-// isn't broken by capitalization, punctuation, or spacing differences.
 function normalizeHeader(h) {
     return String(h || '')
         .toLowerCase()
@@ -453,34 +438,25 @@ function normalizeHeader(h) {
         .trim();
 }
 
-// English-first alias list. Add more variants (or a Malay set) here as needed —
-// the matching logic itself doesn't change, just this dictionary.
 const CSV_FIELD_ALIASES = {
-    namaPelajar: ['full name', 'name', 'student name', 'nama', 'nama penuh'],
-    noIC: ['ic number', 'ic', 'nric', 'identity card', 'identity card number', 'mykad'],
-    tarikhLahir: ['date of birth', 'dob', 'birth date'],
-    noTel: ['phone number', 'phone', 'contact number', 'mobile number', 'mobile', 'tel', 'telephone'],
-    alamatRumah: ['home address', 'address', 'residential address'],
-    poskod: ['postcode', 'postal code', 'zip code', 'zip'],
-    bandar: ['city', 'town'],
-    negeri: ['state'],
-    sebabMemohon: ['reason for applying', 'reason to apply', 'reason', 'reason for application'],
-    program: ['program', 'programme', 'course', 'academic program'],
-    semester: ['semester', 'sem'],
-    gpa: ['gpa', 'current gpa'],
-    cgpa: ['cgpa', 'cumulative gpa'],
-    tanggunganAnak: ['dependents', 'number of dependents', 'total dependents', 'dependents count'],
-    isMpp: ['mpp member', 'is mpp', 'mpp'],
-    'penjaga1.nama': ["father name", "fathers name", "guardian 1 name", "guardian name"],
-    'penjaga1.ic': ['father ic', 'fathers ic', 'guardian 1 ic'],
-    'penjaga1.tel': ['father phone', 'fathers phone', 'guardian 1 phone'],
-    'penjaga1.pekerjaan': ['father job', 'fathers job', 'father occupation', 'guardian 1 job'],
-    'penjaga1.pendapatan': ['father income', 'fathers income', 'guardian 1 income'],
-    'penjaga2.nama': ['mother name', 'mothers name', 'guardian 2 name'],
-    'penjaga2.ic': ['mother ic', 'mothers ic', 'guardian 2 ic'],
-    'penjaga2.tel': ['mother phone', 'mothers phone', 'guardian 2 phone'],
-    'penjaga2.pekerjaan': ['mother job', 'mothers job', 'guardian 2 job'],
-    'penjaga2.pendapatan': ['mother income', 'mothers income', 'guardian 2 income']
+    namaPelajar: ['full name', 'nama pelajar', 'nama penuh'],
+    noIC: ['ic number', 'no ic', 'mykad'],
+    noTel: ['phone number', 'no tel', 'telefon'],
+    alamatRumah: ['home address', 'alamat rumah'],
+    bandar: ['city', 'bandar'],
+    negeri: ['state', 'negeri'],
+    poskod: ['postcode', 'poskod'],
+    tanggunganAnak: ['number of dependents', 'tanggungan anak', 'bilangan tanggungan'],
+    'penjaga1.nama': ['fathers name', 'father name', 'nama bapa', 'nama penjaga 1'],
+    'penjaga1.ic': ['fathers ic', 'father ic', 'ic bapa', 'ic penjaga 1'],
+    'penjaga1.tel': ['fathers phone', 'father phone', 'tel bapa', 'phone bapa', 'tel penjaga 1'],
+    'penjaga1.pekerjaan': ['fathers job', 'father job', 'pekerjaan bapa', 'pekerjaan penjaga 1'],
+    'penjaga1.pendapatan': ['fathers income', 'father income', 'pendapatan bapa', 'gaji bapa'],
+    'penjaga2.nama': ['mothers name', 'mother name', 'nama ibu', 'nama penjaga 2'],
+    'penjaga2.ic': ['mothers ic', 'mother ic', 'ic ibu', 'ic penjaga 2'],
+    'penjaga2.tel': ['mothers phone', 'mother phone', 'tel ibu', 'phone ibu', 'tel penjaga 2'],
+    'penjaga2.pekerjaan': ['mothers job', 'mother job', 'pekerjaan ibu', 'pekerjaan penjaga 2'],
+    'penjaga2.pendapatan': ['mothers income', 'mother income', 'pendapatan ibu', 'gaji ibu']
 };
 
 const CSV_ALIAS_LOOKUP = {};
@@ -488,17 +464,13 @@ Object.entries(CSV_FIELD_ALIASES).forEach(([targetKey, aliases]) => {
     aliases.forEach(alias => {
         CSV_ALIAS_LOOKUP[normalizeHeader(alias)] = targetKey;
     });
-    CSV_ALIAS_LOOKUP[normalizeHeader(targetKey)] = targetKey; // exact internal key still works too
+    CSV_ALIAS_LOOKUP[normalizeHeader(targetKey)] = targetKey;
 });
 
-// Income fields render into <input type="number">. Browsers silently refuse
-// to set .value on a number input to anything non-numeric, so "RM1,200" (a
-// perfectly valid CSV value) would just leave the field blank. Strip the
-// currency prefix and thousands separators down to a plain number string.
 const CURRENCY_FIELD_KEYS = new Set(['penjaga1.pendapatan', 'penjaga2.pendapatan']);
 
 function sanitizeCurrency(value) {
-    const cleaned = value.replace(/[^\d.]/g, ''); // drop "RM", commas, spaces, etc.
+    const cleaned = value.replace(/[^\d.]/g, '');
     return cleaned === '' ? '' : cleaned;
 }
 
@@ -518,7 +490,7 @@ function mapCsvRowToFormData(headers, values) {
 
         if (CURRENCY_FIELD_KEYS.has(targetKey)) {
             value = sanitizeCurrency(value);
-            if (value === '') return; // nothing numeric left — skip rather than insert blank
+            if (value === '') return;
         }
 
         if (targetKey.includes('.')) {
@@ -530,7 +502,87 @@ function mapCsvRowToFormData(headers, values) {
         }
     });
 
+    if (mapped.penjaga1 || mapped.penjaga2) {
+        mapped.familyMode = 'parents';
+    }
+
     return { mapped, unmatched };
+}
+
+/* =========================================================
+   EXPORT STUDENT DETAILS TO CSV (Syamsul_Nazir.csv Schema)
+   ========================================================= */
+function exportStudentDetailsToCSV() {
+    const headers = [
+        "Full Name",
+        "IC Number",
+        "Phone Number",
+        "Home Address",
+        "City",
+        "State",
+        "Postcode",
+        "Number of Dependents",
+        "Father's Name",
+        "Father's IC",
+        "Father's Phone",
+        "Father's Job",
+        "Father's Income",
+        "Mother's Name",
+        "Mother's IC",
+        "Mother's Phone",
+        "Mother's Job",
+        "Mother's Income"
+    ];
+
+    const escapeCsv = (val) => {
+        const str = (val === null || val === undefined) ? "" : String(val).trim();
+        return `"${str.replace(/"/g, '""')}"`;
+    };
+
+    const formatIncome = (val) => {
+        const str = (val === null || val === undefined) ? "" : String(val).trim();
+        if (!str) return "";
+        if (str.toUpperCase().startsWith("RM")) return str;
+        const num = parseFloat(str.replace(/,/g, ''));
+        return isNaN(num) ? str : `RM${num.toLocaleString('en-US')}`;
+    };
+
+    const data = [
+        escapeCsv(getValue('namaPelajar')),
+        escapeCsv(getValue('noIC')),
+        escapeCsv(getValue('noTel')),
+        escapeCsv(getValue('alamatRumah')),
+        escapeCsv(getValue('bandar')),
+        escapeCsv(getValue('negeri')),
+        escapeCsv(getValue('poskod')),
+        escapeCsv(getValue('tanggunganAnak')),
+        escapeCsv(getValue('namaPenjaga1')),
+        escapeCsv(getValue('icPenjaga1')),
+        escapeCsv(getValue('telPenjaga1')),
+        escapeCsv(getValue('pekerjaanPenjaga1')),
+        escapeCsv(formatIncome(getValue('pendapatanPenjaga1'))),
+        escapeCsv(getValue('namaPenjaga2')),
+        escapeCsv(getValue('icPenjaga2')),
+        escapeCsv(getValue('telPenjaga2')),
+        escapeCsv(getValue('pekerjaanPenjaga2')),
+        escapeCsv(formatIncome(getValue('pendapatanPenjaga2')))
+    ];
+
+    const csvContent = headers.join(",") + "\n" + data.join(",");
+
+    const studentName = getValue('namaPelajar') || 'Student';
+    const sanitizedFileName = studentName.replace(/[^a-zA-Z0-9_\-]/g, '_');
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const downloadLink = document.createElement("a");
+    downloadLink.href = url;
+    downloadLink.download = `${sanitizedFileName}_Details.csv`;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+    URL.revokeObjectURL(url);
 }
 
 function showDetailMessage(text, isError) {
@@ -540,16 +592,12 @@ function showDetailMessage(text, isError) {
     msgDiv.innerText = text;
 }
 
-// Draft cache for a NOT-YET-SUBMITTED application, kept separate from `userData`
-// (which is session/account info, not form-in-progress data). This survives the
-// user closing the tab or navigating away before hitting Submit.
 const DETAIL_DRAFT_KEY = 'detailFormDraft';
 
 function saveDetailFormDraft(newData) {
     try {
         const existing = JSON.parse(localStorage.getItem(DETAIL_DRAFT_KEY) || '{}');
         const merged = { ...existing, ...newData };
-        // Merge nested guardian objects instead of letting one overwrite the other
         if (newData.penjaga1) merged.penjaga1 = { ...(existing.penjaga1 || {}), ...newData.penjaga1 };
         if (newData.penjaga2) merged.penjaga2 = { ...(existing.penjaga2 || {}), ...newData.penjaga2 };
         localStorage.setItem(DETAIL_DRAFT_KEY, JSON.stringify(merged));
@@ -572,21 +620,7 @@ function clearDetailFormDraft() {
 
 /* =========================================================
    PAYSLIP / SUPPORT-LETTER PDF — SELECT, PREVIEW, CHECK, UPLOAD
-   =========================================================
-   Design: selecting a file only previews it locally and runs the (free,
-   non-blocking) AI plausibility check — it does NOT touch R2 yet. The
-   actual /api/student/upload-payslip call only fires once the student
-   clicks Submit/Update, right after their details save successfully.
-   This is what makes "Remove" (task 3) a pure no-network action, and
-   what makes an edit-mode swap (task 4) only replace the stored file
-   when the student actually clicks Update — upload-payslip's existing
-   delete-old-then-insert-new logic (payslip_backend.js) handles the
-   "replace" itself; this file just controls WHEN that call happens.
    ========================================================= */
-
-// One slot's config + its own pending-file state live together in one object,
-// so the primary (dropdown type) and secondary (fixed, optional type) slots
-// run through the exact same logic instead of two near-duplicate copies.
 const PRIMARY_SLOT = {
     key: 'primary',
     fileInputId: 'slipGajiPDF',
@@ -625,9 +659,6 @@ const SECONDARY_SLOT = {
     objectUrl: null
 };
 
-// ---- The other upload slots. The salary slip (above) and the sworn declaration are two ways
-// to prove income: ONE is enough. The rest are optional. The AI hostel review reads all of them.
-// Missing documents never block the submission - they only lower the chance of being accepted.
 function makeDocSlot(n, key, fileInputId, docType, label, required, help) {
     return {
         key, n, label, help, required,
@@ -665,7 +696,6 @@ const OTHER_SLOT = makeDocSlot(5, 'other', 'otherDocPDF', 'dokumen_lain',
     'Other Supporting Document', false,
     '* Optional. Anything else that supports your application, for example a Dean\'s Award certificate (Anugerah Dekan).');
 
-// Order on the page: after the salary slip -> sworn declaration, MyKad, program head letter, other
 const DOC_SLOTS = [SWORN_SLOT, MYKAD_SLOT, SECONDARY_SLOT, OTHER_SLOT];
 const ALL_SLOTS = [PRIMARY_SLOT, ...DOC_SLOTS];
 
@@ -761,9 +791,6 @@ function handlePdfSelection(slot, event) {
     if (nameDisplay) nameDisplay.innerText = `📄 ${file.name} (not yet saved)`;
     if (removeBtn) removeBtn.style.display = 'inline-flex';
     if (pendingNote) pendingNote.style.display = 'block';
-    // No "View" link here by design — it only ever points at the file that's
-    // actually confirmed saved on the server (set in uploadPendingPdfs and
-    // loadExistingPdfForSlot), never at a locally-picked, not-yet-sent file.
     if (viewLink) viewLink.style.display = 'none';
 
     const reader = new FileReader();
@@ -778,11 +805,6 @@ function handlePdfSelection(slot, event) {
     runPlausibilityCheck(slot, file);
 }
 
-// Removes the locally-selected file. Since nothing is uploaded until Submit/
-// Update, this never needs to touch the server for a file picked this
-// session. clearServerCopy exists for completeness but isn't used by the
-// Remove button today — the student removes the OLD file by simply
-// attaching a replacement instead, which the submit-time upload swaps in.
 function removePdfSlot(slot, { clearServerCopy }) {
     const fileInput = document.getElementById(slot.fileInputId);
     const nameDisplay = document.getElementById(slot.nameDisplayId);
@@ -812,7 +834,7 @@ async function runPlausibilityCheck(slot, file) {
 
     try {
         const imageBase64 = await renderPdfFirstPageToImageBase64(file);
-        if (!imageBase64) return; // pdf.js unavailable — skip silently, never blocks the student
+        if (!imageBase64) return;
 
         const checkRes = await fetch('/api/student/check-payslip', {
             method: 'POST',
@@ -830,13 +852,9 @@ async function runPlausibilityCheck(slot, file) {
         }
     } catch (err) {
         console.error('Plausibility check error:', err);
-        // Non-blocking by design — a failed check just means no warning shown.
     }
 }
 
-// Renders page 1 of the PDF to a PNG and returns it as raw base64 (no data: prefix),
-// using pdf.js loaded via CDN. Returns null if pdf.js isn't available for any reason —
-// callers treat that as "skip the AI check", never as a failure to block on.
 async function renderPdfFirstPageToImageBase64(file) {
     try {
         if (typeof pdfjsLib === 'undefined') return null;
@@ -861,10 +879,6 @@ async function renderPdfFirstPageToImageBase64(file) {
     }
 }
 
-// Called once, right after /api/student/update-details succeeds. Uploads
-// whichever slot(s) actually have a pending (not-yet-saved) file. A slot the
-// student never touched this session is left alone — its existing R2 file,
-// if any, stays exactly as it was.
 async function uploadPendingPdfs(userId) {
     for (const slot of ALL_SLOTS) {
         if (!slot.pendingFile) continue;
@@ -897,14 +911,10 @@ async function uploadPendingPdfs(userId) {
             if (nameDisplay) nameDisplay.innerText = `📄 ${file.name} ✓ saved`;
             if (pendingNote) pendingNote.style.display = 'none';
             if (viewLink) {
-                // Points at the server endpoint, not a local blob — this is
-                // now confirmed saved, so "View" should show exactly what's
-                // actually retrievable, the same URL loadExistingPdfForSlot
-                // would set on a fresh page load.
                 viewLink.href = `/api/student/payslip?user_id=${encodeURIComponent(userId)}&document_type=${encodeURIComponent(documentType)}`;
                 viewLink.style.display = 'inline-flex';
             }
-            slot.pendingFile = null; // persisted now — no longer "pending"
+            slot.pendingFile = null;
         } catch (err) {
             console.error('PDF upload error:', err);
             return { ok: false, error: `${slot.typeLabel(documentType)} upload failed` };
@@ -982,10 +992,6 @@ async function fetchAndPopulateStudentDetails() {
         if (res.ok) {
             const apiData = await res.json();
             if (apiData && Object.keys(apiData).length > 0) {
-                // A draft row always exists from registration, so apiData "having keys"
-                // doesn't mean the application was actually submitted. If it's still a
-                // draft, restore any unsaved CSV-filled progress on top of the sparse
-                // server data — server values win only where they're actually non-empty.
                 let dataToRender = apiData;
                 if (apiData.accountStatus !== 'submitted') {
                     const draft = loadDetailFormDraft();
@@ -993,19 +999,16 @@ async function fetchAndPopulateStudentDetails() {
                         dataToRender = mergeDraftOverEmptyFields(apiData, draft);
                     }
                 } else {
-                    clearDetailFormDraft(); // already submitted — a lingering draft is now stale
+                    clearDetailFormDraft();
                 }
 
                 populateForm(dataToRender);
                 lastLoadedData = apiData;
 
-                // Already submitted once? Start in read-only view with an Edit button,
-                // instead of the normal fillable first-time form.
                 if (apiData.accountStatus === 'submitted') {
                     enterViewMode();
                 }
 
-                // Sync backend data to localStorage cache
                 const updatedCache = { ...userData, ...apiData };
                 localStorage.setItem('userData', JSON.stringify(updatedCache));
                 return;
@@ -1022,8 +1025,6 @@ function loadDataFromLocalStorage() {
     populateForm(data);
 }
 
-// Fills in draft values only where the server's own value is empty/null — a real
-// submitted value always wins over a leftover draft.
 function mergeDraftOverEmptyFields(serverData, draftData) {
     const result = { ...serverData };
 
@@ -1117,23 +1118,12 @@ function populateForm(data) {
 
     if (data.tanggunganAnak) setInputValue('tanggunganAnak', data.tanggunganAnak);
 
-    // The PDF itself no longer travels through this JSON payload (it's uploaded
-    // separately to R2) — if this student already has one on file, preview it
-    // by pointing the iframe straight at the serving endpoint.
-    // NOTE: data.user_id isn't always the key present — localStorage's cached
-    // user object (and some code paths) use "id" instead. Same fallback this
-    // file already uses everywhere else (see getStorageData callers).
     const uidForPdfCheck = data.user_id || data.id;
     if (uidForPdfCheck) {
         ALL_SLOTS.forEach(slot => loadExistingPdfForSlot(slot, uidForPdfCheck, [slot.getDocumentType()]));
     }
 }
 
-// Checks each candidate document_type in order (HEAD request) and previews
-// the first one found. For the primary slot this also sets the "Document
-// Type" dropdown to match whichever type is actually on file, so an edit
-// later re-checks/replaces the correct one. Shows "No file selected" if
-// none of the candidates exist yet (nothing uploaded for this slot so far).
 function loadExistingPdfForSlot(slot, userId, candidateTypes) {
     const nameDisplay = document.getElementById(slot.nameDisplayId);
     const previewContainer = document.getElementById(slot.previewContainerId);
@@ -1158,8 +1148,6 @@ function loadExistingPdfForSlot(slot, userId, candidateTypes) {
                         previewFrame.src = url;
                         previewContainer.style.display = 'block';
                     }
-                    // Same reliable "open in a new tab" affordance as a freshly
-                    // selected file — points straight at the serving endpoint.
                     if (viewLink) {
                         viewLink.href = url;
                         viewLink.style.display = 'inline-flex';

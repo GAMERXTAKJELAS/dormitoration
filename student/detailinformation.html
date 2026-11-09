@@ -1,36 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detail Information | TVETMARA Lumut</title>
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="/design/detailinforamtion.css">
-    
+
     <!-- Theme Switcher & Detail Info JS -->
     <script src="/script/theme.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" defer></script>
     <script src="/script/detail_info.js" defer></script>
 </head>
+
 <body class="dark-mode">
 
-<header class="top-nav">
-    <div class="nav-container">
-        <div class="brand">
-            <i class='bx bxs-building-house'></i>
-            <span>Dormitoration</span>
-        </div>
+    <header class="top-nav">
+        <div class="nav-container">
+            <div class="brand">
+                <i class='bx bxs-building-house'></i>
+                <span>Dormitoration</span>
+            </div>
 
-        <nav class="nav-links">
-            <a href="/student/studenthomepage.html" class="btn-outline">
-                <i class='bx bx-arrow-back'></i> Back
-            </a>
-            <button id="theme-toggle" class="theme-btn" aria-label="Toggle Theme">
-                <i class='bx bx-moon' id="theme-icon"></i>
-            </button>
-        </nav>
-    </div>
-</header>
+            <nav class="nav-links">
+                <a href="/student/studenthomepage.html" class="btn-outline">
+                    <i class='bx bx-arrow-back'></i> Back
+                </a>
+                <button id="theme-toggle" class="theme-btn" aria-label="Toggle Theme">
+                    <i class='bx bx-moon' id="theme-icon"></i>
+                </button>
+            </nav>
+        </div>
+    </header>
 
     <main class="main-content">
         <!-- Header Banner & Action Bar -->
@@ -42,11 +44,16 @@
 
             <!-- Top-Right CSV Actions -->
             <div class="csv-actions-wrapper">
-                <button type="button" id="editProfileBtn" class="btn-csv-upload" style="display: none;" onclick="enterEditMode()">
+                <button type="button" id="editProfileBtn" class="btn-csv-upload" style="display: none;"
+                    onclick="enterEditMode()">
                     <i class='bx bx-edit-alt'></i> Edit Profile
                 </button>
                 <button type="button" class="btn-csv-upload" onclick="document.getElementById('csvFileInput').click()">
                     <i class='bx bx-file'></i> Auto-Fill via CSV
+                </button>
+                <!-- Export CSV Button -->
+                <button type="button" class="btn-csv-upload" onclick="exportStudentDetailsToCSV()">
+                    <i class='bx bx-download'></i> Export to CSV
                 </button>
                 <button type="button" class="btn-info-icon" title="CSV Auto-Fill Info" onclick="openInfoModal('csv')">
                     <i class='bx bx-info-circle'></i>
@@ -66,7 +73,8 @@
                     <h2><i class='bx bx-user'></i> SECTION A: PERSONAL DETAILS</h2>
                     <div class="section-actions">
                         <!-- Hidden Camera Feature Button for Future IC Scanner -->
-                        <button type="button" id="btnIcCamera" class="btn-camera-ic" style="display: none;" title="Scan IC (Coming Soon)" disabled>
+                        <button type="button" id="btnIcCamera" class="btn-camera-ic" style="display: none;"
+                            title="Scan IC (Coming Soon)" disabled>
                             <i class='bx bx-camera'></i>
                         </button>
                         <button type="button" class="btn-info-icon" onclick="openInfoModal('sectionA')">
@@ -93,7 +101,8 @@
 
                     <div class="input-box full-width">
                         <label>Home Address</label>
-                        <textarea id="alamatRumah" name="alamatRumah" rows="2" placeholder="Full residential address"></textarea>
+                        <textarea id="alamatRumah" name="alamatRumah" rows="2"
+                            placeholder="Full residential address"></textarea>
                     </div>
 
                     <div class="input-box">
@@ -113,7 +122,8 @@
 
                     <div class="input-box full-width">
                         <label>Reason for Hostel Application</label>
-                        <textarea id="sebabMemohon" name="sebabMemohon" rows="3" placeholder="State your primary reason for residing on campus"></textarea>
+                        <textarea id="sebabMemohon" name="sebabMemohon" rows="3"
+                            placeholder="State your primary reason for residing on campus"></textarea>
                     </div>
                 </div>
             </div>
@@ -137,7 +147,8 @@
                             <option value="DFD">DIPLOMA TEKNOLOGI KOMPUTER (ANALISA DATA BESAR)</option>
                             <option value="DGA">DIPLOMA TEKNOLOGI AUTOMOTIF</option>
                             <option value="DNS">DIPLOMA TEKNOLOGI KEJURUTERAAN (PEMBUATAN PINTAR)</option>
-                            <option value="DTB">DIPLOMA TEKNOLOGI AUTOMATIF (BAIKPULIH & KEMASAN BADAN KENDERAAN)</option>
+                            <option value="DTB">DIPLOMA TEKNOLOGI AUTOMATIF (BAIKPULIH & KEMASAN BADAN KENDERAAN)
+                            </option>
                             <option value="DTR">DIPLOMA TEKNOLOGI PENGELUARAN PERABOT KONTEMPORARI</option>
                             <option value="DTW">DIPLOMA TEKNOLOGI PERKHIDMATAN AIR</option>
                             <option value="ITW">DIPLOMA KOMPETENSI KIMPALAN</option>
@@ -184,7 +195,8 @@
                                 <span>Yes</span>
                             </label>
                             <label class="radio-option">
-                                <input type="radio" name="isMpp" value="No" checked onchange="toggleMppContributions(false)">
+                                <input type="radio" name="isMpp" value="No" checked
+                                    onchange="toggleMppContributions(false)">
                                 <span>No</span>
                             </label>
                         </div>
@@ -193,9 +205,12 @@
                     <!-- Club/Sports Contributions (Visible when MPP = No) -->
                     <div class="input-box full-width" id="nonMppContributionsWrapper">
                         <label>Contributions & Involvement at TVETMARA Lumut (Clubs/Associations/Sports)</label>
-                        <input type="text" id="sumbangan1" name="sumbangan1" placeholder="1. e.g. Vice President - Robotics Club" style="margin-bottom: 8px;">
-                        <input type="text" id="sumbangan2" name="sumbangan2" placeholder="2. e.g. Campus Football Team Player" style="margin-bottom: 8px;">
-                        <input type="text" id="sumbangan3" name="sumbangan3" placeholder="3. e.g. Event Coordinator - Cultural Night">
+                        <input type="text" id="sumbangan1" name="sumbangan1"
+                            placeholder="1. e.g. Vice President - Robotics Club" style="margin-bottom: 8px;">
+                        <input type="text" id="sumbangan2" name="sumbangan2"
+                            placeholder="2. e.g. Campus Football Team Player" style="margin-bottom: 8px;">
+                        <input type="text" id="sumbangan3" name="sumbangan3"
+                            placeholder="3. e.g. Event Coordinator - Cultural Night">
                     </div>
                 </div>
             </div>
@@ -213,10 +228,12 @@
                 <div class="parent-switch-card">
                     <span class="switch-label">Who should we list as your emergency contact & family details?</span>
                     <div class="segmented-control">
-                        <button type="button" id="btnModeParents" class="segment-btn active" onclick="switchGuardianMode('parents')">
+                        <button type="button" id="btnModeParents" class="segment-btn active"
+                            onclick="switchGuardianMode('parents')">
                             <i class='bx bx-group'></i> Parent's Details
                         </button>
-                        <button type="button" id="btnModeGuardians" class="segment-btn" onclick="switchGuardianMode('guardians')">
+                        <button type="button" id="btnModeGuardians" class="segment-btn"
+                            onclick="switchGuardianMode('guardians')">
                             <i class='bx bx-user-check'></i> Guardian's Details
                         </button>
                     </div>
@@ -280,7 +297,8 @@
                         <div class="guardian-card" id="guardianCard_1">
                             <div class="guardian-card-header">
                                 <h3 class="sub-title">Guardian 1</h3>
-                                <button type="button" class="btn-remove-guardian" onclick="removeGuardianCard('guardianCard_1')" title="Remove this guardian">
+                                <button type="button" class="btn-remove-guardian"
+                                    onclick="removeGuardianCard('guardianCard_1')" title="Remove this guardian">
                                     <i class='bx bx-trash'></i> Remove
                                 </button>
                             </div>
@@ -323,7 +341,8 @@
                 <div class="input-grid" style="margin-top: 20px;">
                     <div class="input-box full-width">
                         <label>Schooling Dependents / Siblings Currently Studying</label>
-                        <input type="number" id="tanggunganAnak" name="tanggunganAnak" placeholder="Total dependents still in school / tertiary education">
+                        <input type="number" id="tanggunganAnak" name="tanggunganAnak"
+                            placeholder="Total dependents still in school / tertiary education">
                     </div>
                 </div>
 
@@ -337,22 +356,30 @@
                             <i class='bx bx-info-circle'></i>
                         </button>
                     </div>
-                    <p class="pdf-note">* Income proof: attach the latest salary slip of your parent/guardian. <strong>No payslip?</strong> Upload a Sworn Declaration (Surat Akuan Sumpah) below instead — one of the two is enough, and uploading both gives a more reliable review. Allowed format: <strong>PDF</strong>. If neither is uploaded your application is still sent, but the chance of being accepted is much lower.</p>
+                    <p class="pdf-note">* Income proof: attach the latest salary slip of your parent/guardian.
+                        <strong>No payslip?</strong> Upload a Sworn Declaration (Surat Akuan Sumpah) below instead — one
+                        of the two is enough, and uploading both gives a more reliable review. Allowed format:
+                        <strong>PDF</strong>. If neither is uploaded your application is still sent, but the chance of
+                        being accepted is much lower.</p>
 
                     <div class="file-drop-area">
                         <button type="button" class="btn-pdf-select" id="btnPdfSelect">
                             <i class='bx bx-upload'></i> Select PDF File
                         </button>
                         <span id="fileNameDisplay">No file selected</span>
-                        <button type="button" class="btn-remove-pdf" id="btnRemovePdf" style="display: none;" title="Remove selected file">
+                        <button type="button" class="btn-remove-pdf" id="btnRemovePdf" style="display: none;"
+                            title="Remove selected file">
                             <i class='bx bx-x'></i> Remove
                         </button>
-                        <a href="#" id="pdfViewLink" class="btn-view-pdf" style="display: none;" target="_blank" rel="noopener">
+                        <a href="#" id="pdfViewLink" class="btn-view-pdf" style="display: none;" target="_blank"
+                            rel="noopener">
                             <i class='bx bx-show'></i> View PDF
                         </a>
-                        <input type="file" id="slipGajiPDF" name="slipGajiPDF" accept="application/pdf" style="display: none;">
+                        <input type="file" id="slipGajiPDF" name="slipGajiPDF" accept="application/pdf"
+                            style="display: none;">
                     </div>
-                    <p class="pdf-note" id="pdfPendingNote" style="display: none;">* This file will be uploaded when you click Submit/Update below — it hasn't been saved yet.</p>
+                    <p class="pdf-note" id="pdfPendingNote" style="display: none;">* This file will be uploaded when you
+                        click Submit/Update below — it hasn't been saved yet.</p>
 
                     <!-- AI plausibility warning — non-blocking, just a heads-up -->
                     <div id="pdfWarningBanner" class="pdf-warning-banner" style="display: none;">
@@ -380,10 +407,12 @@
                 <div class="checkbox-container">
                     <input type="checkbox" id="perakuan" name="perakuan" required>
                     <label for="perakuan">
-                        I hereby declare that all information provided in this application is accurate, true, and complete. I understand that misrepresentation may lead to immediate disqualification of hostel allocation.
+                        I hereby declare that all information provided in this application is accurate, true, and
+                        complete. I understand that misrepresentation may lead to immediate disqualification of hostel
+                        allocation.
                     </label>
                 </div>
-                
+
                 <button type="submit" id="firstTimeSubmitBtn" class="btn-primary-submit">
                     <i class='bx bx-paper-plane'></i> Save & Submit Application
                 </button>
@@ -418,4 +447,5 @@
     </footer>
 
 </body>
+
 </html>
