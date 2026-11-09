@@ -23,6 +23,7 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
           u.username,
           u.email,
           u.phone,
+          u.profile_picture,
           u.created_at,
           u.registration_deadline,
           u.account_status,
@@ -94,7 +95,6 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
       }
 
       // Room assigned to this student (room_allocations -> hostel_applications -> rooms).
-      // Wrapped in its own try/catch so a room lookup problem never breaks the status response.
       let roomDetails = null;
       if (normalizedStatus === 'approved') {
         try {
@@ -125,6 +125,7 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
           username: data.username || 'N/A',
           email: data.email || 'N/A',
           phone: data.phone || 'N/A',
+          profile_picture: data.profile_picture || null,
           gender: data.gender || '',
           created_at: data.created_at || null,
           registration_deadline: calculatedDeadline || null
@@ -143,6 +144,37 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
     }
   }
 
+  // POST: Upload Profile Picture Avatar
+  if (method === 'POST' && url.pathname === '/api/student/upload-avatar') {
+    try {
+      const { user_id, profile_picture } = await request.json();
+
+      if (!user_id || !profile_picture) {
+        return new Response(JSON.stringify({ error: 'User ID and image data are required.' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      await env.DB.prepare(`
+        UPDATE users 
+        SET profile_picture = ?, updated_at = ?
+        WHERE id = ?
+      `).bind(profile_picture, new Date().toISOString(), user_id).run();
+
+      return new Response(JSON.stringify({ success: true, message: 'Profile picture updated successfully.' }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    } catch (err) {
+      console.error('Upload Avatar Error:', err.message);
+      return new Response(JSON.stringify({ error: 'Failed to update profile picture', details: err.message }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+  }
+
   // POST: Delete User Account ONLY (Retaining hostel_applications history)
   if (method === 'POST' && url.pathname === '/api/student/delete-account') {
     try {
@@ -155,7 +187,6 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
         });
       }
 
-      // Delete only the record in the users table to keep hostel_applications intact
       const deleteResult = await env.DB.prepare(`
         DELETE FROM users WHERE id = ?
       `).bind(user_id).run();
@@ -209,7 +240,6 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
     } catch (err) {
       console.error('Update Account Error:', err.message);
 
-      // A UNIQUE constraint violation (duplicate email/username) surfaces here
       const isDuplicate = /unique/i.test(err.message);
       const friendlyMessage = isDuplicate
         ? 'That username or email is already in use by another account.'
@@ -222,7 +252,7 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
     }
   }
 
-  // GET: Student's stable unique access code (used to render the QR client-side)
+  // GET: Student's stable unique access code
   if (method === 'GET' && url.pathname === '/api/student/qr-code') {
     const userId = url.searchParams.get('user_id');
 

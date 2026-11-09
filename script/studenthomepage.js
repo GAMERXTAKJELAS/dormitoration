@@ -53,7 +53,7 @@ function closeCustomAlert() {
 }
 
 // ==========================================
-// AVATAR HELPER
+// AVATAR HELPER & UPLOAD
 // ==========================================
 function getDynamicAvatar(student) {
     if (!student) return '/image/default_Male.svg';
@@ -71,6 +71,95 @@ function getDynamicAvatar(student) {
     }
 
     return '/image/default_Male.svg';
+}
+
+async function handleAvatarUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+        showCustomAlert('Please select a valid image file (PNG, JPG, WEBP).', 'error');
+        return;
+    }
+
+    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+    const userId = userData.id || userData.user_id;
+
+    if (!userId) {
+        showCustomAlert('User session not found.', 'error');
+        return;
+    }
+
+    try {
+        // Compress & resize image to 300x300 JPEG base64 string
+        const base64Data = await resizeImageToBase64(file, 300, 300, 0.85);
+
+        const response = await fetch('/api/student/upload-avatar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: userId, profile_picture: base64Data })
+        });
+
+        const result = await response.json();
+        if (!response.ok) {
+            throw new Error(result.error || 'Failed to upload profile picture.');
+        }
+
+        // Update local state and UI elements dynamically
+        const updatedUser = { ...userData, profile_picture: base64Data };
+        localStorage.setItem('userData', JSON.stringify(updatedUser));
+
+        const profileAvatar = document.getElementById('profileAvatar');
+        const navHeaderAvatar = document.getElementById('navHeaderAvatar');
+
+        if (profileAvatar) profileAvatar.src = base64Data;
+        if (navHeaderAvatar) navHeaderAvatar.src = base64Data;
+
+        showCustomAlert('Profile picture updated successfully!', 'success');
+    } catch (err) {
+        console.error('Avatar upload error:', err);
+        showCustomAlert(`Error uploading avatar: ${err.message}`, 'error');
+    } finally {
+        e.target.value = '';
+    }
+}
+
+function resizeImageToBase64(file, maxWidth, maxHeight, quality) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > maxWidth) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    }
+                } else {
+                    if (height > maxHeight) {
+                        width = Math.round((width * maxHeight) / height);
+                        height = maxHeight;
+                    }
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                resolve(canvas.toDataURL('image/jpeg', quality));
+            };
+            img.onerror = (err) => reject(err);
+        };
+        reader.onerror = (err) => reject(err);
+    });
 }
 
 // ==========================================
@@ -122,10 +211,8 @@ async function executeDeleteAccount() {
             throw new Error(result.error || 'Failed to delete account.');
         }
 
-        // Close delete confirmation modal first
         closeDeleteAccountModal();
 
-        // Show custom alert popup, then auto-redirect to log_in.html when closed/clicked
         showCustomAlert('Account deleted successfully.', 'success', () => {
             localStorage.removeItem('userData');
             sessionStorage.clear();
@@ -138,7 +225,6 @@ async function executeDeleteAccount() {
     }
 }
 
-// Fallback logout handler
 if (typeof window.executeLogout !== 'function') {
     window.executeLogout = function() {
         localStorage.removeItem('userData');
@@ -151,8 +237,6 @@ function updateNavAccountLabel(user) {
     const label = document.getElementById('navAccountLabel');
     if (!label) return;
     const username = user && user.username;
-    // "N/A" is what /api/student/status returns when no username is set in the DB —
-    // fall back to the generic "Account" label in the UI only, never write it to the DB.
     label.textContent = (username && username !== 'N/A') ? username : 'Account';
 }
 
@@ -223,8 +307,6 @@ async function fetchStudentStatus(userId) {
 
 // ==========================================
 // SMART ACCESS QR CODE
-// The unique code is fixed (fetched from the DB, assigned once on approval).
-// Only the VISUAL STYLE is randomized on every page load/reload.
 // ==========================================
 let qrInstance = null;
 
@@ -254,8 +336,6 @@ async function renderAccessQR() {
             return;
         }
 
-        // Randomize only the look (dot shape / corner shape / color) — the encoded
-        // data (data.code) never changes, so any scanner reads the same identity every time.
         const dotStyles = ['rounded', 'dots', 'classy', 'classy-rounded', 'extra-rounded', 'square'];
         const cornerStyles = ['dot', 'square', 'extra-rounded'];
         const colorPairs = [
@@ -552,10 +632,6 @@ async function handleAccountSave(e) {
         console.error('Error updating account:', err);
         showCustomAlert(`Error: ${err.message}`, 'error');
     }
-}
-
-function handleAvatarUpload(e) {
-    showCustomAlert('Avatar upload feature will be available once R2 bucket storage is connected.', 'info');
 }
 
 // ==========================================
