@@ -92,15 +92,21 @@ function cleanValue(spec, raw, label) {
   return { value: n };
 }
 
+// Returns { userId } or { error } - the error says exactly what the link contained,
+// so a bad link is easy to spot.
 async function resolveUserId(env, url) {
-  const userId = Number(url.searchParams.get('id'));
-  if (Number.isInteger(userId) && userId > 0) return userId;
-  const appId = Number(url.searchParams.get('app_id'));
+  const rawId = url.searchParams.get('id');
+  const rawApp = url.searchParams.get('app_id');
+
+  const userId = Number(rawId);
+  if (Number.isInteger(userId) && userId > 0) return { userId };
+
+  const appId = Number(rawApp);
   if (Number.isInteger(appId) && appId > 0) {
     const row = await env.DB.prepare(`SELECT user_id FROM hostel_applications WHERE id = ?`).bind(appId).first();
-    return row ? row.user_id : null;
+    return row ? { userId: row.user_id } : { error: `No application found with ID ${appId}.` };
   }
-  return null;
+  return { error: `The link has no valid student ID (received id="${rawId ?? ''}", app_id="${rawApp ?? ''}").` };
 }
 
 export async function handleApplicationDetails(request, env, headers) {
@@ -113,15 +119,16 @@ export async function handleApplicationDetails(request, env, headers) {
     if (auth.error) return json({ error: auth.error }, auth.status, headers);
 
     try {
-      const userId = await resolveUserId(env, url);
-      if (!userId) return json({ error: 'Student not found.' }, 404, headers);
+      const resolved = await resolveUserId(env, url);
+      if (resolved.error) return json({ error: resolved.error }, 404, headers);
+      const userId = resolved.userId;
 
       const user = await env.DB.prepare(`
         SELECT id, username, full_name, email, phone, role, account_status,
                profile_picture, registration_deadline, created_at
         FROM users WHERE id = ?
       `).bind(userId).first();
-      if (!user) return json({ error: 'Student not found.' }, 404, headers);
+      if (!user) return json({ error: `No student account found with ID ${userId}.` }, 404, headers);
 
       const application = await env.DB.prepare(
         `SELECT * FROM hostel_applications WHERE user_id = ? ORDER BY id DESC LIMIT 1`
