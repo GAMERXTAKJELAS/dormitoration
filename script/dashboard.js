@@ -91,9 +91,8 @@ function renderHardwareStatus(hardware, occupancyPct, occupancy) {
 
     if (pctEl) pctEl.innerText = `${occupancyPct}%`;
     if (labelEl) {
-        labelEl.innerText = occupancy
-            ? `Room Occupancy (${occupancy.occupied} / ${occupancy.total})`
-            : "Room Occupancy";
+        labelEl.innerText = "Room Occupancy";
+        if (occupancy) labelEl.title = `${occupancy.occupied} of ${occupancy.total} beds assigned`;
     }
 
     if (!container) return;

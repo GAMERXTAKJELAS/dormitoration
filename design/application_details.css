@@ -1,0 +1,112 @@
+/* ==========================================================================
+   Admin - Student / Application Details page
+   Uses the colour tokens from dashboard.css (works in dark and light mode).
+   ========================================================================== */
+.dd-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+.dd-header-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.dd-header h1 { margin: 0 0 6px; color: var(--text-heading); font-size: 1.8rem; overflow-wrap: anywhere; }
+
+.dd-back {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 40px; height: 40px; flex: 0 0 auto;
+    border-radius: 10px; border: 1px solid var(--border-color);
+    background: var(--card-bg); color: var(--text-color);
+    font-size: 1.3rem; text-decoration: none;
+}
+.dd-back:hover { border-color: var(--primary-color); color: var(--primary-color); }
+
+.dd-avatar {
+    width: 56px; height: 56px; flex: 0 0 auto;
+    border-radius: 50%; object-fit: cover;
+    border: 2px solid var(--primary-color); background: var(--input-bg);
+}
+
+.dd-badges { display: flex; flex-wrap: wrap; gap: 8px; }
+.dd-badge {
+    display: inline-block; padding: 3px 10px; border-radius: 999px;
+    font-size: 0.75rem; font-weight: 600; border: 1px solid var(--border-color);
+    color: var(--text-muted); background: var(--input-bg);
+}
+.dd-badge.ok     { color: #10b981; border-color: #10b981; background: rgba(16, 185, 129, 0.12); }
+.dd-badge.warn   { color: #eab308; border-color: #eab308; background: rgba(234, 179, 8, 0.12); }
+.dd-badge.bad    { color: #ef4444; border-color: #ef4444; background: rgba(239, 68, 68, 0.12); }
+.dd-badge.girl   { color: #ec4899; border-color: #ec4899; background: rgba(236, 72, 153, 0.12); }
+
+/* Buttons */
+.dd-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.dd-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 16px; border-radius: 10px; font-size: 0.9rem; font-weight: 600;
+    border: 1px solid transparent; cursor: pointer;
+}
+.dd-btn-primary { background: var(--primary-color); color: #0b1f14; }
+.dd-btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
+.dd-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.dd-btn-ghost { background: var(--card-bg); color: var(--text-color); border-color: var(--border-color); }
+.dd-btn-ghost:hover { border-color: var(--primary-color); }
+.dd-btn-disabled {
+    background: var(--input-bg); color: var(--text-muted);
+    border: 1px dashed var(--input-border); cursor: not-allowed; opacity: 0.7;
+}
+
+.dd-message {
+    margin: 0 0 16px; padding: 10px 14px; border-radius: 10px; font-size: 0.9rem;
+    border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color);
+}
+.dd-message.error   { border-color: #ef4444; color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+.dd-message.success { border-color: #10b981; color: #10b981; background: rgba(16, 185, 129, 0.1); }
+
+.dd-loading { color: var(--text-muted); }
+
+/* Sections */
+.dd-content { display: flex; flex-direction: column; gap: 20px; }
+.dd-card {
+    background: var(--card-bg); border: 1px solid var(--border-color);
+    border-radius: 16px; padding: 22px;
+}
+.dd-card h2 {
+    margin: 0 0 16px; font-size: 1.05rem; color: var(--text-heading);
+    display: flex; align-items: center; gap: 8px;
+}
+.dd-card h2 i { color: var(--primary-color); font-size: 1.3rem; }
+
+.dd-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px 24px; }
+.dd-field.wide { grid-column: 1 / -1; }
+.dd-label { display: block; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
+.dd-value { color: var(--text-color); font-size: 0.95rem; overflow-wrap: anywhere; white-space: pre-wrap; }
+.dd-value.empty { color: var(--text-muted); }
+
+.dd-input {
+    width: 100%; box-sizing: border-box; padding: 9px 12px; border-radius: 8px;
+    border: 1px solid var(--input-border); background: var(--input-bg);
+    color: var(--text-color); font-size: 0.95rem; font-family: inherit;
+}
+.dd-input:focus { outline: none; border-color: var(--primary-color); }
+textarea.dd-input { min-height: 90px; resize: vertical; }
+.dd-input.invalid { border-color: #ef4444; }
+
+/* Documents */
+.dd-doc { border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; background: var(--input-bg); }
+.dd-doc + .dd-doc { margin-top: 14px; }
+.dd-doc.flagged { border-color: #eab308; }
+.dd-doc-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+.dd-doc-title { font-weight: 700; color: var(--text-heading); }
+.dd-doc-meta { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; overflow-wrap: anywhere; }
+.dd-doc-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.dd-doc-actions .dd-btn { padding: 6px 12px; font-size: 0.8rem; }
+.dd-doc-flag { margin-top: 10px; font-size: 0.85rem; color: #eab308; }
+.dd-viewer { margin-top: 12px; width: 100%; height: 640px; border: 1px solid var(--border-color); border-radius: 10px; background: #fff; }
+.dd-empty { color: var(--text-muted); margin: 0; }
+
+@media (max-width: 768px) {
+    .dd-card { padding: 16px; }
+    .dd-viewer { height: 420px; }
+    .dd-actions { width: 100%; }
+}

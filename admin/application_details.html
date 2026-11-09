@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dormitoration | Student Details</title>
+
+    <link rel="stylesheet" href="/design/dashboard.css">
+    <link rel="stylesheet" href="/design/application_details.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+
+    <script src="/script/theme.js" defer></script>
+    <script src="/script/logout_logic.js" defer></script>
+    <script src="/script/application_details.js" defer></script>
+</head>
+<body>
+
+    <!-- Logout Modal -->
+    <div id="logout-modal" class="modal-overlay" style="display:none;">
+        <div class="modal-content">
+            <i class='bx bx-log-out-circle' style="font-size: 3rem; color: #ef4444;"></i>
+            <h2>Leave Session?</h2>
+            <p>You are attempting to leave the admin area. Do you want to log out?</p>
+            <div class="modal-btns">
+                <button class="btn-secondary" onclick="closeLogoutModal()">Cancel</button>
+                <button class="btn-danger" onclick="executeLogout()">Yes, Log Out</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar-nav">
+        <div class="logo-section">
+            <i class='bx bxs-building-house'></i>
+            <span class="text" style="font-weight: bold; margin-left: 20px;">DORMITORY</span>
+        </div>
+
+        <nav class="navbar">
+            <ul class="nav-list">
+                <li><a href="/admin/adminhomepage.html">
+                    <i class='bx bx-home-alt icon'></i>
+                    <span class="text">Home</span>
+                </a></li>
+
+                <li><a href="/admin/dashboard.html">
+                    <i class='bx bxs-dashboard icon'></i>
+                    <span class="text">Dashboard</span>
+                </a></li>
+
+                <li><a href="/admin/approval.html">
+                    <i class='bx bxs-check-shield icon'></i>
+                    <span class="text">Approval</span>
+                </a></li>
+
+                <li><a href="/admin/report.html">
+                    <i class='bx bxs-report icon'></i>
+                    <span class="text">Report</span>
+                </a></li>
+
+                <li><a href="/admin/setting.html">
+                    <i class='bx bx-cog icon'></i>
+                    <span class="text">Settings</span>
+                </a></li>
+            </ul>
+        </nav>
+
+        <div class="sidebar-footer" style="position: absolute; bottom: 20px; width: 100%; padding: 0 25px;">
+            <button id="theme-toggle" class="theme-btn" style="background:none; border:none; cursor:pointer; color:var(--text-color); display:flex; align-items:center; gap:15px;">
+                <i class='bx bx-moon' id="theme-icon" style="font-size: 22px;"></i>
+                <span class="text">Theme</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-box">
+        <header class="dd-header">
+            <div class="dd-header-left">
+                <a href="javascript:history.back()" class="dd-back" title="Back"><i class='bx bx-arrow-back'></i></a>
+                <img id="dd-avatar" class="dd-avatar" src="/image/default_Male.svg" alt="">
+                <div>
+                    <h1 id="dd-name">Student Details</h1>
+                    <div id="dd-badges" class="dd-badges"></div>
+                </div>
+            </div>
+
+            <div class="dd-actions">
+                <button type="button" class="dd-btn dd-btn-disabled" id="btn-rfid" disabled title="RFID registration - coming soon">
+                    <i class='bx bx-id-card'></i> Register RFID
+                </button>
+                <button type="button" class="dd-btn dd-btn-ghost" id="btn-cancel" style="display:none;">Cancel</button>
+                <button type="button" class="dd-btn dd-btn-primary" id="btn-save" style="display:none;"><i class='bx bx-save'></i> Save Changes</button>
+                <button type="button" class="dd-btn dd-btn-primary" id="btn-edit" disabled><i class='bx bx-edit'></i> Edit</button>
+            </div>
+        </header>
+
+        <p id="dd-message" class="dd-message" style="display:none;"></p>
+
+        <div id="dd-content" class="dd-content">
+            <p class="dd-loading">Loading student details...</p>
+        </div>
+    </main>
+
+</body>
+</html>

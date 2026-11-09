@@ -176,6 +176,18 @@ async function servePayslipByApplication(env, corsHeaders, url, mode) {
     const documentType = url.searchParams.get('document_type');
     let applicationId;
 
+    // Admin mode: documents contain personal data, so only a real admin may open them.
+    if (mode === 'admin') {
+      const adminId = Number(url.searchParams.get('admin_id'));
+      if (!Number.isInteger(adminId) || adminId <= 0) {
+        return new Response('Missing admin_id', { status: 400, headers: corsHeaders });
+      }
+      const adminRow = await env.DB.prepare(`SELECT role FROM users WHERE id = ? LIMIT 1`).bind(adminId).first();
+      if (!adminRow || adminRow.role !== 'admin') {
+        return new Response('Admin access required', { status: 403, headers: corsHeaders });
+      }
+    }
+
     if (mode === 'student') {
       const userId = url.searchParams.get('user_id');
       if (!userId) return new Response('Missing user_id', { status: 400, headers: corsHeaders });
@@ -188,7 +200,11 @@ async function servePayslipByApplication(env, corsHeaders, url, mode) {
 
     let query = `SELECT file_url FROM application_attachments WHERE application_id = ?`;
     const binds = [applicationId];
-    if (documentType) {
+    const attachmentId = mode === 'admin' ? Number(url.searchParams.get('attachment_id')) : NaN;
+    if (Number.isInteger(attachmentId) && attachmentId > 0) {
+      query += ` AND id = ?`;
+      binds.push(attachmentId);
+    } else if (documentType) {
       query += ` AND document_type = ?`;
       binds.push(documentType);
     }
@@ -202,7 +218,13 @@ async function servePayslipByApplication(env, corsHeaders, url, mode) {
 
     return new Response(object.body, {
       status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/pdf' }
+      headers: {
+        ...corsHeaders,
+        'Content-Type': (object.httpMetadata && object.httpMetadata.contentType) || 'application/pdf',
+        'Content-Disposition': 'inline',
+        'X-Content-Type-Options': 'nosniff',
+        'Cache-Control': 'private, no-store'
+      }
     });
   } catch (err) {
     console.error('Payslip Serve Error:', err.message);

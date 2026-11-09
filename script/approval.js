@@ -165,7 +165,7 @@ function renderTable() {
 
 function reviewFlaggedAttachment(appId) {
     if (!appId || appId === 'null') return;
-    window.open(`/api/admin/payslip?application_id=${appId}`, '_blank');
+    window.location.href = `/admin/application_details.html?app_id=${appId}#documents`;
 }
 
 function showEmptyTable(message) {
