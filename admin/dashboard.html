@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,6 +11,7 @@
     <script src="/script/logout_logic.js" defer></script>
     <script src="/script/dashboard.js" defer></script>
 </head>
+
 <body class="dark-mode">
 
     <!-- Logout Modal -->
@@ -35,29 +37,29 @@
         <nav class="navbar">
             <ul class="nav-list">
                 <li><a href="/admin/adminhomepage.html">
-                    <i class='bx bx-home-alt icon'></i>
-                    <span class="text">Home</span>
-                </a></li>
+                        <i class='bx bx-home-alt icon'></i>
+                        <span class="text">Home</span>
+                    </a></li>
 
                 <li><a href="/admin/dashboard.html" class="active">
-                    <i class='bx bxs-dashboard icon'></i>
-                    <span class="text">Dashboard</span>
-                </a></li>
+                        <i class='bx bxs-dashboard icon'></i>
+                        <span class="text">Dashboard</span>
+                    </a></li>
 
                 <li><a href="/admin/approval.html">
-                    <i class='bx bxs-check-shield icon'></i>
-                    <span class="text">Approval</span>
-                </a></li>
+                        <i class='bx bxs-check-shield icon'></i>
+                        <span class="text">Approval</span>
+                    </a></li>
 
                 <li><a href="/admin/report.html">
-                    <i class='bx bxs-report icon'></i>
-                    <span class="text">Report</span>
-                </a></li>
+                        <i class='bx bxs-report icon'></i>
+                        <span class="text">Report</span>
+                    </a></li>
 
                 <li><a href="/admin/setting.html">
-                    <i class='bx bx-cog icon'></i>
-                    <span class="text">Settings</span>
-                </a></li>
+                        <i class='bx bx-cog icon'></i>
+                        <span class="text">Settings</span>
+                    </a></li>
             </ul>
         </nav>
 
@@ -87,7 +89,8 @@
             </div>
 
             <!-- Clickable Pending Applications Card -->
-            <div class="stat-card warning clickable-card" id="card-pending-apps" onclick="window.location.href='/admin/approval.html'">
+            <div class="stat-card warning clickable-card" id="card-pending-apps"
+                onclick="window.location.href='/admin/approval.html'">
                 <div class="stat-info">
                     <h3 id="stat-pending-apps">0</h3>
                     <p>Pending Applications <i class='bx bx-right-arrow-alt'></i></p>
@@ -111,7 +114,8 @@
                     <h2>Hostel Blocks Overview</h2>
                     <div class="hardware-legend">
                         <span class="legend-item"><span class="legend-dot legend-offline"></span>Disconnected</span>
-                        <span class="legend-item"><span class="legend-dot legend-standby"></span>Standby (room has space)</span>
+                        <span class="legend-item"><span class="legend-dot legend-standby"></span>Standby (room has
+                            space)</span>
                         <span class="legend-item"><span class="legend-dot legend-full"></span>Full</span>
                     </div>
                 </div>
@@ -128,7 +132,8 @@
                     <label class="arrange-checkbox">
                         <input type="checkbox" class="arrange-option" value="semester"> Semester
                     </label>
-                    <button class="btn-commit disabled" id="btn-commit-arrange" disabled title="Select at least one option">
+                    <button class="btn-commit disabled" id="btn-commit-arrange" disabled
+                        title="Select at least one option">
                         <i class='bx bx-check-circle'></i> Commit
                     </button>
                 </div>
@@ -142,7 +147,8 @@
                     </div>
                     <div class="offline-content">
                         <h3>No Hardware Online</h3>
-                        <p>Smart lock microcontrollers and RFID asset trackers are currently disconnected or unassigned.</p>
+                        <p>Smart lock microcontrollers and RFID asset trackers are currently disconnected or unassigned.
+                        </p>
                     </div>
                 </div>
             </div>
@@ -155,15 +161,19 @@
                     <h2>Active Registered Students</h2>
                     <p class="subtext">Directory of students with verified, active accounts.</p>
                     <div class="hardware-legend">
-                        <span class="legend-item"><span class="legend-dot" style="background:#eab308"></span>On hold (no room)</span>
-                        <span class="legend-item"><span class="legend-dot" style="background:#10b981"></span>Boy assigned</span>
-                        <span class="legend-item"><span class="legend-dot" style="background:#ec4899"></span>Girl assigned</span>
+                        <span class="legend-item"><span class="legend-dot" style="background:#eab308"></span>On hold (no
+                            room)</span>
+                        <span class="legend-item"><span class="legend-dot" style="background:#10b981"></span>Boy
+                            assigned</span>
+                        <span class="legend-item"><span class="legend-dot" style="background:#ec4899"></span>Girl
+                            assigned</span>
                     </div>
                     <div id="room-filter-banner" class="room-filter-banner" hidden></div>
                 </div>
                 <div class="search-box">
                     <i class='bx bx-search'></i>
-                    <input type="text" id="active-student-search" placeholder="Search name, IC, matric, email, phone...">
+                    <input type="text" id="active-student-search"
+                        placeholder="Search name, IC, matric, program, room...">
                 </div>
             </div>
 
@@ -190,4 +200,5 @@
     </main>
 
 </body>
+
 </html>

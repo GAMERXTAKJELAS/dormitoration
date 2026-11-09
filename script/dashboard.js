@@ -184,24 +184,33 @@ async function loadActiveStudents() {
 // Render Filtered Active Students Table
 function renderActiveStudentsTable() {
     const tbody = document.getElementById("active-students-tbody");
-    const searchVal = (document.getElementById("active-student-search")?.value || "").toLowerCase();
+    const searchVal = (document.getElementById("active-student-search")?.value || "").toLowerCase().trim();
 
     if (!tbody) return;
     tbody.innerHTML = "";
 
     const filtered = activeStudentsList.filter(student => {
         if (activeRoomFilter && student.room_id !== activeRoomFilter.id) return false;
+        
         const name = (student.full_name || "").toLowerCase();
         const email = (student.email || "").toLowerCase();
         const phone = (student.phone || "").toLowerCase();
         const ic = (student.ic_number || "").toLowerCase();
         const matric = (student.matric_number || "").toLowerCase();
+        const program = (student.program || "").toLowerCase();
+        const block = (student.room_block || "").toLowerCase();
+        const room = (student.room_number || "").toLowerCase();
+        const fullRoomStr = `block ${block} / ${room}`.toLowerCase();
 
         return name.includes(searchVal) ||
                email.includes(searchVal) ||
                phone.includes(searchVal) ||
                ic.includes(searchVal) ||
-               matric.includes(searchVal);
+               matric.includes(searchVal) ||
+               program.includes(searchVal) ||
+               block.includes(searchVal) ||
+               room.includes(searchVal) ||
+               fullRoomStr.includes(searchVal);
     });
 
     updateRoomFilterBanner();
@@ -221,7 +230,6 @@ function renderActiveStudentsTable() {
         const userIdVal = student.user_id ? student.user_id : 'null';
         const appIdVal = student.application_id ? student.application_id : 'null';
 
-        // Room state: yellow = on hold (no room), green = boy assigned, pink = girl assigned
         const g = normGender(student.gender);
         const hasRoom = !!student.room_id;
         const roomLabel = hasRoom ? `Block ${student.room_block} / ${student.room_number}` : '';
