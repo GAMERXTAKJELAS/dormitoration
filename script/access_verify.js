@@ -23,7 +23,7 @@ function safeEqual(a, b) {
   return diff === 0;
 }
 
-// Authenticates the incoming request against the secret DEVICE_API_KEY
+// Authenticates incoming requests against the secret DEVICE_API_KEY
 function checkDeviceKey(request, env) {
   if (!env.DEVICE_API_KEY) return json({ error: 'server_not_configured' }, 500);
   const key = request.headers.get('X-Device-Key') || '';
@@ -107,22 +107,22 @@ export async function handleAccessVerify(request, env, ctx) {
   let reason = 'unknown_code';
   let userId = null;
 
-  // 1. Fetch student users_id using the scanned QR UUID or RFID card serial
+  // 1. Fetch student user_id using scanned QR UUID or RFID card UID
   const rfidRow = await env.DB
-    .prepare('SELECT users_id FROM student_rfid WHERE qr_passcode_code = ? OR rfid_card_serial = ? LIMIT 1')
+    .prepare('SELECT user_id FROM student_rfid WHERE qr_access_code = ? OR rfid_card_uid = ? LIMIT 1')
     .bind(code, code)
     .first();
 
   if (rfidRow) {
-    userId = rfidRow.users_id;
+    userId = rfidRow.user_id;
 
-    // 2. Query student's active room allocation joined via hostel_applications
+    // 2. Traversal join: user_id -> hostel_applications -> room_allocations -> rooms
     const alloc = await env.DB
       .prepare(`SELECT r.block_name, r.room_number, ra.status
                 FROM rooms r
                 JOIN room_allocations ra ON ra.room_id = r.id
                 JOIN hostel_applications ha ON ha.id = ra.application_id
-                WHERE ha.users_id = ?
+                WHERE ha.user_id = ?
                 ORDER BY ra.id DESC
                 LIMIT 1`)
       .bind(userId)
