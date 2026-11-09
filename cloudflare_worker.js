@@ -1,7 +1,7 @@
 import { handleRegister } from './script/register_backend.js';
 import { handleLogin } from './script/login_backend.js';
 import { handleAdminStats } from './script/adminpage_backend.js';
-import { handleAdminDeadlineSettings } from './script/settings_backend.js';
+import { handleAdminDeadlineSettings, handleAdminSystemControls } from './script/settings_backend.js';
 import { handleAdminApplications } from './script/approval_backend.js';
 import { handleStudentRoutes } from './script/studenthomepage_backend.js';
 import { handleDashboardRoutes, handleSystemLogs } from './script/dashboard_backend.js';
@@ -52,6 +52,10 @@ export default {
 
       if (url.pathname === '/api/admin/settings/deadline') {
         return await handleAdminDeadlineSettings(request, env, headers);
+      }
+
+      if (url.pathname === '/api/admin/settings/system-controls') {
+        return await handleAdminSystemControls(request, env, headers);
       }
 
       // ESP32 door unit: verifies a scanned QR access code (device-key protected)
@@ -108,8 +112,8 @@ export default {
         url.pathname === '/api/admin/reports/status' ||
         url.pathname === '/api/admin/report-photo'
       ) {
-      const reportResponse = await handleReportRoutes(request, env, headers);
-      if (reportResponse) return reportResponse;
+        const reportResponse = await handleReportRoutes(request, env, headers);
+        if (reportResponse) return reportResponse;
       }
 
       if (url.pathname.startsWith('/api/student')) {
@@ -145,21 +149,11 @@ export default {
       console.error("[Cron Job Error]:", err.message);
     }
 
-    // Mark rooms offline once their ESP32 hasn't heartbeated for a while.
-    // The heartbeat itself sets is_active back to 1 on reconnect, so this
-    // only ever needs to turn it off, never on.
     try {
-      // Keep in sync with main.cpp's HEARTBEAT_MS (currently 5 min) and
-      // dashboard_backend.js's ONLINE_WINDOW_SECONDS - both should stay at
-      // roughly 2x the heartbeat interval plus a bit of slack.
       const ROOM_OFFLINE_AFTER_SECONDS = 660; // 11 min
       const cutoffISO = new Date(Date.now() - ROOM_OFFLINE_AFTER_SECONDS * 1000).toISOString();
 
       try {
-        // Record each unit that just went silent (history on the Data Visualize page), in the
-        // same transaction as the flip so no event is written for a unit that came back in
-        // between. Rooms that never connected (last_seen_at IS NULL) are flipped as before
-        // but get no event.
         await env.DB.batch([
           env.DB.prepare(`
             INSERT INTO device_events (room_id, event, occurred_at, detail)
@@ -175,7 +169,6 @@ export default {
           `).bind(cutoffISO)
         ]);
       } catch (batchErr) {
-        // e.g. device_events has not been created yet: still do the original offline sweep
         console.error("[Cron Job] offline event logging failed, sweeping without it:", batchErr.message);
         await env.DB.prepare(`
           UPDATE rooms

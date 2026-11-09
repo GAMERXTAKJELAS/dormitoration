@@ -42,7 +42,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (res.ok) {
                     alert("Default registration window updated successfully!");
                 } else {
-                    // Show exact server error if available
                     alert(`Failed to save setting: ${data.details || data.error || 'Unknown server error'}`);
                 }
             } catch (err) {
@@ -51,6 +50,56 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
+
+    // ---------- System Control Switches (Maintenance & Auto-Lock) ----------
+    const maintenanceToggle = document.getElementById("maintenance-toggle");
+    const autolockToggle = document.getElementById("autolock-toggle");
+
+    // Fetch initial switch states from D1 (default to OFF / false)
+    async function loadSystemControls() {
+        try {
+            const res = await fetch("/api/admin/settings/system-controls");
+            if (res.ok) {
+                const data = await res.json();
+                if (maintenanceToggle) maintenanceToggle.checked = !!data.maintenance_mode;
+                if (autolockToggle) autolockToggle.checked = !!data.autolock_main_gate;
+            }
+        } catch (err) {
+            console.error("Error loading system controls:", err);
+        }
+    }
+
+    // Save toggle state change to D1
+    async function updateSystemControl(key, value) {
+        try {
+            const res = await fetch("/api/admin/settings/system-controls", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ key, value })
+            });
+            if (!res.ok) {
+                const errData = await res.json();
+                alert(`Failed to save ${key}: ${errData.error || 'Unknown error'}`);
+            }
+        } catch (err) {
+            console.error(`Error saving ${key}:`, err);
+            alert(`Network error saving setting.`);
+        }
+    }
+
+    if (maintenanceToggle) {
+        maintenanceToggle.addEventListener("change", (e) => {
+            updateSystemControl("maintenance_mode", e.target.checked);
+        });
+    }
+
+    if (autolockToggle) {
+        autolockToggle.addEventListener("change", (e) => {
+            updateSystemControl("autolock_main_gate", e.target.checked);
+        });
+    }
+
+    loadSystemControls();
 
     // ---------- Unusual hours windows (anomaly rule used by the Data Visualize page) ----------
     const windowList = document.getElementById("anomaly-windows");
@@ -148,7 +197,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     return;
                 }
 
-                // CSV Headers matching log table columns
                 const headers = ["Timestamp", "Event", "User / Node", "Status"];
                 const rows = data.logs.map(l => {
                     const when = new Date(l.time);
@@ -233,7 +281,6 @@ document.addEventListener("DOMContentLoaded", () => {
         updateAddState();
     }
 
-    // Reads the rows into [{start, end}], or returns { error } if something is not filled in properly
     function collectWindows() {
         const windows = [];
         for (const row of windowList.children) {
