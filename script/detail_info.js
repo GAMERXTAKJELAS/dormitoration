@@ -21,13 +21,11 @@ function setFormFieldsDisabled(disabled) {
 // confirmation link (set by loadExistingPdfForSlot) so it clearly reads as
 // "here's what you submitted", not an active upload form.
 function setPdfSlotsEditable(editable) {
-    [PRIMARY_SLOT, SECONDARY_SLOT].forEach(slot => {
+    ALL_SLOTS.forEach(slot => {
         const selectBtn = document.getElementById(slot.selectBtnId);
         const removeBtn = document.getElementById(slot.removeBtnId);
-        const typeSelect = slot === PRIMARY_SLOT ? document.getElementById('documentType') : null;
         if (selectBtn) selectBtn.style.display = editable ? 'inline-flex' : 'none';
         if (!editable && removeBtn) removeBtn.style.display = 'none'; // only re-shown by a fresh selection
-        if (typeSelect) typeSelect.disabled = !editable;
     });
 }
 
@@ -79,8 +77,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const csvFileInput = document.getElementById('csvFileInput');
     if (csvFileInput) csvFileInput.addEventListener('change', handleCSVUpload);
 
-    initPdfSlot(PRIMARY_SLOT);
-    initPdfSlot(SECONDARY_SLOT);
+    buildDocSlots();
+    ALL_SLOTS.forEach(initPdfSlot);
 
     // 5. Form Submit Handler
     const detailForm = document.getElementById('detailInfoForm');
@@ -176,6 +174,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                     msgDiv.innerText = `Profile saved, but a document failed to upload: ${pdfResult.error}. Please try re-attaching it.`;
                     return; // stay on the page so the student can retry the PDF
                 }
+
+                // Application + documents are saved -> start the AI hostel review in the background.
+                // Fire-and-forget: the student never waits for it, and a failure never blocks the submission.
+                try {
+                    fetch('/api/student/run-ai-review', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ user_id: updatedDetails.user_id }),
+                        keepalive: true
+                    }).catch(() => {});
+                } catch (e) { /* non-blocking */ }
 
                 if (wasEditingExisting) {
                     if (msgDiv) {
@@ -590,8 +599,8 @@ const PRIMARY_SLOT = {
     previewContainerId: 'pdfPreviewContainer',
     previewFrameId: 'pdfPreviewFrame',
     viewLinkId: 'pdfViewLink',
-    getDocumentType: () => document.getElementById('documentType')?.value || 'slip_gaji',
-    typeLabel: (docType) => docType === 'slip_gaji' ? 'Salary Slip' : 'Sworn Declaration',
+    getDocumentType: () => 'slip_gaji',
+    typeLabel: () => 'Salary Slip',
     required: true,
     pendingFile: null,
     objectUrl: null
@@ -616,6 +625,97 @@ const SECONDARY_SLOT = {
     objectUrl: null
 };
 
+// ---- The other upload slots. Two are IMPORTANT (salary slip above + sworn declaration);
+// the rest are optional. The AI hostel review reads all of them. A missing important
+// document never blocks the submission - it only lowers the chance of being accepted.
+function makeDocSlot(n, key, fileInputId, docType, label, required, help) {
+    return {
+        key, n, label, help, required,
+        fileInputId,
+        selectBtnId: `btnPdfSelect${n}`,
+        removeBtnId: `btnRemovePdf${n}`,
+        nameDisplayId: `fileNameDisplay${n}`,
+        pendingNoteId: `pdfPendingNote${n}`,
+        warningBannerId: `pdfWarningBanner${n}`,
+        warningTextId: `pdfWarningText${n}`,
+        previewContainerId: `pdfPreviewContainer${n}`,
+        previewFrameId: `pdfPreviewFrame${n}`,
+        viewLinkId: `pdfViewLink${n}`,
+        getDocumentType: () => docType,
+        typeLabel: () => label,
+        pendingFile: null,
+        objectUrl: null
+    };
+}
+
+Object.assign(SECONDARY_SLOT, {
+    n: 2,
+    label: 'Program Head Support Letter (Dokumen Sokongan Ketua Program)',
+    help: '* Optional. Attach only if your Program Head has issued a support letter for your application.'
+});
+
+const SWORN_SLOT = makeDocSlot(3, 'sworn', 'swornDeclarationPDF', 'surat_akuan_sumpah',
+    'Sworn Declaration (Surat Akuan Sumpah)', true,
+    '* Important: attach your parent/guardian\'s sworn declaration of income (Surat Akuan Sumpah). If it is missing your application is still sent, but the chance of being accepted is much lower.');
+const MYKAD_SLOT = makeDocSlot(4, 'mykad', 'mykadPDF', 'salinan_mykad',
+    'MyKad Copy', false,
+    '* Optional. A clear copy of your MyKad (front side).');
+const OTHER_SLOT = makeDocSlot(5, 'other', 'otherDocPDF', 'dokumen_lain',
+    'Other Supporting Document', false,
+    '* Optional. Anything else that supports your application, for example a Dean\'s Award certificate (Anugerah Dekan).');
+
+// Order on the page: after the salary slip -> sworn declaration, MyKad, program head letter, other
+const DOC_SLOTS = [SWORN_SLOT, MYKAD_SLOT, SECONDARY_SLOT, OTHER_SLOT];
+const ALL_SLOTS = [PRIMARY_SLOT, ...DOC_SLOTS];
+
+function buildDocSlots() {
+    const host = document.getElementById('extraDocSlots');
+    if (!host || host.dataset.built) return;
+    host.dataset.built = '1';
+
+    DOC_SLOTS.forEach(slot => {
+        const wrap = document.createElement('div');
+        wrap.innerHTML = `
+            <div class="pdf-upload-divider"></div>
+            <div class="pdf-upload-header">
+                <label class="pdf-upload-label">
+                    <i class='bx bxs-file-pdf'></i> Upload ${slot.label} — <em>${slot.required ? 'Important' : 'Optional'}</em>
+                </label>
+            </div>
+            <p class="pdf-note">${slot.help}</p>
+            <div class="file-drop-area">
+                <button type="button" class="btn-pdf-select" id="${slot.selectBtnId}">
+                    <i class='bx bx-upload'></i> Select PDF File
+                </button>
+                <span id="${slot.nameDisplayId}">No file selected</span>
+                <button type="button" class="btn-remove-pdf" id="${slot.removeBtnId}" style="display: none;" title="Remove selected file">
+                    <i class='bx bx-x'></i> Remove
+                </button>
+                <a href="#" id="${slot.viewLinkId}" class="btn-view-pdf" style="display: none;" target="_blank" rel="noopener">
+                    <i class='bx bx-show'></i> View PDF
+                </a>
+                <input type="file" id="${slot.fileInputId}" accept="application/pdf" style="display: none;">
+            </div>
+            <p class="pdf-note" id="${slot.pendingNoteId}" style="display: none;">* This file will be uploaded when you click Submit/Update below — it hasn't been saved yet.</p>
+            <div id="${slot.warningBannerId}" class="pdf-warning-banner" style="display: none;">
+                <i class='bx bx-error'></i>
+                <span id="${slot.warningTextId}"></span>
+            </div>
+            <div id="${slot.previewContainerId}" class="pdf-preview-wrapper" style="display: none;">
+                <div class="preview-bar">
+                    <span><i class='bx bx-show'></i> Document Preview</span>
+                    <button type="button" class="btn-close-preview" data-close-preview="1">&times;</button>
+                </div>
+                <iframe id="${slot.previewFrameId}" src="" class="pdf-iframe"></iframe>
+            </div>`;
+        host.appendChild(wrap);
+        wrap.querySelector('[data-close-preview]').addEventListener('click', () => {
+            const box = document.getElementById(slot.previewContainerId);
+            if (box) box.style.display = 'none';
+        });
+    });
+}
+
 function initPdfSlot(slot) {
     const selectBtn = document.getElementById(slot.selectBtnId);
     const fileInput = document.getElementById(slot.fileInputId);
@@ -627,18 +727,6 @@ function initPdfSlot(slot) {
     }
     if (removeBtn) {
         removeBtn.addEventListener('click', () => removePdfSlot(slot, { clearServerCopy: false }));
-    }
-
-    // Re-run the plausibility check if the document type changes after a file
-    // was already selected — otherwise a stale verdict could linger.
-    if (slot === PRIMARY_SLOT) {
-        const typeSelect = document.getElementById('documentType');
-        if (typeSelect) {
-            typeSelect.addEventListener('change', () => {
-                hideWarning(slot);
-                if (slot.pendingFile) runPlausibilityCheck(slot, slot.pendingFile);
-            });
-        }
     }
 }
 
@@ -728,12 +816,15 @@ async function runPlausibilityCheck(slot, file) {
         const checkRes = await fetch('/api/student/check-payslip', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: userId, document_type: documentType, imageBase64 })
+            body: JSON.stringify({ user_id: userId, document_type: documentType, imageBase64, fileName: file.name, fileSize: file.size })
         });
 
         const verdict = await checkRes.json();
         if (verdict && verdict.looksValid === false && warningBanner && warningText) {
             warningText.innerText = `This doesn't look like a ${slot.typeLabel(documentType)} — are you sure this is the right file? (${verdict.reason || 'Please double-check.'})`;
+            warningBanner.style.display = 'flex';
+        } else if (verdict && verdict.readable === false && warningBanner && warningText) {
+            warningText.innerText = `The AI could not read this file clearly (${verdict.reason || 'unclear scan'}). It will still be sent and the admin will check it manually. A clearer scan gives a better result.`;
             warningBanner.style.display = 'flex';
         }
     } catch (err) {
@@ -774,7 +865,7 @@ async function renderPdfFirstPageToImageBase64(file) {
 // student never touched this session is left alone — its existing R2 file,
 // if any, stays exactly as it was.
 async function uploadPendingPdfs(userId) {
-    for (const slot of [PRIMARY_SLOT, SECONDARY_SLOT]) {
+    for (const slot of ALL_SLOTS) {
         if (!slot.pendingFile) continue;
 
         const file = slot.pendingFile;
@@ -853,7 +944,7 @@ const modalContentMap = {
     },
     payslip: {
         title: "Payslip Upload Guidance",
-        body: "Upload your parent or guardian's latest monthly payslip or official income statement in PDF format for priority allocation processing."
+        body: "Upload PDF documents for your application. The salary slip and the sworn declaration are important: if one is missing your application is still sent, but the chance of being accepted is much lower. The MyKad copy, program head letter and other documents (for example a Dean's Award certificate) are optional."
     }
 };
 
@@ -1033,8 +1124,7 @@ function populateForm(data) {
     // file already uses everywhere else (see getStorageData callers).
     const uidForPdfCheck = data.user_id || data.id;
     if (uidForPdfCheck) {
-        loadExistingPdfForSlot(PRIMARY_SLOT, uidForPdfCheck, ['slip_gaji', 'surat_akuan_sumpah']);
-        loadExistingPdfForSlot(SECONDARY_SLOT, uidForPdfCheck, ['dokumen_sokongan_ketua_program']);
+        ALL_SLOTS.forEach(slot => loadExistingPdfForSlot(slot, uidForPdfCheck, [slot.getDocumentType()]));
     }
 }
 
@@ -1072,10 +1162,6 @@ function loadExistingPdfForSlot(slot, userId, candidateTypes) {
                     if (viewLink) {
                         viewLink.href = url;
                         viewLink.style.display = 'inline-flex';
-                    }
-                    if (slot === PRIMARY_SLOT) {
-                        const typeSelect = document.getElementById('documentType');
-                        if (typeSelect) typeSelect.value = docType;
                     }
                 } else {
                     tryNext(i + 1);

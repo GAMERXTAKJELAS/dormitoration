@@ -64,7 +64,13 @@
     }
 
     function docLabel(type) {
-        const known = { slip_gaji: 'Salary Slip', surat_akuan_sumpah: 'Sworn Declaration' };
+        const known = {
+            slip_gaji: 'Salary Slip',
+            surat_akuan_sumpah: 'Sworn Declaration',
+            salinan_mykad: 'MyKad Copy',
+            dokumen_sokongan_ketua_program: 'Program Head Support Letter',
+            dokumen_lain: 'Other Supporting Document'
+        };
         if (known[type]) return known[type];
         return String(type || 'Document').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
     }
@@ -145,16 +151,6 @@
                 RO('Assigned room', d => d.room ? `Block ${d.room.block_name} / ${d.room.room_number}` : ''),
                 RO('RFID card', d => d.rfid && d.rfid.registered ? 'Registered' : 'Not registered yet')
             ]
-        },
-        {
-            title: 'AI Eligibility Review', icon: 'bx-bot', fields: [
-                RO('Summary', d => d.application && d.application.ai_eligibility_summary, { wide: true }),
-                RO('Recommendation', d => {
-                    const v = d.application && d.application.ai_eligibility_recommendation;
-                    return isEmpty(v) ? '' : (Number(v) === 1 ? 'Eligible' : (Number(v) === 0 ? 'Needs review' : String(v)));
-                }),
-                RO('Generated on', d => fmtDate(d.application && d.application.ai_eligibility_generated_at))
-            ]
         }
     ];
 
@@ -233,6 +229,121 @@
             block.appendChild(val);
         }
         return block;
+    }
+
+    // ------------------------------------------------------------- AI hostel review
+    const DOC_STATE_TEXT = {
+        ok: ['Received and read', 'ok'],
+        unreadable: ['Received - AI could not read it', 'warn'],
+        invalid: ['Does not look like the right document', 'bad'],
+        missing: ['Not uploaded', 'bad']
+    };
+
+    function renderAiCard() {
+        const review = data.ai_review;
+        const card = el('section', 'dd-card');
+        card.id = 'ai-review';
+
+        const h = el('h2');
+        h.appendChild(el('i', 'bx bx-bot'));
+        h.appendChild(document.createTextNode('AI Hostel Review'));
+        card.appendChild(h);
+
+        const runBtn = el('button', 'dd-btn dd-btn-ghost');
+        runBtn.type = 'button';
+        runBtn.textContent = review ? 'Run again' : 'Run AI review';
+        runBtn.addEventListener('click', async () => {
+            runBtn.disabled = true;
+            runBtn.textContent = 'Running...';
+            try {
+                const res = await fetch('/api/admin/ai-review', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ admin_id: adminId, user_id: data.user.id })
+                });
+                const body = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(body.error || `Request failed (${res.status})`);
+                await load();
+                showMessage('AI review updated.', 'success');
+            } catch (err) {
+                runBtn.disabled = false;
+                runBtn.textContent = review ? 'Run again' : 'Run AI review';
+                showMessage('AI review failed: ' + err.message, 'error');
+            }
+        });
+
+        if (!review) {
+            card.appendChild(el('p', 'dd-empty',
+                data.application
+                    ? 'No AI review has been generated yet. It runs automatically when the student submits the application.'
+                    : 'This student has not started an application yet.'));
+            if (data.application) {
+                const row = el('div', 'dd-ai-actions');
+                row.appendChild(runBtn);
+                card.appendChild(row);
+            }
+            return card;
+        }
+
+        // headline: percentage + verdict
+        const kind = review.score >= 80 ? 'ok' : (review.score >= 50 ? 'warn' : 'bad');
+        const top = el('div', 'dd-ai-top');
+        const scoreBox = el('div', 'dd-ai-score ' + kind);
+        scoreBox.appendChild(el('span', 'dd-ai-score-num', review.score + '%'));
+        scoreBox.appendChild(el('span', 'dd-ai-score-label', 'chance of acceptance'));
+        top.appendChild(scoreBox);
+
+        const side = el('div', 'dd-ai-side');
+        const badges = el('div', 'dd-badges');
+        badges.appendChild(el('span', 'dd-badge ' + kind, review.verdict));
+        if (Number(review.manual_check) === 1) badges.appendChild(el('span', 'dd-badge warn', 'Needs a manual check'));
+        side.appendChild(badges);
+        side.appendChild(el('div', 'dd-doc-meta', review.generated_at ? 'Generated ' + fmtDate(review.generated_at) : ''));
+        const bar = el('div', 'dd-ai-bar');
+        const fill = el('div', 'dd-ai-bar-fill ' + kind);
+        fill.style.width = Math.max(0, Math.min(100, review.score)) + '%';
+        bar.appendChild(fill);
+        side.appendChild(bar);
+        const actions = el('div', 'dd-ai-actions');
+        actions.appendChild(runBtn);
+        side.appendChild(actions);
+        top.appendChild(side);
+        card.appendChild(top);
+
+        if (review.summary) card.appendChild(el('p', 'dd-ai-summary', review.summary));
+
+        // why this score
+        card.appendChild(el('div', 'dd-label', 'Why this score'));
+        const list = el('ul', 'dd-ai-list');
+        (review.factors || []).forEach(f => {
+            const li = el('li');
+            const pts = Number(f.points) || 0;
+            li.appendChild(el('span', 'dd-ai-pts ' + (pts > 0 ? 'ok' : (pts < 0 ? 'bad' : '')), (pts > 0 ? '+' : '') + pts));
+            const text = el('span', 'dd-ai-note');
+            text.appendChild(el('strong', null, f.label + ': '));
+            text.appendChild(document.createTextNode(f.note || ''));
+            li.appendChild(text);
+            list.appendChild(li);
+        });
+        card.appendChild(list);
+
+        // documents
+        card.appendChild(el('div', 'dd-label', 'Documents checked'));
+        const docList = el('ul', 'dd-ai-list');
+        (review.documents || []).forEach(d => {
+            const li = el('li');
+            const [text, k] = DOC_STATE_TEXT[d.state] || [d.state, ''];
+            li.appendChild(el('span', 'dd-badge ' + k, text));
+            const note = el('span', 'dd-ai-note');
+            note.appendChild(el('strong', null, d.label + (d.required ? ' (important)' : ' (optional)')));
+            if (d.note && d.state !== 'ok') note.appendChild(document.createTextNode(' - ' + d.note));
+            li.appendChild(note);
+            docList.appendChild(li);
+        });
+        card.appendChild(docList);
+
+        card.appendChild(el('p', 'dd-doc-meta', 'Advisory only. Distance from the campus is not part of this score yet.'));
+        return card;
     }
 
     function renderDocuments() {
@@ -349,6 +460,7 @@
             content.appendChild(card);
         });
 
+        content.appendChild(renderAiCard());
         content.appendChild(renderDocuments());
 
         $('btn-edit').style.display = editing ? 'none' : '';

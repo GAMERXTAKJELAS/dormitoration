@@ -6,6 +6,7 @@ import { handleAdminApplications } from './script/approval_backend.js';
 import { handleStudentRoutes } from './script/studenthomepage_backend.js';
 import { handleDashboardRoutes, handleSystemLogs } from './script/dashboard_backend.js';
 import { handleApplicationDetails } from './script/application_details_backend.js';
+import { handleAiReviewRoutes } from './script/ai_review_backend.js';
 import { handleDetailInfoRoutes } from './script/detail_backend.js';
 import { handleHardwareRoutes } from './script/hardware_backend.js';
 import { handlePayslipRoutes } from './script/payslip_backend.js';
@@ -66,6 +67,12 @@ export default {
       // ESP32 door unit: "I'm online" ping, auto-registers the room (device-key protected)
       if (url.pathname === '/api/access/heartbeat' && request.method === 'POST') {
         return await handleDeviceHeartbeat(request, env);
+      }
+
+      // AI hostel review: student submit trigger + admin "run again" button
+      if (url.pathname === '/api/student/run-ai-review' || url.pathname === '/api/admin/ai-review') {
+        const aiReviewResponse = await handleAiReviewRoutes(request, env, headers, ctx);
+        if (aiReviewResponse) return aiReviewResponse;
       }
 
       if (url.pathname === '/api/admin/application-details') {

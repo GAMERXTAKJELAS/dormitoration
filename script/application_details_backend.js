@@ -158,6 +158,18 @@ export async function handleApplicationDetails(request, env, headers) {
         `).bind(application.id).first() || null;
       }
 
+      // AI hostel review (admin-only). Missing table = migration not run yet -> just no review.
+      let aiReview = null;
+      if (application) {
+        try {
+          const r = await env.DB.prepare(`SELECT * FROM ai_reviews WHERE application_id = ?`).bind(application.id).first();
+          if (r) {
+            const parse = (v) => { try { return JSON.parse(v || '[]'); } catch (e) { return []; } };
+            aiReview = { ...r, factors: parse(r.factors), documents: parse(r.documents) };
+          }
+        } catch (e) { console.error('ai_reviews unavailable:', e.message); }
+      }
+
       // RFID registration state only - the QR code itself is never sent to the browser.
       const rfidRow = await env.DB.prepare(
         `SELECT matriks_number, rfid_card_uid FROM student_rfid WHERE user_id = ? LIMIT 1`
@@ -168,7 +180,7 @@ export async function handleApplicationDetails(request, env, headers) {
         registered: !!uid && !uid.startsWith('UNASSIGNED-') && !uid.startsWith('PENDING-')
       };
 
-      return json({ success: true, user, application, contributions, documents, room, rfid }, 200, headers);
+      return json({ success: true, user, application, contributions, documents, room, rfid, ai_review: aiReview }, 200, headers);
     } catch (err) {
       console.error('Application details GET error:', err);
       return json({ error: 'Failed to load details', details: err.message }, 500, headers);

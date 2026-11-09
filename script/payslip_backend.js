@@ -7,10 +7,14 @@
 // R2 bucket binding expected: env.PAYSLIP_BUCKET
 // Workers AI binding expected: env.AI
 
+import { readDocumentWithVision, saveDocumentRead } from './ai_review_backend.js';
+
 const DOCUMENT_PROMPTS = {
   slip_gaji: "a Malaysian salary slip ('slip gaji') showing an employee's name, employer, and a salary/wage breakdown",
   surat_akuan_sumpah: "a Malaysian 'Surat Akuan Sumpah' (statutory declaration / sworn affidavit), typically used by self-employed individuals, usually referencing being sworn before a Commissioner for Oaths",
-  dokumen_sokongan_ketua_program: "a Malaysian 'Dokumen Sokongan Ketua Program' (Program Head support letter) — an official letter or form bearing a program head's/coordinator's endorsement, name, and signature or stamp, supporting a student's hostel application"
+  dokumen_sokongan_ketua_program: "a Malaysian 'Dokumen Sokongan Ketua Program' (Program Head support letter) — an official letter or form bearing a program head's/coordinator's endorsement, name, and signature or stamp, supporting a student's hostel application",
+  salinan_mykad: "a copy of a Malaysian identity card (MyKad)",
+  dokumen_lain: "an extra supporting document for a hostel application (for example a Dean's Award certificate)"
 };
 
 // NOTE: dokumen_sokongan_ketua_program is optional — enforced client-side only
@@ -92,7 +96,7 @@ export async function handlePayslipRoutes(request, env, corsHeaders) {
   // POST /api/student/check-payslip — AI plausibility check (never blocks submission, just flags)
   if (method === 'POST' && url.pathname === '/api/student/check-payslip') {
     try {
-      const { user_id, document_type, imageBase64 } = await request.json();
+      const { user_id, document_type, imageBase64, fileName, fileSize } = await request.json();
 
       if (!user_id || !document_type || !imageBase64) {
         return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400, headers: jsonHeaders });
@@ -104,46 +108,23 @@ export async function handlePayslipRoutes(request, env, corsHeaders) {
       }
 
       if (!env.AI) {
-        return new Response(JSON.stringify({ looksValid: true, reason: 'AI binding not configured — check skipped' }), { status: 200, headers: jsonHeaders });
+        return new Response(JSON.stringify({ looksValid: true, readable: false, reason: 'AI binding not configured — check skipped' }), { status: 200, headers: jsonHeaders });
       }
 
-      const imageBytes = Array.from(base64ToBytes(imageBase64));
-
-      const aiResponse = await env.AI.run('@cf/meta/llama-3.2-11b-vision-instruct', {
-        messages: [
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: `Look at this document image. It is supposed to be ${expectedDescription}. ` +
-                      `Reply with ONLY a JSON object, no other text, in exactly this shape: ` +
-                      `{"looks_valid": true or false, "reason": "one short sentence explaining why"}`
-              },
-              { type: 'image_url', image_url: { url: `data:image/png;base64,${imageBase64}` } }
-            ]
-          }
-        ]
-      });
-
-      let verdict = { looksValid: true, reason: 'Could not analyze document — proceeding without a flag.' };
-      try {
-        const raw = aiResponse.response || '';
-        const jsonMatch = raw.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          const parsed = JSON.parse(jsonMatch[0]);
-          verdict = { looksValid: !!parsed.looks_valid, reason: parsed.reason || '' };
-        }
-      } catch (parseErr) {
-        console.error('AI verdict parse failure:', parseErr.message, aiResponse.response);
-      }
+      // One vision call reads the document: is it the right kind of document, can it be read,
+      // and what does it say (name, income, IC ...). The reading is stored for the AI hostel review.
+      const read = await readDocumentWithVision(env, document_type, imageBase64);
+      const verdict = { looksValid: read.looksValid, readable: read.readable, reason: read.reason };
 
       const applicationId = await resolveApplicationId(env, user_id);
       if (applicationId) {
+        await saveDocumentRead(env, applicationId, document_type, fileName, fileSize, read);
+
+        // Keep the existing "flagged" marker for a document that is already uploaded
         await env.DB.prepare(`
           UPDATE application_attachments SET ai_flagged = ?, ai_reason = ?
           WHERE application_id = ? AND document_type = ?
-        `).bind(verdict.looksValid ? 0 : 1, verdict.reason, applicationId, document_type).run();
+        `).bind(read.looksValid ? 0 : 1, read.reason || '', applicationId, document_type).run();
       }
 
       return new Response(JSON.stringify(verdict), { status: 200, headers: jsonHeaders });
