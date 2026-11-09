@@ -13,7 +13,9 @@
 (function () {
     'use strict';
 
-    const params = new URLSearchParams(window.location.search);
+    // window.__ddSearch is captured by an inline script in the page <head> before logout_logic.js runs
+    const params = new URLSearchParams(typeof window.__ddSearch === 'string' ? window.__ddSearch : window.location.search);
+    const startHash = typeof window.__ddHash === 'string' ? window.__ddHash : window.location.hash;
     let adminId = null;
     try {
         const u = JSON.parse(localStorage.getItem('userData') || '{}');
@@ -370,7 +372,7 @@
             if (!res.ok) throw new Error(body.error || `Request failed (${res.status})`);
             data = body;
             render();
-            if (window.location.hash === '#documents') {
+            if (startHash === '#documents') {
                 const docs = $('documents');
                 if (docs) docs.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
@@ -426,6 +428,16 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+        // Back arrow: return to the admin page we came from (history.back() would open the logout pop-up)
+        const back = $('dd-back');
+        try {
+            const ref = new URL(document.referrer);
+            if (back && ref.origin === window.location.origin && ref.pathname.startsWith('/admin/') &&
+                !ref.pathname.endsWith('application_details.html')) {
+                back.href = ref.pathname + ref.search;
+            }
+        } catch (e) { /* no referrer: keep the dashboard link */ }
+
         $('btn-edit').addEventListener('click', () => { if (!data) return; editing = true; showMessage(''); render(); });
         $('btn-cancel').addEventListener('click', () => { editing = false; showMessage(''); render(); });
         $('btn-save').addEventListener('click', save);

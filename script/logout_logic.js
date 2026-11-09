@@ -25,11 +25,13 @@
     const isLoggedIn = localStorage.getItem('isLoggedIn');
     if (!isLoggedIn) return;
 
-    // Push state so back button is trapped on protected pages
-    window.history.pushState(null, null, window.location.pathname);
+    // Push state so back button is trapped on protected pages.
+    // Keep the query string and #hash, otherwise pages opened as page.html?id=5 lose their ID.
+    const keepUrl = window.location.pathname + window.location.search + window.location.hash;
+    window.history.pushState(null, null, keepUrl);
 
     window.addEventListener('popstate', function () {
-        window.history.pushState(null, null, window.location.pathname);
+        window.history.pushState(null, null, keepUrl);
         openLogoutModal();
     });
 })();

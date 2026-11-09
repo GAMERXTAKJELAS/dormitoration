@@ -9,6 +9,11 @@
     <link rel="stylesheet" href="/design/application_details.css">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 
+    <script>
+        /* Runs before the deferred scripts: remember the link's ?id= / #documents */
+        window.__ddSearch = window.location.search;
+        window.__ddHash = window.location.hash;
+    </script>
     <script src="/script/theme.js" defer></script>
     <script src="/script/logout_logic.js" defer></script>
     <script src="/script/application_details.js" defer></script>
@@ -76,7 +81,7 @@
     <main class="main-box">
         <header class="dd-header">
             <div class="dd-header-left">
-                <a href="javascript:history.back()" class="dd-back" title="Back"><i class='bx bx-arrow-back'></i></a>
+                <a href="/admin/dashboard.html" id="dd-back" class="dd-back" title="Back"><i class='bx bx-arrow-back'></i></a>
                 <img id="dd-avatar" class="dd-avatar" src="/image/default_Male.svg" alt="">
                 <div>
                     <h1 id="dd-name">Student Details</h1>
