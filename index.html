@@ -3,58 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dormitoration | Home</title>
+    <title>Dormitoration | Smart Dormitory Operations</title>
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="/design/index.css">
     <script src="/script/theme.js" defer></script>
 </head>
 <body class="dark-mode"> 
 
+    <!-- Top Navigation Header -->
     <header class="top-nav">
         <div class="nav-container">
-            <div class="brand">
+            <a href="/index.html" class="brand">
                 <i class='bx bxs-building-house'></i>
                 <span>Dormitoration</span>
-            </div>
+            </a>
 
             <nav class="nav-links">
-                <a href="#about">About Us</a>
+                <a href="#student-features" class="nav-link-item">Student Features</a>
+                <a href="#admin-features" class="nav-link-item">Admin & System Ops</a>
                 <a href="/log_in.html" class="btn-outline">Sign In</a>
                 <a href="/sign_up.html" class="btn-primary">Sign Up</a>
                 
-                <button id="theme-toggle" class="theme-btn">
+                <button id="theme-toggle" class="theme-btn" aria-label="Toggle Theme">
                     <i class='bx bx-moon' id="theme-icon"></i>
                 </button>
             </nav>
         </div>
     </header>
 
-    <main class="scroll-container">
-        <section class="home-section" id="hero">
+    <main class="page-body">
+        
+        <!-- SECTION 1: FIRST SCROLL (STUDENT EXPERIENCE & PORTAL FEATURES) -->
+        <section class="scroll-section hero-section" id="student-features">
             <div class="hero-content">
-                <h1>Monitor Your Dorm <br><span>Operations</span> Anywhere.</h1>
-                <p>Real-time tracking for student safety and facility management.</p>
-                <a href="#about" class="explore-btn">Explore Features <i class='bx bx-chevron-down'></i></a>
+                <div class="hero-badge">
+                    <i class='bx bx-user-check'></i> Student Self-Service Portal
+                </div>
+                <h1>Smart Dorm Living. <br><span>Keyless, Fast & Paperless.</span></h1>
+                <p>Complete your hostel applications, submit verified income proofs, track allocation statuses, and unlock your room door directly from your mobile device.</p>
+                
+                <div class="hero-cta">
+                    <a href="/log_in.html" class="btn-hero-primary">
+                        <i class='bx bx-log-in-circle'></i> Student Portal Login
+                    </a>
+                    <a href="#admin-features" class="btn-hero-secondary">
+                        Admin & System Details <i class='bx bx-chevron-down'></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Student Feature Highlights Grid -->
+            <div class="features-grid student-grid">
+                <div class="feature-card">
+                    <div class="card-icon"><i class='bx bx-qr-scan'></i></div>
+                    <h3>Dynamic QR Access</h3>
+                    <p>Unlock dormitory doors in real time using encrypted dynamic QR codes generated on your smartphone.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="card-icon"><i class='bx bx-file-find'></i></div>
+                    <h3>Digital Form & Payslip Upload</h3>
+                    <p>Easily fill personal details, auto-fill via CSV, and attach salary slips or sworn declarations for fast verification.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="card-icon"><i class='bx bx-wrench'></i></div>
+                    <h3>Instant Fault Logging</h3>
+                    <p>Report damaged room facilities or maintenance issues directly to hostel staff with live progress updates.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="card-icon"><i class='bx bx-time-five'></i></div>
+                    <h3>Live Status Tracking</h3>
+                    <p>Check room allocation results, approval notes, and application status updates without waiting in queues.</p>
+                </div>
             </div>
         </section>
 
-        <section class="home-section" id="about">
-            <div class="about-grid">
-                <div class="about-text">
-                    <h2>About Us</h2>
-                    <p>Dormitoration is a cutting-edge monitor operation system designed specifically for high-density student housing.</p>
+        <!-- SECTION 2: SECOND SCROLL (ADMIN OVERSIGHT & DETAILED SYSTEM OPERATIONS) -->
+        <section class="scroll-section alt-bg" id="admin-features">
+            <div class="section-title">
+                <div class="section-badge">
+                    <i class='bx bx-shield-quarter'></i> Management & Administrative Command
                 </div>
-                <div class="stat-card">
-                    <i class='bx bx-shield-quarter'></i>
-                    <h3>Secure Monitoring</h3>
-                    <p>24/7 logging of entry and exit points.</p>
+                <h2>Comprehensive Operations & Admin Control</h2>
+                <p>Full control over hostel allocations, IoT hardware synchronization, verification workflows, and student databases.</p>
+            </div>
+
+            <!-- Admin Core Operations Grid -->
+            <div class="admin-grid">
+                <div class="admin-card highlight-card">
+                    <div class="admin-card-header">
+                        <i class='bx bx-slider-alt'></i>
+                        <h3>Automated Eligibility Engine</h3>
+                    </div>
+                    <p>System automatically calculates priority scores based on income thresholds, student involvement (MPP/Clubs), schooling dependents count, and verified payslip documents.</p>
+                    <ul class="admin-list">
+                        <li><i class='bx bx-check-circle'></i> Auto-evaluates B40/M40 income qualification</li>
+                        <li><i class='bx bx-check-circle'></i> Plausibility checks for salary proof attachments</li>
+                        <li><i class='bx bx-check-circle'></i> Priority boosting for Student Council (MPP) members</li>
+                    </ul>
+                </div>
+
+                <div class="admin-card highlight-card">
+                    <div class="admin-card-header">
+                        <i class='bx bx-chip'></i>
+                        <h3>IoT Hardware Sync & RFID Management</h3>
+                    </div>
+                    <p>Direct integration with Cloudflare Workers API and D1 SQLite database to sync ESP32 door controllers, GM65 scanners, and 125kHz RFID access hardware in real time.</p>
+                    <ul class="admin-list">
+                        <li><i class='bx bx-check-circle'></i> Remote door access revocation & grant controls</li>
+                        <li><i class='bx bx-check-circle'></i> Live entry logs & timestamp monitoring</li>
+                        <li><i class='bx bx-check-circle'></i> Dynamic QR rotation security against code sharing</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Detailed Student & Guardian Data Management -->
+            <div class="detailed-breakdown">
+                <div class="detail-box">
+                    <div class="detail-header">
+                        <i class='bx bx-group'></i>
+                        <h4>Dynamic Parent & Guardian Handling</h4>
+                    </div>
+                    <p>Supports flexible configurations for dual parent records or multi-guardian emergency contact details with job and income fields.</p>
+                </div>
+
+                <div class="detail-box">
+                    <div class="detail-header">
+                        <i class='bx bx-table'></i>
+                        <h4>Bulk CSV Import & Export</h4>
+                    </div>
+                    <p>Admins can bulk export complete student profiles to CSV for official university reports or auto-fill records in batch.</p>
+                </div>
+
+                <div class="detail-box">
+                    <div class="detail-header">
+                        <i class='bx bx-task'></i>
+                        <h4>Maintenance & Incident Workflow</h4>
+                    </div>
+                    <p>Track reported facility issues across dorm blocks, assign repair teams, and notify students upon issue resolution.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA SECTION -->
+        <section class="cta-section">
+            <div class="cta-card">
+                <h2>Ready to Access the Portal?</h2>
+                <p>Log in with your registered credentials or create a new account to complete your profile.</p>
+                <div class="cta-buttons">
+                    <a href="/log_in.html" class="btn-primary">Sign In to Account</a>
+                    <a href="/sign_up.html" class="btn-outline">Register New Student</a>
                 </div>
             </div>
         </section>
     </main>
 
+    <!-- Footer -->
     <footer class="main-footer">
-        <p>&copy; 2026 Dormitoration System. All Rights Reserved.</p>
+        <div class="footer-container">
+            <p>&copy; 2026 Dormitoration System — All rights reserved.</p>
+        </div>
     </footer>
 
 </body>

@@ -1,163 +1,94 @@
-/* --- BASE DARK MODE (Default) --- */
+/* =========================================================
+   1. COLOR VARIABLES & THEMES
+   ========================================================= */
 :root {
     --body-color: #121212;
     --sidebar-color: #1b251e;
-    --primary-color: #47f59b;        /* Bright neon green for dark background */
+    --primary-color: #47f59b;        /* Neon Green Dark Mode */
     --primary-hover: #34d399;
     --card-bg: #282828;
+    --card-border: #3d3d3d;
     --text-color: #bcfcd2;
     --text-heading: #ffffff;
     --text-muted: #a0a0a0;
     --nav-border: #2d3748;
-    --btn-text: #121212;             /* Dark text on primary buttons */
-    --text-outline-shadow: none;
-    --transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    --btn-text: #121212;             
+    --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* --- LIGHT MODE ACCESSIBILITY ENHANCEMENTS --- */
 .light-mode {
-    --body-color: #f8fafc;            /* Clean light grey background */
-    --sidebar-color: #ffffff;        /* Crisp white navbar/cards */
-    --primary-color: #059669;        /* Deep, readable Emerald Green (Passes AAA Contrast) */
+    --body-color: #f8fafc;            
+    --sidebar-color: #059669;        /* Emerald Green Header Bar */
+    --primary-color: #059669;        
     --primary-hover: #047857;
     --card-bg: #ffffff;
-    --text-color: #1e293b;           /* Very readable dark slate for body text */
-    --text-heading: #0f172a;         /* Bold near-black for headings */
-    --text-muted: #64748b;           /* Distinct muted text */
-    --nav-border: #e2e8f0;           /* Subtle crisp light border */
-    --btn-text: #ffffff;             /* White text inside primary buttons */
-    
-    /* Subtle sharp outline effect for light mode text elements */
-    --text-outline-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+    --card-border: #e2e8f0;
+    --text-color: #1e293b;           
+    --text-heading: #0f172a;         
+    --text-muted: #64748b;           
+    --nav-border: #e2e8f0;           
+    --btn-text: #ffffff;             
 }
 
-/* --- FIXED IFIXIT GREEN HEADER (LIGHT MODE) --- */
-
-/* 1. Navbar Container */
+/* Light Mode Navigation Bar Styling */
 .light-mode .top-nav {
-    background-color: #059669 !important; /* Deep Emerald Green */
+    background-color: #059669 !important;
     border-bottom: 1px solid #047857 !important;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 }
 
-/* 2. Logo & Plain Links */
+.light-mode .top-nav .brand,
 .light-mode .top-nav .brand span,
 .light-mode .top-nav .brand i,
 .light-mode .nav-links a {
     color: #ffffff !important;
-    text-decoration: none;
 }
 
-.light-mode .nav-links a:hover {
-    color: #a7f3d0 !important; /* Soft mint on hover */
-}
-
-/* 3. "Sign In" Button (Outline Style) */
-/* --- BASE BUTTON STYLES (Applies to both Dark & Light) --- */
-
-.btn-outline {
-    text-decoration: none;
-    font-weight: 500;
-    padding: 7px 16px;
-    border-radius: 6px;
-    transition: var(--transition-smooth);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    outline: none !important;
-}
-
-/* --- 1. DARK MODE SIGN IN BUTTON --- */
-.dark-mode .nav-links a.btn-outline {
-    color: var(--text-color) !important;
-    border: 1.5px solid rgba(188, 252, 210, 0.4) !important; /* Soft green outline */
-    background: transparent !important;
-}
-
-.dark-mode .nav-links a.btn-outline:hover {
-    background-color: rgba(71, 245, 155, 0.12) !important;
-    border-color: var(--primary-color) !important;
-    color: var(--primary-color) !important;
-}
-
-/* --- 2. LIGHT MODE SIGN IN BUTTON (iFixit Style Navbar) --- */
-.light-mode .nav-links a.btn-outline {
-    color: #ffffff !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.7) !important; /* Crisp white outline */
-    background: transparent !important;
-}
-
-.light-mode .nav-links a.btn-outline:hover {
-    background-color: rgba(255, 255, 255, 0.15) !important;
-    border-color: #ffffff !important;
-}
-
-/* 4. "Sign Up" Button (Primary Solid Style) */
 .light-mode .nav-links a.btn-primary {
     background-color: #ffffff !important;
-    color: #059669 !important; /* CRITICAL FIX: Dark green text on white button */
-    font-weight: 700 !important;
-    padding: 8px 18px;
-    border-radius: 6px;
-    border: none !important;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    color: #059669 !important;
 }
 
-.light-mode .nav-links a.btn-primary:hover {
-    background-color: #f1f5f9 !important;
-    color: #047857 !important;
-    transform: translateY(-1px);
+/* =========================================================
+   2. BASE RESET & SCROLLING SETUP
+   ========================================================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
 
-/* 5. Theme Toggle Button Fix */
-.light-mode .theme-btn {
-    background: transparent !important;
-    border: none !important;
-    outline: none !important;
-    color: #ffffff !important;
-    font-size: 1.4rem;
-    cursor: pointer;
-    padding: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+html, body {
+    width: 100%;
+    min-height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
-.light-mode .theme-btn:hover {
-    color: #a7f3d0 !important;
-}
-
-/* 2. Deep Slate/Dark Green Footer (Like iFixit) */
-.light-mode .main-footer {
-    background-color: #0f172a !important; /* Dark slate (or use #064e3b for dark forest green) */
-    color: #94a3b8 !important;
-    border-top: 2px solid #059669; /* Accent line on top of footer */
-}
-
-/* Base Body Styles */
 body {
+    display: flex;
+    flex-direction: column;
     background-color: var(--body-color);
     color: var(--text-color);
-    margin: 0;
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
     transition: background-color var(--transition-smooth), color var(--transition-smooth);
 }
-/* /main */
 
-/* --- NAVIGATION BAR --- */
+/* =========================================================
+   3. TOP NAVIGATION HEADER
+   ========================================================= */
 .top-nav {
     position: fixed;
     top: 0;
     width: 100%;
     height: 70px;
     background-color: var(--sidebar-color);
-    border-bottom: 1px solid var(--card-bg);
+    border-bottom: 1px solid var(--card-border);
     z-index: 2000;
     display: flex;
     align-items: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: background-color var(--transition-smooth);
 }
 
 .nav-container {
@@ -165,7 +96,7 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     display: flex;
-    justify-content: space-between; /* Brand Left, Links Right */
+    justify-content: space-between;
     align-items: center;
 }
 
@@ -174,213 +105,465 @@ body {
     align-items: center;
     gap: 10px;
     font-size: 1.4rem;
-    font-weight: bold;
+    font-weight: 700;
     color: var(--primary-color);
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.brand:hover {
+    opacity: 0.9;
 }
 
 .nav-links {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 16px;
 }
 
 .nav-links a {
     text-decoration: none;
     color: var(--text-color);
     font-weight: 500;
+    font-size: 0.95rem;
     transition: var(--transition-smooth);
+    white-space: nowrap;
 }
 
-.nav-links a:hover { color: var(--primary-color); }
+.nav-links a:hover {
+    color: var(--primary-color);
+}
 
-/* Buttons */
+.btn-outline {
+    text-decoration: none;
+    font-weight: 600;
+    padding: 7px 16px;
+    border-radius: 8px;
+    border: 1.5px solid var(--primary-color);
+    color: var(--primary-color) !important;
+    transition: var(--transition-smooth);
+    white-space: nowrap;
+}
+
+.btn-outline:hover {
+    background-color: rgba(71, 245, 155, 0.12);
+}
+
 .btn-primary {
-    background-color: var(--primary-color);
-    color: var(--body-color) !important;
+    background-color: var(--primary-color) !important;
+    color: var(--btn-text) !important;
+    font-weight: 700;
     padding: 8px 18px;
-    border-radius: 6px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: var(--transition-smooth);
+    white-space: nowrap;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover) !important;
+    transform: translateY(-1px);
 }
 
 .theme-btn {
     background: none;
     border: none;
     color: var(--text-color);
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     cursor: pointer;
     display: flex;
     align-items: center;
-}
-
-/* --- SCROLL SECTIONS --- */
-.scroll-container {
-    height: 100vh;
-    overflow-y: scroll;
-    scroll-snap-type: y mandatory; /* Makes sections "snap" into place */
-}
-
-.home-section {
-    height: 100vh;
-    display: flex;
     justify-content: center;
-    align-items: center;
-    scroll-snap-align: start; /* Alignment for snapping */
-    padding: 0 10%;
+    padding: 4px;
 }
 
-/* Hero Content */
-.hero-content { text-align: center; }
-.hero-content h1 { font-size: 3.5rem; margin-bottom: 10px; }
-.hero-content span { color: var(--primary-color); }
-
-/* About Grid (Auto-arranging) */
-.about-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Auto arrange boxes */
-    gap: 40px;
-    align-items: center;
+/* =========================================================
+   4. MAIN BODY & SECTIONS
+   ========================================================= */
+.page-body {
+    flex: 1;
     width: 100%;
+    padding-top: 70px;
 }
 
-.stat-card {
-    background: var(--card-bg);
-    padding: 30px;
-    border-radius: 15px;
+.scroll-section {
+    padding: 80px 5% 60px;
+    max-width: 1200px;
+    margin: 0 auto;
+    box-sizing: border-box;
+}
+
+/* Section 1: Hero & Student Experience */
+.hero-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     text-align: center;
-    border: 1px solid var(--primary-color);
+    background: radial-gradient(circle at center, rgba(71, 245, 155, 0.06) 0%, transparent 70%);
 }
 
-.stat-card i { font-size: 3rem; color: var(--primary-color); }
+.hero-content {
+    max-width: 820px;
+    margin-bottom: 50px;
+}
 
-/* --- FOOTER --- */
-.main-footer {
-    height: 60px;
-    background: var(--sidebar-color);
+.hero-badge, .section-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: rgba(71, 245, 155, 0.1);
+    border: 1px solid var(--primary-color);
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 20px;
+}
+
+.hero-content h1 {
+    font-size: 3.2rem;
+    font-weight: 800;
+    color: var(--text-heading);
+    line-height: 1.2;
+    margin-bottom: 20px;
+}
+
+.hero-content h1 span {
+    color: var(--primary-color);
+}
+
+.hero-content p {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 30px;
+}
+
+.hero-cta {
     display: flex;
     justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.btn-hero-primary {
+    background: var(--primary-color);
+    color: var(--btn-text);
+    padding: 12px 26px;
+    border-radius: 8px;
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-flex;
     align-items: center;
-    font-size: 0.9rem;
-    color: var(--text-muted);
-}
-
-/* --- RESPONSIVE ADJUSTMENTS --- */
-
-/* Tablet View (Max width 992px) */
-@media screen and (max-width: 992px) {
-    .hero-content h1 {
-        font-size: 2.5rem; /* Shrink title slightly */
-    }
-    
-    .nav-container {
-        width: 95%; /* Use more screen width */
-    }
-}
-
-/* Mobile Phone View (Max width 600px) */
-@media screen and (max-width: 600px) {
-    /* 1. Header Adjustments */
-    .top-nav {
-        height: 60px;
-    }
-    
-    .brand span {
-        font-size: 1.1rem; /* Smaller logo text */
-    }
-
-    /* Hide extra links to save space, keeping Sign In/Up */
-    .nav-links {
-        gap: 10px;
-    }
-    
-    .nav-links a:first-child {
-        display: none; /* Hide 'About Us' in nav on tiny screens */
-    }
-
-    /* 2. Hero Section Adjustments */
-    .hero-content h1 {
-        font-size: 2rem;
-        line-height: 1.2;
-    }
-    
-    .hero-content p {
-        font-size: 0.9rem;
-    }
-
-    /* 3. Grid Auto-Arrangement */
-    .about-grid {
-        grid-template-columns: 1fr; /* Force 1 column on phones */
-        gap: 20px;
-        text-align: center;
-    }
-
-    .stat-card {
-        padding: 20px;
-    }
-
-    /* 4. Fix Scroll Snapping for small heights */
-    .home-section {
-        padding: 0 5%;
-        height: auto;
-        min-height: 100vh; /* Ensure it still covers the screen */
-        padding-top: 80px; /* Space for fixed header */
-        padding-bottom: 40px;
-    }
-}
-
-/* --- ACCESSIBILITY & TEXT CONTRAST IMPROVEMENTS --- */
-
-/* Ensure key green text/spans stand out sharply */
-.hero-content span,
-.brand span,
-.shortcut-card h3,
-.stat-card i {
-    color: var(--primary-color);
-    text-shadow: var(--text-outline-shadow);
-}
-
-/* Hero Title High Contrast Fix */
-.hero-content h1 {
-    color: var(--text-heading);
-    font-weight: 800;
-}
-
-/* Button Styling Fix for Light Mode */
-.btn-primary {
-    background-color: var(--primary-color) !important;
-    color: var(--btn-text) !important;
-    font-weight: 600;
-    padding: 8px 18px;
-    border-radius: 6px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    gap: 8px;
     transition: var(--transition-smooth);
 }
 
-.btn-primary:hover {
-    background-color: var(--primary-hover) !important;
+.btn-hero-primary:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
 }
 
-/* Card Borders & Shadows for Light Mode Definition */
-.light-mode .stat-card,
-.light-mode .shortcut-card,
-.light-mode .stat-badge {
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-}
-
-.light-mode .shortcut-card:hover {
-    border-color: var(--primary-color);
-    box-shadow: 0 6px 16px rgba(5, 150, 105, 0.15);
-}
-
-/* Navbar Border Definition in Light Mode */
-.top-nav {
-    border-bottom: 1px solid var(--nav-border);
-}
-
-/* Quick CSS Fix for Explore Features Link */
-.explore-btn {
-    color: var(--text-heading) !important;
+.btn-hero-secondary {
+    background: transparent;
+    border: 1px solid var(--card-border);
+    color: var(--text-color);
+    padding: 12px 24px;
+    border-radius: 8px;
     font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: var(--transition-smooth);
 }
-.explore-btn i {
+
+.btn-hero-secondary:hover {
+    border-color: var(--primary-color);
     color: var(--primary-color);
+}
+
+/* Features Grid (Student Cards) */
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px;
+    width: 100%;
+}
+
+.feature-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    padding: 28px;
+    text-align: left;
+    transition: var(--transition-smooth);
+}
+
+.feature-card:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-4px);
+}
+
+.card-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(71, 245, 155, 0.1);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    color: var(--primary-color);
+    margin-bottom: 18px;
+}
+
+.feature-card h3 {
+    font-size: 1.15rem;
+    color: var(--text-heading);
+    margin-bottom: 10px;
+}
+
+.feature-card p {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+/* =========================================================
+   5. SECTION 2: ADMIN & DETAILED SYSTEM OPS
+   ========================================================= */
+.alt-bg {
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 16px;
+    margin: 40px auto;
+    width: 95%;
+}
+
+.section-title {
+    text-align: center;
+    margin-bottom: 45px;
+}
+
+.section-title h2 {
+    font-size: 2.2rem;
+    color: var(--primary-color);
+    margin-bottom: 8px;
+}
+
+.section-title p {
+    color: var(--text-muted);
+    font-size: 1rem;
+}
+
+.admin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+.admin-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    padding: 30px;
+    text-align: left;
+}
+
+.admin-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.admin-card-header i {
+    font-size: 1.8rem;
+    color: var(--primary-color);
+}
+
+.admin-card-header h3 {
+    font-size: 1.25rem;
+    color: var(--text-heading);
+}
+
+.admin-card p {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin-bottom: 18px;
+}
+
+.admin-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.admin-list li {
+    font-size: 0.88rem;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.admin-list li i {
+    color: var(--primary-color);
+    font-size: 1.1rem;
+}
+
+/* Detailed Operations Breakdown Cards */
+.detailed-breakdown {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.detail-box {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 22px;
+}
+
+.detail-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.detail-header i {
+    font-size: 1.4rem;
+    color: var(--primary-color);
+}
+
+.detail-header h4 {
+    font-size: 1.05rem;
+    color: var(--text-heading);
+}
+
+.detail-box p {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+/* =========================================================
+   6. CTA SECTION & FOOTER
+   ========================================================= */
+.cta-section {
+    padding: 40px 5% 80px;
+}
+
+.cta-card {
+    max-width: 800px;
+    margin: 0 auto;
+    background: linear-gradient(135deg, var(--sidebar-color), var(--card-bg));
+    border: 1px solid var(--primary-color);
+    border-radius: 18px;
+    padding: 40px 30px;
+    text-align: center;
+}
+
+.cta-card h2 {
+    font-size: 1.8rem;
+    color: var(--text-heading);
+    margin-bottom: 10px;
+}
+
+.cta-card p {
+    color: var(--text-muted);
+    margin-bottom: 24px;
+}
+
+.cta-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.main-footer {
+    width: 100%;
+    background-color: var(--sidebar-color);
+    color: #94a3b8;
+    text-align: center;
+    padding: 24px 0;
+    font-size: 0.85rem;
+    border-top: 2px solid var(--primary-color);
+}
+
+/* =========================================================
+   7. MOBILE RESPONSIVE BREAKPOINTS (ALL DEVICE DISPLAY)
+   ========================================================= */
+@media screen and (max-width: 992px) {
+    .hero-content h1 {
+        font-size: 2.6rem;
+    }
+}
+
+@media screen and (max-width: 650px) {
+    .nav-container {
+        width: 92%;
+    }
+
+    .brand {
+        font-size: 1.15rem;
+        gap: 6px;
+    }
+
+    .brand i {
+        font-size: 1.2rem;
+    }
+
+    .nav-links {
+        gap: 8px;
+    }
+
+    .nav-links .nav-link-item {
+        display: none; /* Hides long text items on mobile to prevent navbar overflow */
+    }
+
+    .btn-outline, .btn-primary {
+        padding: 6px 12px;
+        font-size: 0.82rem;
+    }
+
+    .theme-btn {
+        font-size: 1.2rem;
+    }
+
+    .scroll-section {
+        padding: 50px 4% 40px;
+    }
+
+    .hero-content h1 {
+        font-size: 2.1rem;
+    }
+
+    .hero-content p {
+        font-size: 0.95rem;
+    }
+
+    .section-title h2 {
+        font-size: 1.6rem;
+    }
+
+    .admin-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .detailed-breakdown {
+        grid-template-columns: 1fr;
+    }
+
+    .cta-card {
+        padding: 28px 18px;
+    }
 }
