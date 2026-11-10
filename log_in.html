@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,15 +9,16 @@
     <link rel="stylesheet" href="/design/log_in.css">
     <script src="/script/theme.js" defer></script>
 </head>
+
 <body class="dark-mode">
 
     <!-- Top Navigation Header -->
     <header class="top-nav">
         <div class="nav-container">
-            <div class="brand">
+            <a href="/index.html" class="brand">
                 <i class='bx bxs-building-house'></i>
                 <span>Dormitoration</span>
-            </div>
+            </a>
 
             <nav class="nav-links">
                 <a href="/index.html" class="nav-link-item">Home</a>
@@ -40,7 +42,8 @@
             <form id="loginForm">
                 <div class="input-group">
                     <label for="identifier">Email or Student ID</label>
-                    <input type="text" id="identifier" placeholder="Enter email or student ID" required autocomplete="username">
+                    <input type="text" id="identifier" placeholder="Enter email or student ID" required
+                        autocomplete="username">
                 </div>
 
                 <div class="input-group">
@@ -48,7 +51,8 @@
                         <label for="password">Password</label>
                         <a href="javascript:void(0)" id="forgotPasswordBtn" class="forgot-link">Forgot Password?</a>
                     </div>
-                    <input type="password" id="password" placeholder="Enter password" required autocomplete="current-password">
+                    <input type="password" id="password" placeholder="Enter password" required
+                        autocomplete="current-password">
                 </div>
 
                 <button type="submit" class="btn-submit">Sign In</button>
@@ -76,7 +80,8 @@
             <form id="forgotPasswordForm">
                 <div class="input-group">
                     <label for="resetIdentifier">Email or Username</label>
-                    <input type="text" id="resetIdentifier" placeholder="Enter your registered email or username" required>
+                    <input type="text" id="resetIdentifier" placeholder="Enter your registered email or username"
+                        required>
                 </div>
 
                 <div class="input-group">
@@ -86,12 +91,14 @@
 
                 <div class="input-group">
                     <label for="newPassword">New Password</label>
-                    <input type="password" id="newPassword" placeholder="Enter new password (min. 6 chars)" required minlength="6">
+                    <input type="password" id="newPassword" placeholder="Enter new password (min. 6 chars)" required
+                        minlength="6">
                 </div>
 
                 <div class="input-group">
                     <label for="confirmNewPassword">Confirm New Password</label>
-                    <input type="password" id="confirmNewPassword" placeholder="Re-enter new password" required minlength="6">
+                    <input type="password" id="confirmNewPassword" placeholder="Re-enter new password" required
+                        minlength="6">
                 </div>
 
                 <button type="submit" class="btn-submit">Reset Password</button>
@@ -110,4 +117,5 @@
 
     <script src="/script/log_in.js" defer></script>
 </body>
+
 </html>
