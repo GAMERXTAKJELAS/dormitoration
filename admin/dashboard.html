@@ -12,12 +12,12 @@
     <script src="/script/dashboard.js" defer></script>
 </head>
 
-<body class="dark-mode">
+<body class="dark-mode admin-user">
 
     <!-- Logout Modal -->
     <div id="logout-modal" class="modal-overlay" style="display:none;">
         <div class="modal-content">
-            <i class='bx bx-log-out-circle' style="font-size: 3rem; color: #ef4444;"></i>
+            <i class='bx bx-log-out-circle' style="font-size: 3.5rem; color: #ef4444;"></i>
             <h2>Leave Session?</h2>
             <p>You are attempting to leave the admin area. Do you want to log out?</p>
             <div class="modal-btns">
@@ -27,49 +27,58 @@
         </div>
     </div>
 
-    <!-- Sidebar Navigation -->
-    <aside class="sidebar-nav">
-        <div class="logo-section">
-            <i class='bx bxs-building-house'></i>
-            <span class="text" style="font-weight: bold; margin-left: 20px;">DORMITORY</span>
+    <!-- Unified Top Navigation Header -->
+    <header class="top-nav">
+        <div class="nav-container">
+            <!-- Brand Logo -->
+            <a href="/adminhomepage.html" class="brand" title="Dormitoration Homepage">
+                <i class='bx bxs-building-house'></i>
+                <span class="brand-text">Dormitoration</span>
+            </a>
+
+            <!-- Navigation Links with Active Page Visualizer -->
+            <nav class="nav-links">
+                <!-- Home Link -->
+                <a href="/adminhomepage.html" class="nav-item" title="Admin Home" aria-label="Admin Home">
+                    <i class='bx bxs-home'></i>
+                    <span class="nav-label">Home</span>
+                </a>
+
+                <!-- Admin Controls -->
+                <div class="admin-controls">
+                    <a href="/admin/dashboard.html" class="nav-item active" title="Dashboard & Room Allocation" aria-label="Dashboard">
+                        <i class='bx bxs-dashboard'></i>
+                        <span class="nav-label">Dashboard</span>
+                        <span class="active-indicator"></span>
+                    </a>
+                    <a href="/admin/visualize.html" class="nav-item" title="Data Visualization & Analytics" aria-label="Data Visualize">
+                        <i class='bx bx-scatter-chart'></i>
+                        <span class="nav-label">Visualize</span>
+                    </a>
+                    <a href="/admin/approval.html" class="nav-item" title="Application Review & Approval" aria-label="Approval">
+                        <i class='bx bxs-check-shield'></i>
+                        <span class="nav-label">Approval</span>
+                    </a>
+                    <a href="/admin/report.html" class="nav-item" title="Reports & System Analytics" aria-label="Report">
+                        <i class='bx bxs-report'></i>
+                        <span class="nav-label">Report</span>
+                    </a>
+                </div>
+                
+                <!-- Utilities (Theme & Logout) -->
+                <div class="nav-utilities">
+                    <button id="theme-toggle" class="theme-btn" aria-label="Toggle Theme" title="Toggle Light/Dark Theme">
+                        <i class='bx bx-moon' id="theme-icon"></i>
+                    </button>
+
+                    <a href="javascript:void(0)" onclick="openLogoutModal()" class="nav-item logout-link" title="Log Out of Admin System" aria-label="Log Out">
+                        <i class='bx bx-log-out'></i>
+                        <span class="nav-label">Log Out</span>
+                    </a>
+                </div>
+            </nav>
         </div>
-
-        <nav class="navbar">
-            <ul class="nav-list">
-                <li><a href="/admin/adminhomepage.html">
-                        <i class='bx bx-home-alt icon'></i>
-                        <span class="text">Home</span>
-                    </a></li>
-
-                <li><a href="/admin/dashboard.html" class="active">
-                        <i class='bx bxs-dashboard icon'></i>
-                        <span class="text">Dashboard</span>
-                    </a></li>
-
-                <li><a href="/admin/approval.html">
-                        <i class='bx bxs-check-shield icon'></i>
-                        <span class="text">Approval</span>
-                    </a></li>
-
-                <li><a href="/admin/report.html">
-                        <i class='bx bxs-report icon'></i>
-                        <span class="text">Report</span>
-                    </a></li>
-
-                <li><a href="/admin/setting.html">
-                        <i class='bx bx-cog icon'></i>
-                        <span class="text">Settings</span>
-                    </a></li>
-            </ul>
-        </nav>
-
-        <div class="sidebar-footer">
-            <button id="theme-toggle" class="theme-btn" aria-label="Toggle Theme">
-                <i class='bx bx-moon' id="theme-icon"></i>
-                <span class="text">Theme</span>
-            </button>
-        </div>
-    </aside>
+    </header>
 
     <!-- Main Content Area -->
     <main class="main-box">
@@ -93,7 +102,7 @@
                 onclick="window.location.href='/admin/approval.html'">
                 <div class="stat-info">
                     <h3 id="stat-pending-apps">0</h3>
-                    <p>Pending Applications <i class='bx bx-right-arrow-alt'></i></p>
+                    <p>Pending Applications <i class='bx bx-right-arrow-alt arrow-icon'></i></p>
                 </div>
                 <i class='bx bxs-time-five'></i>
             </div>
@@ -114,13 +123,12 @@
                     <h2>Hostel Blocks Overview</h2>
                     <div class="hardware-legend">
                         <span class="legend-item"><span class="legend-dot legend-offline"></span>Disconnected</span>
-                        <span class="legend-item"><span class="legend-dot legend-standby"></span>Standby (room has
-                            space)</span>
+                        <span class="legend-item"><span class="legend-dot legend-standby"></span>Standby (room has space)</span>
                         <span class="legend-item"><span class="legend-dot legend-full"></span>Full</span>
                     </div>
                 </div>
 
-                <!-- Auto Arrangement Options (Greyed Out until hardware is online) -->
+                <!-- Auto Arrangement Options -->
                 <div class="auto-arrange-box" id="auto-arrange-box" title="Choose how to group students, then Commit">
                     <span class="arrange-label"><i class='bx bx-git-merge'></i> Auto-Arrange By:</span>
                     <label class="arrange-checkbox">
@@ -132,14 +140,13 @@
                     <label class="arrange-checkbox">
                         <input type="checkbox" class="arrange-option" value="semester"> Semester
                     </label>
-                    <button class="btn-commit disabled" id="btn-commit-arrange" disabled
-                        title="Select at least one option">
+                    <button class="btn-commit disabled" id="btn-commit-arrange" disabled title="Select at least one option">
                         <i class='bx bx-check-circle'></i> Commit
                     </button>
                 </div>
             </div>
 
-            <!-- Filled in by loadDashboardStats(): either the offline card, or a per-room online grid -->
+            <!-- Filled by loadDashboardStats(): either offline card or per-room online grid -->
             <div id="hardware-blocks-container">
                 <div class="hardware-offline-card">
                     <div class="offline-icon-wrapper">
@@ -147,8 +154,7 @@
                     </div>
                     <div class="offline-content">
                         <h3>No Hardware Online</h3>
-                        <p>Smart lock microcontrollers and RFID asset trackers are currently disconnected or unassigned.
-                        </p>
+                        <p>Smart lock microcontrollers and RFID asset trackers are currently disconnected or unassigned.</p>
                     </div>
                 </div>
             </div>
@@ -161,19 +167,15 @@
                     <h2>Active Registered Students</h2>
                     <p class="subtext">Directory of students with verified, active accounts.</p>
                     <div class="hardware-legend">
-                        <span class="legend-item"><span class="legend-dot" style="background:#eab308"></span>On hold (no
-                            room)</span>
-                        <span class="legend-item"><span class="legend-dot" style="background:#10b981"></span>Boy
-                            assigned</span>
-                        <span class="legend-item"><span class="legend-dot" style="background:#ec4899"></span>Girl
-                            assigned</span>
+                        <span class="legend-item"><span class="legend-dot" style="background:#eab308"></span>On hold (no room)</span>
+                        <span class="legend-item"><span class="legend-dot" style="background:#10b981"></span>Boy assigned</span>
+                        <span class="legend-item"><span class="legend-dot" style="background:#ec4899"></span>Girl assigned</span>
                     </div>
                     <div id="room-filter-banner" class="room-filter-banner" hidden></div>
                 </div>
                 <div class="search-box">
                     <i class='bx bx-search'></i>
-                    <input type="text" id="active-student-search"
-                        placeholder="Search name, IC, matric, program, room...">
+                    <input type="text" id="active-student-search" placeholder="Search name, IC, matric, program, room...">
                 </div>
             </div>
 
@@ -199,6 +201,9 @@
         </section>
     </main>
 
-</body>
+    <footer class="main-footer">
+        <p>&copy; 2026 Dormitoration System — All rights reserved.</p>
+    </footer>
 
+</body>
 </html>
