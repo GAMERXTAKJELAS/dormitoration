@@ -144,8 +144,6 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
         }
       }
 
-      // AI "chance of acceptance" - ONLY the percentage, and only while the student is waiting
-      // for the admin's decision. Reasons and the breakdown never leave the admin side.
       const isSubmitted = String(data.submission_status || '').toLowerCase() === 'submitted';
       let acceptanceEstimate = null;
       if (normalizedStatus === 'pending' && isSubmitted) {
@@ -157,17 +155,16 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
             : null;
           const reviewMs = review && review.generated_at ? new Date(review.generated_at).getTime() : NaN;
 
-          // A review only counts if it was made AFTER the latest submission (students can re-submit)
           const isFresh = review && review.status === 'done' && review.score !== null && review.score !== undefined &&
                           (isNaN(submittedMs) || (!isNaN(reviewMs) && reviewMs >= submittedMs));
 
           if (isFresh) {
             acceptanceEstimate = { state: 'ready', score: Math.max(0, Math.min(100, Math.round(Number(review.score)))) };
           } else if (!isNaN(submittedMs) && Date.now() - submittedMs < 3 * 60 * 1000) {
-            acceptanceEstimate = { state: 'calculating', score: null };   // the AI usually needs 10-30 seconds
+            acceptanceEstimate = { state: 'calculating', score: null };
           }
         } catch (aiErr) {
-          console.error('Acceptance estimate unavailable:', aiErr.message);   // e.g. migration not run yet
+          console.error('Acceptance estimate unavailable:', aiErr.message);
         }
       }
 
@@ -201,6 +198,52 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
     }
   }
 
+  // POST: Submit Student Appeal
+  if (method === 'POST' && url.pathname === '/api/student/submit-appeal') {
+    try {
+      const { user_id, email, phone, appeal_reason } = await request.json();
+
+      if (!user_id || !appeal_reason) {
+        return new Response(JSON.stringify({ error: 'User ID and appeal explanation are required.' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // 1. Update student contact details in users table
+      await env.DB.prepare(`
+        UPDATE users
+        SET email = ?, phone = ?, updated_at = ?
+        WHERE id = ?
+      `).bind(email, phone, new Date().toISOString(), user_id).run();
+
+      // 2. Reset hostel application state to pending review
+      await env.DB.prepare(`
+        UPDATE hostel_applications
+        SET appeal_reason = ?,
+            admin_approval = 'pending',
+            submission_status = 'submitted',
+            submitted_at = ?
+        WHERE user_id = ?
+      `).bind(appeal_reason, new Date().toISOString(), user_id).run();
+
+      return new Response(JSON.stringify({
+        success: true,
+        message: 'Appeal submitted successfully. Application is now under admin review.'
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+
+    } catch (err) {
+      console.error('Submit Appeal Error:', err.message);
+      return new Response(JSON.stringify({ error: 'Failed to submit appeal', details: err.message }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+  }
+
   // POST: Upload Profile Picture Avatar to Cloudflare R2
   if (method === 'POST' && url.pathname === '/api/student/upload-avatar') {
     try {
@@ -213,7 +256,6 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
         });
       }
 
-      // 1. Extract raw Base64 buffer
       const base64Parts = profile_picture.split(',');
       const base64Data = base64Parts.length > 1 ? base64Parts[1] : base64Parts[0];
       const binaryStr = atob(base64Data);
@@ -222,13 +264,11 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
         buffer[i] = binaryStr.charCodeAt(i);
       }
 
-      // 2. Put binary file into R2 bucket (PAYSLIP_BUCKET)
       const objectKey = `avatars/avatar_${user_id}.jpg`;
       await env.PAYSLIP_BUCKET.put(objectKey, buffer, {
         httpMetadata: { contentType: 'image/jpeg' }
       });
 
-      // 3. Store local R2 endpoint URL in D1 users table
       const avatarUrl = `/api/student/avatar?user_id=${user_id}`;
       await env.DB.prepare(`
         UPDATE users 

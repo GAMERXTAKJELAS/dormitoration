@@ -1,0 +1,111 @@
+.appeal-container {
+    max-width: 800px;
+    margin: 90px auto 40px;
+    padding: 0 20px;
+}
+
+.appeal-card {
+    background: var(--card-bg);
+    border: 1px solid var(--sidebar-color);
+    border-radius: 16px;
+    padding: 30px;
+}
+
+.back-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 15px;
+}
+
+.appeal-header h1 {
+    font-size: 1.8rem;
+    color: var(--text-color);
+    margin-bottom: 6px;
+}
+
+.appeal-header p {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    margin-bottom: 25px;
+}
+
+.info-summary-box {
+    background: var(--body-color);
+    border: 1px solid var(--sidebar-color);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 25px;
+}
+
+.summary-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--primary-color);
+    margin-bottom: 14px;
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.summary-item label {
+    display: block;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.summary-item span {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.return-reason-banner {
+    display: flex;
+    gap: 12px;
+    background: rgba(255, 107, 107, 0.12);
+    border: 1px solid #ff6b6b;
+    border-radius: 10px;
+    padding: 14px 16px;
+    color: #ff6b6b;
+    font-size: 0.9rem;
+}
+
+.return-reason-banner i {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.textarea-input {
+    resize: vertical;
+    font-family: inherit;
+}
+
+.required {
+    color: #ff6b6b;
+}
+
+.help-text {
+    display: block;
+    margin-top: 5px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 14px;
+    margin-top: 25px;
+}
