@@ -17,24 +17,24 @@
     --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Light Mode Overrides (iFixit Framed Style) */
+/* Light Mode Overrides */
 .light-mode {
-    --body-color: #f8fafc;           /* Anti-glare soft off-white background */
+    --body-color: #f8fafc;
     --sidebar-color: #059669;        /* Rich Emerald Green Header Bar */
-    --primary-color: #059669;        /* Accessible Emerald Green */
+    --primary-color: #059669;
     --primary-hover: #047857;
     --card-bg: #ffffff;
     --card-border: #e2e8f0;
-    --text-color: #1e293b;           /* High-contrast dark slate body text */
-    --text-heading: #0f172a;        /* Deep navy for headings */
+    --text-color: #1e293b;
+    --text-heading: #0f172a;
     --text-muted: #64748b;
     --input-bg: #f1f5f9;
     --input-border: #cbd5e1;
-    --footer-bg: #0f172a;            /* Dark Slate Footer Bar */
+    --footer-bg: #0f172a;
 }
 
 /* ==========================================================================
-   2. BASE & RESET STYLES (Enables Smooth Page Scroll)
+   2. BASE & RESET STYLES
    ========================================================================== */
 * {
     margin: 0;
@@ -91,10 +91,11 @@ body {
     font-size: 1.4rem;
     font-weight: 700;
     color: var(--primary-color);
+    white-space: nowrap;
 }
 
 .light-mode .brand {
-    color: #ffffff !important;      /* White logo on Green Header in Light Mode */
+    color: #ffffff !important;
 }
 
 .nav-links {
@@ -108,10 +109,11 @@ body {
     color: var(--text-color);
     font-weight: 500;
     transition: var(--transition-smooth);
+    white-space: nowrap;
 }
 
 .light-mode .nav-links a {
-    color: #ffffff !important;      /* White navigation links in Light Mode */
+    color: #ffffff !important;
 }
 
 .light-mode .nav-links a:hover {
@@ -126,11 +128,12 @@ body {
     border-radius: 6px;
     font-weight: 600;
     text-decoration: none;
+    white-space: nowrap;
 }
 
 .light-mode .nav-links .btn-primary {
     background-color: #ffffff !important;
-    color: #059669 !important;      /* Emerald text inside white header button */
+    color: #059669 !important;
 }
 
 .light-mode .nav-links .btn-primary:hover {
@@ -162,8 +165,9 @@ body {
     flex: 1;
     width: 100%;
     min-height: 100vh;
-    padding-top: 120px;            /* Space for fixed top bar */
-    padding-bottom: 80px;          /* Space above footer */
+    min-height: 100dvh;
+    padding-top: 120px;
+    padding-bottom: 80px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -186,7 +190,7 @@ body {
 }
 
 .signup-card {
-    max-width: 460px;               /* Slightly wider card for longer registration form */
+    max-width: 460px;
 }
 
 .header {
@@ -261,7 +265,6 @@ body {
     box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
 }
 
-/* Options inside dropdown */
 .input-group select option,
 .form-group select option {
     background-color: var(--card-bg);
@@ -284,7 +287,7 @@ body {
 }
 
 .dark-mode .btn-submit {
-    color: #121212;                 /* Dark text on primary button in Dark Mode */
+    color: #121212;
 }
 
 .btn-submit:hover {
@@ -336,7 +339,7 @@ body {
 }
 
 /* ==========================================================================
-   7. MAIN FOOTER (Reveals on Scroll)
+   7. MAIN FOOTER
    ========================================================================== */
 .main-footer {
     width: 100%;
@@ -353,25 +356,50 @@ body {
 /* ==========================================================================
    8. RESPONSIVE BREAKPOINTS
    ========================================================================== */
-@media screen and (max-width: 600px) {
-    .top-nav {
-        height: 60px;
+@media screen and (max-width: 650px) {
+    .nav-container {
+        width: 92%;
     }
-    
-    .brand span {
-        font-size: 1.1rem;
+
+    .brand {
+        font-size: 1.15rem;
+        gap: 6px;
+    }
+
+    .brand i {
+        font-size: 1.2rem;
     }
 
     .nav-links {
-        gap: 12px;
+        gap: 10px;
     }
 
-    .login-card {
-        padding: 25px 20px;
+    /* Hide text-only links on mobile viewport to prevent overlapping */
+    .nav-links .nav-link-item {
+        display: none;
+    }
+
+    .nav-links .btn-primary {
+        padding: 6px 12px;
+        font-size: 0.85rem;
+    }
+
+    .theme-btn {
+        font-size: 1.25rem;
+        padding: 4px;
     }
 
     .login-container {
         padding-top: 90px;
-        padding-bottom: 50px;
+        padding-bottom: 40px;
+    }
+
+    .login-card {
+        padding: 28px 20px;
+        width: 92%;
+    }
+
+    .header h1 {
+        font-size: 1.5rem;
     }
 }
