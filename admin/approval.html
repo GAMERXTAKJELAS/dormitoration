@@ -99,6 +99,34 @@
             <p>Review, verify, and approve incoming student room applications.</p>
         </header>
 
+        <!-- Summary Cards (display only) -->
+        <section class="summary-cards" id="summary-cards">
+            <div class="summary-card pending">
+                <div class="summary-icon"><i class='bx bx-time-five'></i></div>
+                <div class="summary-info">
+                    <span class="summary-label">Pending</span>
+                    <strong class="summary-value" id="card-pending">0</strong>
+                    <small class="summary-sub">Waiting for admin decision</small>
+                </div>
+            </div>
+            <div class="summary-card ready">
+                <div class="summary-icon"><i class='bx bx-check-circle'></i></div>
+                <div class="summary-info">
+                    <span class="summary-label">Ready to approve</span>
+                    <strong class="summary-value" id="card-ready">0</strong>
+                    <small class="summary-sub">Pending with AI match 80% or more</small>
+                </div>
+            </div>
+            <div class="summary-card attention">
+                <div class="summary-icon"><i class='bx bx-error-circle'></i></div>
+                <div class="summary-info">
+                    <span class="summary-label">Needs attention</span>
+                    <strong class="summary-value" id="card-attention">0</strong>
+                    <small class="summary-sub">Pending under 80% or not reviewed</small>
+                </div>
+            </div>
+        </section>
+
         <!-- Main Card containing both Toolbar & Table -->
         <div class="content-card">
 
@@ -139,13 +167,16 @@
                             <th>Name</th>
                             <th>Program</th>
                             <th>Session</th>
+                            <th class="sortable" id="sort-ai" title="Sort by AI Match">
+                                AI Match <i class='bx bx-sort-alt-2' id="sort-ai-icon"></i>
+                            </th>
                             <th>Status</th>
                             <th style="text-align: right;">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="approval-table-body">
                         <tr>
-                            <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 40px 20px;">
+                            <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 40px 20px;">
                                 Loading student applications...
                             </td>
                         </tr>

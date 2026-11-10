@@ -5,6 +5,7 @@
 
 let allStudents = [];
 let currentFilter = 'all';
+let aiSortDir = null; // null = newest first (default) | 'desc' = highest AI match first | 'asc' = lowest first
 
 document.addEventListener("DOMContentLoaded", () => {
     const searchInput = document.getElementById("search-student");
@@ -29,7 +30,68 @@ document.addEventListener("DOMContentLoaded", () => {
     if (csvFileInput) {
         csvFileInput.addEventListener("change", handleCSVUpload);
     }
+
+    // Click the "AI Match" header: highest first, click again to reverse
+    const sortHeader = document.getElementById("sort-ai");
+    if (sortHeader) {
+        sortHeader.addEventListener("click", () => {
+            aiSortDir = aiSortDir === 'desc' ? 'asc' : 'desc';
+            renderTable();
+        });
+    }
 });
+
+// ---------------------------------------------------------------------------
+// AI Match helpers (percentage only: green >= 80, yellow 50-79, red < 50)
+// ---------------------------------------------------------------------------
+function getAiScore(student) {
+    if (!student || student.ai_score === null || student.ai_score === undefined || student.ai_score === '') return null;
+    if (student.ai_status && String(student.ai_status).toLowerCase() !== 'done') return null;
+    const n = Number(student.ai_score);
+    if (!Number.isFinite(n)) return null;
+    return Math.max(0, Math.min(100, Math.round(n)));
+}
+
+function aiKind(score) {
+    return score >= 80 ? 'ok' : (score >= 50 ? 'warn' : 'bad');
+}
+
+function renderAiCell(student) {
+    const score = getAiScore(student);
+    if (score === null) return `<span class="ai-none">Not reviewed</span>`;
+    return `
+        <div class="ai-match ${aiKind(score)}" title="AI match: ${score}%">
+            <div class="ai-bar"><div class="ai-bar-fill" style="width: ${score}%;"></div></div>
+            <span class="ai-pct">${score}%</span>
+        </div>`;
+}
+
+function updateSortIcon() {
+    const icon = document.getElementById("sort-ai-icon");
+    const header = document.getElementById("sort-ai");
+    if (!icon || !header) return;
+    icon.className = 'bx ' + (aiSortDir === 'desc' ? 'bx-sort-down' : aiSortDir === 'asc' ? 'bx-sort-up' : 'bx-sort-alt-2');
+    header.classList.toggle('active', aiSortDir !== null);
+}
+
+// Summary cards (display only), counted from ALL students regardless of search / filter
+function updateSummaryCards() {
+    const pending = allStudents.filter(s => (s.status || 'pending').toLowerCase() === 'pending');
+    const ready = pending.filter(s => { const sc = getAiScore(s); return sc !== null && sc >= 80; });
+    const attention = pending.filter(s => { const sc = getAiScore(s); return sc === null || sc < 80; });
+
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    set("card-pending", pending.length);
+    set("card-ready", ready.length);
+    set("card-attention", attention.length);
+}
+
+function findStudent(userId, appId) {
+    return allStudents.find(s =>
+        (userId !== 'null' && userId !== null && Number(s.user_id) === Number(userId)) ||
+        (appId !== 'null' && appId !== null && Number(s.application_id) === Number(appId))
+    );
+}
 
 // Fetch application data from Cloudflare Worker Endpoint
 async function loadApplications() {
@@ -75,6 +137,9 @@ function renderTable() {
     if (!tbody) return;
     tbody.innerHTML = "";
 
+    updateSummaryCards();
+    updateSortIcon();
+
     const filtered = allStudents.filter(item => {
         // 1. Status Filter (All, Pending, Approved, Returned)
         const status = (item.status || "pending").toLowerCase();
@@ -91,6 +156,17 @@ function renderTable() {
 
         return statusMatch && searchMatch;
     });
+
+    // Sort by AI Match (students without a review always stay at the bottom)
+    if (aiSortDir) {
+        filtered.sort((a, b) => {
+            const sa = getAiScore(a), sb = getAiScore(b);
+            if (sa === null && sb === null) return 0;
+            if (sa === null) return 1;
+            if (sb === null) return -1;
+            return aiSortDir === 'desc' ? sb - sa : sa - sb;
+        });
+    }
 
     if (filtered.length === 0) {
         showEmptyTable("Tiada permohonan pelajar dijumpai.");
@@ -137,6 +213,7 @@ function renderTable() {
             </td>
             <td>${student.program || 'Pending Fill'}</td>
             <td>${student.session_id || '-'}</td>
+            <td>${renderAiCell(student)}</td>
             <td>
                 <span class="badge ${badgeClass}">${statusLabel}</span>
                 ${isFlagged ? `<span class="badge danger" title="AI flagged an attached document as suspicious" style="margin-left: 6px;"><i class='bx bx-error'></i> Check File</span>` : ''}
@@ -173,7 +250,7 @@ function showEmptyTable(message) {
     if (tbody) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 30px;">
+                <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">
                     ${message}
                 </td>
             </tr>
@@ -326,13 +403,27 @@ async function updateApplicationStatus(userId, appId, newStatus) {
     const isApprove = newStatus !== 'returned';
     const actionText = isApprove ? 'approve' : 'return';
 
+    // Show the AI match percentage inside the Approve popup
+    const aiScore = isApprove ? getAiScore(findStudent(userId, appId)) : null;
+    const lowAi = aiScore !== null && aiScore < 50;
+    let popupMessage = `Are you sure you want to ${actionText} this application?`;
+    if (isApprove) {
+        if (aiScore === null) {
+            popupMessage = `No AI review yet for this student. Are you sure you want to approve this application?`;
+        } else if (lowAi) {
+            popupMessage = `AI match: ${aiScore}%. AI does not recommend this student. Approve anyway?`;
+        } else {
+            popupMessage = `AI match: ${aiScore}%. Are you sure you want to approve this application?`;
+        }
+    }
+
     const confirmed = await showConfirmModal({
         title: isApprove ? 'Approve Application?' : 'Return Application?',
-        message: `Are you sure you want to ${actionText} this application?`,
-        iconClass: isApprove ? 'bx-check-circle' : 'bx-undo',
-        iconColor: isApprove ? 'var(--primary-color)' : '#f2994a',
-        confirmText: isApprove ? 'Yes, Approve' : 'Yes, Return',
-        confirmClass: isApprove ? 'btn-confirm' : 'btn-danger'
+        message: popupMessage,
+        iconClass: lowAi ? 'bx-error' : (isApprove ? 'bx-check-circle' : 'bx-undo'),
+        iconColor: lowAi ? '#ef4444' : (isApprove ? 'var(--primary-color)' : '#f2994a'),
+        confirmText: lowAi ? 'Approve Anyway' : (isApprove ? 'Yes, Approve' : 'Yes, Return'),
+        confirmClass: isApprove && !lowAi ? 'btn-confirm' : 'btn-danger'
     });
     if (!confirmed) return;
 
@@ -367,10 +458,7 @@ async function updateApplicationStatus(userId, appId, newStatus) {
             }
 
             // Update local state for immediate response
-            const target = allStudents.find(s => 
-                (userId !== 'null' && Number(s.user_id) === Number(userId)) || 
-                (appId !== 'null' && Number(s.application_id) === Number(appId))
-            );
+            const target = findStudent(userId, appId);
             if (target) {
                 target.status = newStatus;
             }

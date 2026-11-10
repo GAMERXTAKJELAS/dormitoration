@@ -68,7 +68,9 @@ export async function handleAdminApplications(request, env, headers) {
   // -------------------------------------------------------------------------
   if (method === 'GET' && url.pathname === '/api/admin/applications') {
     try {
-      const query = `
+      // AI review columns come from ai_reviews (LEFT JOIN). If that table does not exist yet,
+      // the list still loads and the AI Match column simply shows "Not reviewed".
+      const buildQuery = (withAi) => `
         SELECT 
           u.id AS user_id,
           h.id AS application_id,
@@ -89,14 +91,28 @@ export async function handleAdminApplications(request, env, headers) {
           (
             SELECT COUNT(*) FROM application_attachments aa
             WHERE aa.application_id = h.id AND aa.ai_flagged = 1
-          ) AS flagged_attachment_count
+          ) AS flagged_attachment_count,
+          ${withAi
+            ? 'r.score AS ai_score, r.verdict AS ai_verdict, r.status AS ai_status'
+            : 'NULL AS ai_score, NULL AS ai_verdict, NULL AS ai_status'}
         FROM users u
         LEFT JOIN hostel_applications h ON u.id = h.user_id
+        ${withAi ? 'LEFT JOIN ai_reviews r ON r.application_id = h.id' : ''}
         WHERE u.role != 'admin' OR u.role IS NULL
         ORDER BY h.id DESC
       `;
 
-      const { results } = await env.DB.prepare(query).all();
+      let results;
+      try {
+        ({ results } = await env.DB.prepare(buildQuery(true)).all());
+      } catch (aiErr) {
+        if (/no such (table|column)/i.test(aiErr.message)) {
+          console.error('ai_reviews unavailable, loading list without AI scores:', aiErr.message);
+          ({ results } = await env.DB.prepare(buildQuery(false)).all());
+        } else {
+          throw aiErr;
+        }
+      }
 
       return new Response(JSON.stringify({ success: true, data: results || [] }), {
         status: 200,
