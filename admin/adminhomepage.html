@@ -24,37 +24,51 @@
         </div>
     </div>
 
-    <!-- Top Navigation -->
+    <!-- Top Navigation Header -->
     <header class="top-nav">
         <div class="nav-container">
-            <div class="brand">
+            <!-- Brand Logo -->
+            <a href="/adminhomepage.html" class="brand" title="Dormitoration Homepage">
                 <i class='bx bxs-building-house'></i>
-                <span>Dormitoration</span>
-            </div>
+                <span class="brand-text">Dormitoration</span>
+            </a>
 
+            <!-- Navigation Links with Active Page Visualizer -->
             <nav class="nav-links">
-                <a href="about.html" class="hide-mobile">About Us</a>
+                <!-- Home Link (Active Page) -->
+                <a href="/adminhomepage.html" class="nav-item active" title="Admin Home" aria-label="Admin Home">
+                    <i class='bx bxs-home'></i>
+                    <span class="nav-label">Home</span>
+                    <span class="active-indicator"></span>
+                </a>
 
                 <!-- Admin Controls -->
                 <div class="admin-controls">
-                    <a href="/admin/dashboard.html" class="nav-item">
-                        <i class='bx bxs-dashboard'></i> <span class="hide-mobile">Dashboard</span>
+                    <a href="/admin/dashboard.html" class="nav-item" title="Dashboard & Room Allocation" aria-label="Dashboard">
+                        <i class='bx bxs-dashboard'></i>
+                        <span class="nav-label">Dashboard</span>
                     </a>
-                    <a href="/admin/approval.html" class="nav-item">
-                        <i class='bx bxs-check-shield'></i> <span class="hide-mobile">Approval</span>
+                    <a href="/admin/approval.html" class="nav-item" title="Application Review & Approval" aria-label="Approval">
+                        <i class='bx bxs-check-shield'></i>
+                        <span class="nav-label">Approval</span>
                     </a>
-                    <a href="/admin/report.html" class="nav-item">
-                        <i class='bx bxs-report'></i> <span class="hide-mobile">Report</span>
+                    <a href="/admin/report.html" class="nav-item" title="Reports & System Analytics" aria-label="Report">
+                        <i class='bx bxs-report'></i>
+                        <span class="nav-label">Report</span>
                     </a>
                 </div>
                 
-                <a href="javascript:void(0)" onclick="openLogoutModal()" class="nav-item logout-link">
-                    <i class='bx bx-log-out'></i> <span class="hide-mobile">Log Out</span>
-                </a>
-                
-                <button id="theme-toggle" class="theme-btn" aria-label="Toggle Theme">
-                    <i class='bx bx-moon' id="theme-icon"></i>
-                </button>
+                <!-- Utilities (Theme & Logout) -->
+                <div class="nav-utilities">
+                    <button id="theme-toggle" class="theme-btn" aria-label="Toggle Theme" title="Toggle Light/Dark Theme">
+                        <i class='bx bx-moon' id="theme-icon"></i>
+                    </button>
+
+                    <a href="javascript:void(0)" onclick="openLogoutModal()" class="nav-item logout-link" title="Log Out of Admin System" aria-label="Log Out">
+                        <i class='bx bx-log-out'></i>
+                        <span class="nav-label">Log Out</span>
+                    </a>
+                </div>
             </nav>
         </div>
     </header>
@@ -100,9 +114,8 @@
                     </div>
                 </div>
 
-                <!-- 2. Professional Action Cards -->
+                <!-- 2. Action Cards Grid -->
                 <div class="shortcuts-grid">
-                    <!-- Goes to Approval Page -->
                     <a href="/admin/approval.html" class="shortcut-card">
                         <div class="card-header">
                             <div class="card-icon"><i class='bx bxs-user-check'></i></div>
@@ -112,7 +125,6 @@
                         <p>Verify student details, inspect MyKad, and approve applications.</p>
                     </a>
 
-                    <!-- Goes to Dashboard Page -->
                     <a href="/admin/dashboard.html" class="shortcut-card">
                         <div class="card-header">
                             <div class="card-icon"><i class='bx bxs-door-open'></i></div>
@@ -122,7 +134,6 @@
                         <p>Assign approved students to hostel blocks and manage capacity.</p>
                     </a>
 
-                    <!-- Goes to Report Page -->
                     <a href="/admin/report.html" class="shortcut-card">
                         <div class="card-header">
                             <div class="card-icon"><i class='bx bxs-bar-chart-alt-2'></i></div>
