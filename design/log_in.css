@@ -39,12 +39,12 @@
     font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
 
-/* --- 1. ENSURE HTML & BODY ALLOW SCROLLING --- */
+/* --- HTML & BODY SCROLL --- */
 html, body {
     width: 100%;
     min-height: 100%;
     overflow-x: hidden;
-    overflow-y: auto; /* Forces browser vertical scrollbar when needed */
+    overflow-y: auto;
 }
 
 body {
@@ -54,6 +54,7 @@ body {
     color: var(--text-color);
     transition: background-color var(--transition-smooth), color var(--transition-smooth);
 }
+
 /* --- TOP NAVIGATION HEADER --- */
 .top-nav {
     position: fixed;
@@ -85,6 +86,7 @@ body {
     font-size: 1.4rem;
     font-weight: 700;
     color: var(--primary-color);
+    white-space: nowrap;
 }
 
 .light-mode .brand {
@@ -102,6 +104,7 @@ body {
     color: var(--text-color);
     font-weight: 500;
     transition: var(--transition-smooth);
+    white-space: nowrap;
 }
 
 .light-mode .nav-links a {
@@ -120,6 +123,7 @@ body {
     border-radius: 6px;
     font-weight: 600;
     text-decoration: none;
+    white-space: nowrap;
 }
 
 .light-mode .nav-links .btn-primary {
@@ -149,31 +153,18 @@ body {
     color: #ffffff !important;
 }
 
-/* --- 2. MAIN LOGIN CONTAINER (Forces Height for Scroll) --- */
+/* --- MAIN LOGIN CONTAINER --- */
 .login-container {
     flex: 1;
     width: 100%;
-    /* Setting min-height to 100vh ensures the page is tall enough to scroll down to footer */
-    min-height: 100vh; 
-    padding-top: 120px; /* Space for fixed navbar */
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding-top: 120px;
     padding-bottom: 80px;
     display: flex;
     justify-content: center;
     align-items: center;
     background: radial-gradient(circle at center, rgba(5, 150, 105, 0.05) 0%, transparent 70%);
-}
-
-/* --- 3. FOOTER (Positioned below the container) --- */
-.main-footer {
-    width: 100%;
-    background-color: var(--footer-bg);
-    color: #94a3b8;
-    text-align: center;
-    padding: 24px 0;
-    font-size: 0.85rem;
-    border-top: 2px solid var(--primary-color);
-    position: relative; /* Sits naturally at the bottom of the page flow */
-    z-index: 10;
 }
 
 /* --- LOGIN CARD --- */
@@ -219,12 +210,35 @@ body {
     margin-bottom: 20px;
 }
 
+.label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
 .input-group label {
     display: block;
     font-size: 0.85rem;
     font-weight: 600;
-    margin-bottom: 8px;
     color: var(--text-color);
+}
+
+.label-row label {
+    margin-bottom: 0;
+}
+
+.forgot-link {
+    font-size: 0.8rem;
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color var(--transition-smooth);
+}
+
+.forgot-link:hover {
+    text-decoration: underline;
+    color: var(--primary-hover);
 }
 
 .input-group input {
@@ -274,12 +288,88 @@ body {
 }
 
 /* --- STATUS MESSAGES --- */
-#message {
+#message, #resetMessage {
     margin-top: 20px;
     font-size: 0.85rem;
     text-align: center;
     min-height: 20px;
     font-weight: 600;
+}
+
+/* --- RESET PASSWORD MODAL --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 3000;
+    backdrop-filter: blur(5px);
+}
+
+.reset-modal-content {
+    background: var(--card-bg);
+    padding: 30px;
+    border-radius: 16px;
+    border: 1px solid var(--card-border);
+    max-width: 440px;
+    width: 90%;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    animation: popIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark-mode .reset-modal-content {
+    border-color: var(--primary-color);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: var(--primary-color);
+    font-size: 1.3rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.modal-subtitle {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 1.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 4px;
+    transition: color 0.2s ease;
+}
+
+.btn-icon:hover {
+    color: var(--primary-color);
+}
+
+@keyframes popIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
 }
 
 /* --- SIGN UP LINK FOOTER --- */
@@ -306,7 +396,7 @@ body {
     text-decoration: underline;
 }
 
-/* --- MAIN FOOTER (Reveals on Scroll) --- */
+/* --- MAIN FOOTER --- */
 .main-footer {
     width: 100%;
     background-color: var(--footer-bg);
@@ -315,9 +405,60 @@ body {
     padding: 24px 0;
     font-size: 0.85rem;
     border-top: 2px solid var(--primary-color);
-    margin-top: auto; /* Pushes footer to the bottom naturally */
+    margin-top: auto;
 }
 
 .status-loading { color: var(--text-color); }
 .status-success { color: var(--primary-color); }
 .status-error   { color: #ef4444; }
+
+/* =========================================================
+   MOBILE RESPONSIVE BREAKPOINTS
+   ========================================================= */
+@media screen and (max-width: 650px) {
+    .nav-container {
+        width: 92%;
+    }
+
+    .brand {
+        font-size: 1.15rem;
+        gap: 6px;
+    }
+
+    .brand i {
+        font-size: 1.2rem;
+    }
+
+    .nav-links {
+        gap: 10px;
+    }
+
+    /* Hide text-only links on mobile viewport to prevent overlapping */
+    .nav-links .nav-link-item {
+        display: none;
+    }
+
+    .nav-links .btn-primary {
+        padding: 6px 12px;
+        font-size: 0.85rem;
+    }
+
+    .theme-btn {
+        font-size: 1.25rem;
+        padding: 4px;
+    }
+
+    .login-container {
+        padding-top: 90px;
+        padding-bottom: 40px;
+    }
+
+    .login-card {
+        padding: 28px 20px;
+        width: 92%;
+    }
+
+    .header h1 {
+        font-size: 1.5rem;
+    }
+}

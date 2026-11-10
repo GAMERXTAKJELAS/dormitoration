@@ -19,8 +19,8 @@
             </div>
 
             <nav class="nav-links">
-                <a href="/index.html">Home</a>
-                <a href="/index.html#about">About Us</a>
+                <a href="/index.html" class="nav-link-item">Home</a>
+                <a href="/index.html#about" class="nav-link-item">About Us</a>
                 <a href="/sign_up.html" class="btn-primary">Sign Up</a>
                 <button id="theme-toggle" class="theme-btn" aria-label="Toggle Theme">
                     <i class='bx bx-moon' id="theme-icon"></i>
@@ -44,7 +44,10 @@
                 </div>
 
                 <div class="input-group">
-                    <label for="password">Password</label>
+                    <div class="label-row">
+                        <label for="password">Password</label>
+                        <a href="javascript:void(0)" id="forgotPasswordBtn" class="forgot-link">Forgot Password?</a>
+                    </div>
                     <input type="password" id="password" placeholder="Enter password" required autocomplete="current-password">
                 </div>
 
@@ -58,6 +61,45 @@
             </div>
         </div>
     </main>
+
+    <!-- Reset Password Modal Overlay -->
+    <div id="forgotPasswordModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content reset-modal-content">
+            <div class="modal-header">
+                <h2><i class='bx bx-key'></i> Reset Password</h2>
+                <button type="button" class="btn-icon" id="closeResetModalBtn" aria-label="Close modal">
+                    <i class='bx bx-x'></i>
+                </button>
+            </div>
+            <p class="modal-subtitle">Verify your account details to set a new password.</p>
+
+            <form id="forgotPasswordForm">
+                <div class="input-group">
+                    <label for="resetIdentifier">Email or Username</label>
+                    <input type="text" id="resetIdentifier" placeholder="Enter your registered email or username" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="resetVerification">Phone Number (Verification)</label>
+                    <input type="tel" id="resetVerification" placeholder="Enter your registered phone number" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="newPassword">New Password</label>
+                    <input type="password" id="newPassword" placeholder="Enter new password (min. 6 chars)" required minlength="6">
+                </div>
+
+                <div class="input-group">
+                    <label for="confirmNewPassword">Confirm New Password</label>
+                    <input type="password" id="confirmNewPassword" placeholder="Re-enter new password" required minlength="6">
+                </div>
+
+                <button type="submit" class="btn-submit">Reset Password</button>
+            </form>
+
+            <div id="resetMessage"></div>
+        </div>
+    </div>
 
     <!-- Scrollable Footer -->
     <footer class="main-footer">
