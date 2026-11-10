@@ -57,6 +57,8 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
           ha.gender AS gender,
           ha.admin_approval AS admin_approval,
           ha.submission_status AS submission_status,
+          ha.id AS application_id,
+          ha.submitted_at AS submitted_at,
           ha.appeal_reason AS appeal_reason
         FROM users u
         LEFT JOIN hostel_applications ha ON u.id = ha.user_id
@@ -142,8 +144,37 @@ export async function handleStudentRoutes(request, env, corsHeaders) {
         }
       }
 
+      // AI "chance of acceptance" - ONLY the percentage, and only while the student is waiting
+      // for the admin's decision. Reasons and the breakdown never leave the admin side.
+      const isSubmitted = String(data.submission_status || '').toLowerCase() === 'submitted';
+      let acceptanceEstimate = null;
+      if (normalizedStatus === 'pending' && isSubmitted) {
+        acceptanceEstimate = { state: 'unavailable', score: null };
+        try {
+          const submittedMs = data.submitted_at ? new Date(data.submitted_at).getTime() : NaN;
+          const review = data.application_id
+            ? await env.DB.prepare(`SELECT score, status, generated_at FROM ai_reviews WHERE application_id = ?`).bind(data.application_id).first()
+            : null;
+          const reviewMs = review && review.generated_at ? new Date(review.generated_at).getTime() : NaN;
+
+          // A review only counts if it was made AFTER the latest submission (students can re-submit)
+          const isFresh = review && review.status === 'done' && review.score !== null && review.score !== undefined &&
+                          (isNaN(submittedMs) || (!isNaN(reviewMs) && reviewMs >= submittedMs));
+
+          if (isFresh) {
+            acceptanceEstimate = { state: 'ready', score: Math.max(0, Math.min(100, Math.round(Number(review.score)))) };
+          } else if (!isNaN(submittedMs) && Date.now() - submittedMs < 3 * 60 * 1000) {
+            acceptanceEstimate = { state: 'calculating', score: null };   // the AI usually needs 10-30 seconds
+          }
+        } catch (aiErr) {
+          console.error('Acceptance estimate unavailable:', aiErr.message);   // e.g. migration not run yet
+        }
+      }
+
       return new Response(JSON.stringify({
         status: normalizedStatus,
+        submitted: isSubmitted,
+        acceptanceEstimate,
         reason: data.appeal_reason || null,
         roomDetails,
         user: {

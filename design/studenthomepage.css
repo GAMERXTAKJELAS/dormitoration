@@ -542,3 +542,68 @@ body.dark-mode .btn-primary {
         margin-bottom: 20px;
     }
 }
+
+/* --- ACCEPTANCE ESTIMATE RING (submitted application) --- */
+.acceptance-box {
+    margin: 22px auto 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.acceptance-ring { max-width: 100%; height: auto; }
+
+.ring-track {
+    fill: none;
+    stroke: var(--text-muted);
+    stroke-opacity: 0.25;
+    stroke-width: 10;
+}
+
+.ring-progress {
+    fill: none;
+    stroke: var(--primary-color);
+    stroke-width: 10;
+    stroke-linecap: round;
+    stroke-dasharray: 314.16;
+    stroke-dashoffset: 314.16;
+    transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ring-value {
+    font-size: 28px;
+    font-weight: 700;
+    fill: var(--text-color);
+}
+
+/* "Calculating" state: a short arc that spins while the AI works */
+.acceptance-ring.calculating .ring-progress {
+    stroke-dasharray: 70 244.16;
+    stroke-dashoffset: 0;
+    transition: none;
+    transform-box: view-box;
+    transform-origin: 60px 60px;
+    animation: ringSpin 1.2s linear infinite;
+}
+
+@keyframes ringSpin {
+    from { transform: rotate(-90deg); }
+    to   { transform: rotate(270deg); }
+}
+
+.acceptance-label {
+    margin: 12px 0 0;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.acceptance-note {
+    margin: 6px 0 0;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ring-progress { transition: none; }
+    .acceptance-ring.calculating .ring-progress { animation: none; }
+}

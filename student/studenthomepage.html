@@ -173,12 +173,33 @@
                             <span>Account Termination Countdown: <strong id="registrationCountdown">Calculating...</strong></span>
                         </div>
 
-                        <div class="pending-card">
+                        <div class="pending-card" id="notSubmittedCard">
                             <i class='bx bx-time-five' style="font-size: 3.5rem; color: #ffa500; margin-bottom: 10px;"></i>
                             <h2>Account Pending Verification</h2>
                             <p>Your details are currently pending. Please click below to complete your details.</p>
                             <a href="/student/detailinformation.html" class="btn-primary" style="margin-top: 15px; display: inline-block;">
                                 Register Your Room Now!
+                            </a>
+                        </div>
+
+                        <!-- Shown instead of the card above once the student has submitted the application -->
+                        <div class="pending-card submitted-card" id="submittedCard" style="display: none;">
+                            <i class='bx bx-check-circle' style="font-size: 3.5rem; color: var(--primary-color); margin-bottom: 10px;"></i>
+                            <h2>Application Submitted</h2>
+                            <p>Your application is waiting for the admin to review it. Your room will appear here once it is approved.</p>
+
+                            <div class="acceptance-box" id="acceptanceBox" style="display: none;">
+                                <svg class="acceptance-ring" id="acceptanceRing" viewBox="0 0 120 120" width="140" height="140" role="img" aria-label="Estimated chance of acceptance">
+                                    <circle class="ring-track" cx="60" cy="60" r="50"></circle>
+                                    <circle class="ring-progress" id="acceptanceProgress" cx="60" cy="60" r="50" transform="rotate(-90 60 60)"></circle>
+                                    <text id="acceptanceValue" class="ring-value" x="60" y="69" text-anchor="middle">...</text>
+                                </svg>
+                                <p class="acceptance-label" id="acceptanceLabel">Estimated chance of acceptance</p>
+                                <p class="acceptance-note" id="acceptanceNote">Automatic estimate, not the final decision.</p>
+                            </div>
+
+                            <a href="/student/detailinformation.html" class="btn-outline" style="margin-top: 15px;">
+                                <i class='bx bx-show'></i> View my details
                             </a>
                         </div>
                     </div>

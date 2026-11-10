@@ -298,6 +298,7 @@ async function fetchStudentStatus(userId) {
             true,
             data.user
         );
+        renderSubmittedState(data, userId);
 
     } catch (err) {
         console.error('Failed to fetch status from server:', err);
@@ -656,3 +657,114 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+// ==========================================
+// 5. SUBMITTED APPLICATION + ACCEPTANCE ESTIMATE
+// ==========================================
+// The pending screen has two looks: "complete your details" (not submitted yet) and
+// "Application Submitted" with the AI's estimated chance of acceptance (percentage only).
+const RING_CIRCUMFERENCE = 2 * Math.PI * 50;   // matches r="50" in studenthomepage.html
+const ESTIMATE_POLL_MS = 4000;
+const ESTIMATE_POLL_MAX = 15;                  // about one minute, then stop quietly
+let estimatePollTimer = null;
+let estimatePollCount = 0;
+
+// textContent (not innerText): the percentage lives inside an SVG <text>, which has no innerText
+function setEstimateText(id, text) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+}
+
+function stopEstimatePolling() {
+    if (estimatePollTimer) clearTimeout(estimatePollTimer);
+    estimatePollTimer = null;
+}
+
+function renderSubmittedState(data, userId) {
+    const notSubmittedCard = document.getElementById('notSubmittedCard');
+    const submittedCard = document.getElementById('submittedCard');
+    if (!notSubmittedCard || !submittedCard) return;
+
+    stopEstimatePolling();
+
+    const waitingForDecision = !!(data && data.submitted && String(data.status || '').toLowerCase() === 'pending');
+    notSubmittedCard.style.display = waitingForDecision ? 'none' : '';
+    submittedCard.style.display = waitingForDecision ? 'block' : 'none';
+    if (!waitingForDecision) return;
+
+    const estimate = data.acceptanceEstimate || null;
+    renderAcceptanceEstimate(estimate);
+
+    if (estimate && estimate.state === 'calculating') {
+        estimatePollCount = 0;
+        scheduleEstimatePoll(userId);
+    }
+}
+
+function scheduleEstimatePoll(userId) {
+    estimatePollTimer = setTimeout(async () => {
+        estimatePollCount += 1;
+        try {
+            const response = await fetch(`/api/student/status?user_id=${encodeURIComponent(userId)}`);
+            if (response.ok) {
+                const data = await response.json();
+
+                // The admin decided in the meantime -> redraw the whole page for the new status
+                if (String(data.status || '').toLowerCase() !== 'pending') {
+                    await fetchStudentStatus(userId);
+                    return;
+                }
+
+                const estimate = data.acceptanceEstimate || null;
+                renderAcceptanceEstimate(estimate);
+                if (estimate && estimate.state === 'calculating' && estimatePollCount < ESTIMATE_POLL_MAX) {
+                    scheduleEstimatePoll(userId);
+                    return;
+                }
+                if (estimate && estimate.state === 'calculating') renderAcceptanceEstimate(null);  // gave up waiting
+                return;
+            }
+        } catch (err) {
+            console.error('Estimate refresh failed:', err);
+        }
+        if (estimatePollCount < ESTIMATE_POLL_MAX) scheduleEstimatePoll(userId);
+    }, ESTIMATE_POLL_MS);
+}
+
+function renderAcceptanceEstimate(estimate) {
+    const box = document.getElementById('acceptanceBox');
+    const ring = document.getElementById('acceptanceRing');
+    const progress = document.getElementById('acceptanceProgress');
+    if (!box || !ring || !progress) return;
+
+    // Not available (AI off, failed, or too old): show nothing about it - the student just sees "Submitted"
+    if (!estimate || (estimate.state !== 'ready' && estimate.state !== 'calculating')) {
+        box.style.display = 'none';
+        return;
+    }
+
+    box.style.display = 'flex';
+
+    if (estimate.state === 'calculating') {
+        ring.classList.add('calculating');
+        progress.style.strokeDashoffset = '';
+        setEstimateText('acceptanceValue', '...');
+        setEstimateText('acceptanceLabel', 'Working out your estimate...');
+        const note = document.getElementById('acceptanceNote');
+        if (note) note.style.display = 'none';
+        return;
+    }
+
+    const score = Math.max(0, Math.min(100, Math.round(Number(estimate.score) || 0)));
+    ring.classList.remove('calculating');
+    setEstimateText('acceptanceValue', `${score}%`);
+    setEstimateText('acceptanceLabel', 'Estimated chance of acceptance');
+    const note = document.getElementById('acceptanceNote');
+    if (note) note.style.display = '';
+
+    // Start from empty, then animate to the value
+    progress.style.strokeDashoffset = String(RING_CIRCUMFERENCE);
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+        progress.style.strokeDashoffset = String(RING_CIRCUMFERENCE * (1 - score / 100));
+    }));
+}
