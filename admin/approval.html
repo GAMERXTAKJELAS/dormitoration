@@ -1,17 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dormitoration | Application Approval</title>
-    
+
     <link rel="stylesheet" href="/design/dashboard.css">
     <link rel="stylesheet" href="/design/approval.css">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    
+
     <script src="/script/theme.js" defer></script>
     <script src="/script/logout_logic.js" defer></script>
 </head>
+
 <body>
 
     <!-- Logout Modal -->
@@ -50,34 +52,40 @@
         <nav class="navbar">
             <ul class="nav-list">
                 <li><a href="/admin/adminhomepage.html">
-                    <i class='bx bx-home-alt icon'></i>
-                    <span class="text">Home</span>
-                </a></li>
+                        <i class='bx bx-home-alt icon'></i>
+                        <span class="text">Home</span>
+                    </a></li>
 
                 <li><a href="/admin/dashboard.html">
-                    <i class='bx bxs-dashboard icon'></i>
-                    <span class="text">Dashboard</span>
-                </a></li>
+                        <i class='bx bxs-dashboard icon'></i>
+                        <span class="text">Dashboard</span>
+                    </a></li>
+
+                <li><a href="/admin/visualize.html">
+                        <i class='bx bx-scatter-chart icon'></i>
+                        <span class="text">Visualize</span>
+                    </a></li>
 
                 <li><a href="/admin/approval.html" class="active">
-                    <i class='bx bxs-check-shield icon'></i>
-                    <span class="text">Approval</span>
-                </a></li>
+                        <i class='bx bxs-check-shield icon'></i>
+                        <span class="text">Approval</span>
+                    </a></li>
 
                 <li><a href="/admin/report.html">
-                    <i class='bx bxs-report icon'></i>
-                    <span class="text">Report</span>
-                </a></li>
+                        <i class='bx bxs-report icon'></i>
+                        <span class="text">Report</span>
+                    </a></li>
 
                 <li><a href="/admin/setting.html">
-                    <i class='bx bx-cog icon'></i>
-                    <span class="text">Settings</span>
-                </a></li>
+                        <i class='bx bx-cog icon'></i>
+                        <span class="text">Settings</span>
+                    </a></li>
             </ul>
         </nav>
 
         <div class="sidebar-footer" style="position: absolute; bottom: 20px; width: 100%; padding: 0 25px;">
-            <button id="theme-toggle" class="theme-btn" style="background:none; border:none; cursor:pointer; color:var(--text-color); display:flex; align-items:center; gap:20px;">
+            <button id="theme-toggle" class="theme-btn"
+                style="background:none; border:none; cursor:pointer; color:var(--text-color); display:flex; align-items:center; gap:20px;">
                 <i class='bx bx-moon' id="theme-icon" style="font-size: 22px;"></i>
                 <span class="text">Theme</span>
             </button>
@@ -93,14 +101,15 @@
 
         <!-- Main Card containing both Toolbar & Table -->
         <div class="content-card">
-            
+
             <!-- Toolbar Container -->
             <div class="table-header-toolbar">
                 <div class="left-controls">
                     <!-- Search Input -->
                     <div class="search-box">
                         <i class='bx bx-search search-icon'></i>
-                        <input type="text" id="search-student" placeholder="Search student by name, phone, email..." class="input-field">
+                        <input type="text" id="search-student" placeholder="Search student by name, phone, email..."
+                            class="input-field">
                     </div>
 
                     <!-- Filter Pill Segment -->
@@ -149,4 +158,5 @@
 
     <script src="/script/approval.js"></script>
 </body>
+
 </html>

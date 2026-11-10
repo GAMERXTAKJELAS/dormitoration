@@ -1,19 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dormitoration | Reports</title>
-    
+
     <link rel="stylesheet" href="/design/dashboard.css">
     <link rel="stylesheet" href="/design/report.css">
     <link rel="stylesheet" href="/design/adminreport.css">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    
+
     <script src="/script/theme.js" defer></script>
     <script src="/script/logout_logic.js" defer></script>
     <script src="/script/adminreport.js" defer></script>
 </head>
+
 <body>
 
     <!-- Logout Modal -->
@@ -37,7 +39,8 @@
                     <h2 id="detailTitle"></h2>
                     <div id="detailBadges" class="rpt-badges"></div>
                 </div>
-                <button type="button" class="rpt-close" id="detailCloseX" aria-label="Close"><i class='bx bx-x'></i></button>
+                <button type="button" class="rpt-close" id="detailCloseX" aria-label="Close"><i
+                        class='bx bx-x'></i></button>
             </div>
 
             <div id="detailMeta" class="rpt-meta"></div>
@@ -57,20 +60,24 @@
 
             <div class="rpt-modal-actions">
                 <button type="button" class="rpt-btn rpt-btn-ghost" id="detailCloseBtn">Close</button>
-                <button type="button" class="rpt-btn rpt-btn-primary" id="detailSolveBtn" style="display:none;"><i class='bx bx-check-circle'></i> Mark as Solved</button>
-                <button type="button" class="rpt-btn rpt-btn-ghost" id="detailReopenBtn" style="display:none;"><i class='bx bx-undo'></i> Reopen</button>
+                <button type="button" class="rpt-btn rpt-btn-primary" id="detailSolveBtn" style="display:none;"><i
+                        class='bx bx-check-circle'></i> Mark as Solved</button>
+                <button type="button" class="rpt-btn rpt-btn-ghost" id="detailReopenBtn" style="display:none;"><i
+                        class='bx bx-undo'></i> Reopen</button>
             </div>
         </div>
     </div>
 
     <!-- Solve Confirmation Modal -->
     <div id="solveModal" class="modal-overlay rpt-overlay rpt-overlay-top" style="display:none;">
-        <div class="modal-content rpt-modal rpt-modal-small" role="dialog" aria-modal="true" aria-labelledby="solveTitle">
+        <div class="modal-content rpt-modal rpt-modal-small" role="dialog" aria-modal="true"
+            aria-labelledby="solveTitle">
             <i class='bx bx-check-circle' style="font-size: 3rem; color: var(--primary-color);"></i>
             <h2 id="solveTitle">Mark as solved?</h2>
             <p id="solveText" class="rpt-solve-text"></p>
             <label for="solveNote" class="rpt-label">Note for the student (optional)</label>
-            <textarea id="solveNote" class="rpt-textarea" rows="3" maxlength="500" placeholder="e.g. Light bulb replaced on 20 Oct"></textarea>
+            <textarea id="solveNote" class="rpt-textarea" rows="3" maxlength="500"
+                placeholder="e.g. Light bulb replaced on 20 Oct"></textarea>
             <p id="solveError" class="rpt-error" style="display:none;"></p>
             <div class="modal-btns">
                 <button type="button" class="rpt-btn rpt-btn-ghost" id="solveCancelBtn">Cancel</button>
@@ -91,34 +98,40 @@
         <nav class="navbar">
             <ul class="nav-list">
                 <li><a href="/admin/adminhomepage.html">
-                    <i class='bx bx-home-alt icon'></i>
-                    <span class="text">Home</span>
-                </a></li>
+                        <i class='bx bx-home-alt icon'></i>
+                        <span class="text">Home</span>
+                    </a></li>
 
                 <li><a href="/admin/dashboard.html">
-                    <i class='bx bxs-dashboard icon'></i>
-                    <span class="text">Dashboard</span>
-                </a></li>
+                        <i class='bx bxs-dashboard icon'></i>
+                        <span class="text">Dashboard</span>
+                    </a></li>
+
+                <li><a href="/admin/visualize.html">
+                        <i class='bx bx-scatter-chart icon'></i>
+                        <span class="text">Visualize</span>
+                    </a></li>
 
                 <li><a href="/admin/approval.html">
-                    <i class='bx bxs-check-shield icon'></i>
-                    <span class="text">Approval</span>
-                </a></li>
+                        <i class='bx bxs-check-shield icon'></i>
+                        <span class="text">Approval</span>
+                    </a></li>
 
                 <li><a href="/admin/report.html" class="active">
-                    <i class='bx bxs-report icon'></i>
-                    <span class="text">Report</span>
-                </a></li>
+                        <i class='bx bxs-report icon'></i>
+                        <span class="text">Report</span>
+                    </a></li>
 
                 <li><a href="/admin/setting.html">
-                    <i class='bx bx-cog icon'></i>
-                    <span class="text">Settings</span>
-                </a></li>
+                        <i class='bx bx-cog icon'></i>
+                        <span class="text">Settings</span>
+                    </a></li>
             </ul>
         </nav>
 
         <div class="sidebar-footer" style="position: absolute; bottom: 20px; width: 100%; padding: 0 25px;">
-            <button id="theme-toggle" class="theme-btn" style="background:none; border:none; cursor:pointer; color:var(--text-color); display:flex; align-items:center; gap:20px;">
+            <button id="theme-toggle" class="theme-btn"
+                style="background:none; border:none; cursor:pointer; color:var(--text-color); display:flex; align-items:center; gap:20px;">
                 <i class='bx bx-moon' id="theme-icon" style="font-size: 22px;"></i>
                 <span class="text">Theme</span>
             </button>
@@ -130,7 +143,8 @@
         <header class="report-header">
             <div>
                 <h1>Facility Reports</h1>
-                <p style="color: var(--text-muted, #64748b); margin-top: 4px; font-size: 0.9rem;">Room and facility problems reported by students. Click a report to see the details and photo.</p>
+                <p style="color: var(--text-muted, #64748b); margin-top: 4px; font-size: 0.9rem;">Room and facility
+                    problems reported by students. Click a report to see the details and photo.</p>
             </div>
             <div class="report-actions">
                 <button class="btn-export" id="btnExport"><i class='bx bx-export'></i> Export CSV</button>
@@ -139,18 +153,22 @@
 
         <!-- Container Card -->
         <div class="content-card">
-            
+
             <!-- Filters Toolbar -->
             <div class="filter-section">
                 <div class="search-box">
                     <i class='bx bx-search search-icon'></i>
-                    <input type="text" id="searchInput" placeholder="Search student, title or location..." class="input-field">
+                    <input type="text" id="searchInput" placeholder="Search student, title or location..."
+                        class="input-field">
                 </div>
 
                 <div class="rpt-tabs" id="rptTabs" role="tablist">
-                    <button type="button" class="rpt-tab active" data-filter="all" role="tab">All <span class="rpt-count" id="countAll">0</span></button>
-                    <button type="button" class="rpt-tab" data-filter="active" role="tab">Active <span class="rpt-count" id="countActive">0</span></button>
-                    <button type="button" class="rpt-tab" data-filter="inactive" role="tab">Inactive <span class="rpt-count" id="countInactive">0</span></button>
+                    <button type="button" class="rpt-tab active" data-filter="all" role="tab">All <span
+                            class="rpt-count" id="countAll">0</span></button>
+                    <button type="button" class="rpt-tab" data-filter="active" role="tab">Active <span class="rpt-count"
+                            id="countActive">0</span></button>
+                    <button type="button" class="rpt-tab" data-filter="inactive" role="tab">Inactive <span
+                            class="rpt-count" id="countInactive">0</span></button>
                 </div>
             </div>
 
@@ -169,7 +187,9 @@
                         </tr>
                     </thead>
                     <tbody id="reportTableBody">
-                        <tr><td colspan="7" class="rpt-empty">Loading reports...</td></tr>
+                        <tr>
+                            <td colspan="7" class="rpt-empty">Loading reports...</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -178,4 +198,5 @@
     </main>
 
 </body>
+
 </html>
